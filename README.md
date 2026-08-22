@@ -8,13 +8,12 @@ Built with **Flutter/Dart** for Android, iOS, and Web.
 
 **FlowConnect** is a grid-based puzzle game. Tap tiles to rotate them 90° clockwise and create an unbroken path from Source to Sink. Tiles fill with color as they connect, giving instant visual feedback.
 
-### Tile Types
-- **Line (`I`)** — Straight segment
-- **Corner (`L`)** — 90° curve  
-- **T-Junction (`T`)** — Three-way intersection
-- **Cross (`+`)** — Four-way intersection
-- **Bridge/Tunnel** — Two paths cross without connecting
-- **Portal** — Teleports flow to another grid position
+### Tile Types (v1.1)
+- **Line (`I`)** — Straight segment (2 rotations)
+- **Corner (`L`)** — 90° curve (4 rotations)
+- **T-Junction (`T`)** — Three-way intersection (4 rotations)
+- **Source** ⊕ — Fixed starting point (1 opening)
+- **Sink** ⊗ — Fixed endpoint (1 opening)
 
 ### Difficulty Progression
 1. **Easy** — `I` and `L` tiles, small grids
@@ -53,4 +52,4 @@ lib/
 
 ## Version
 
-0.1.0
+1.0.0

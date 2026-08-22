@@ -9,3 +9,5 @@ build/
 *.log
 .DS_Store
 .env
+coverage/
+.gemini/
