@@ -44,3 +44,23 @@ ci: analyze test
 
 # Full check: analyze + tests with coverage
 check: analyze coverage
+
+# Serve web build locally on port 8765
+serve: build-web
+    cd build/web && python3 -m http.server 8765
+
+# Deploy to GitHub Pages (https://palladius.github.io/tubature/)
+deploy:
+    flutter build web --base-href '/tubature/'
+    @echo "🚀 Deploying to GitHub Pages..."
+    git stash --quiet 2>/dev/null || true
+    git checkout gh-pages
+    git rm -rf . --quiet 2>/dev/null || true
+    cp -r build/web/* .
+    rm -rf .dart_tool .idea
+    git add -A
+    git commit -m 'deploy: update GitHub Pages'
+    git push github gh-pages
+    git checkout main
+    git stash pop --quiet 2>/dev/null || true
+    @echo "✅ Deployed! Visit: https://palladius.github.io/tubature/"
