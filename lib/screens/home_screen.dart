@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/level_theme.dart';
+import '../version.dart';
 import 'game_screen.dart';
 
 /// Home screen — the first thing kids see. Big, colorful, one-tap-to-play.
@@ -105,7 +106,18 @@ class HomeScreen extends ConsumerWidget {
                     color: LevelTheme.spaceWars.flowColor,
                     onTap: () => _startTutorial(context),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
+
+                  // Version footer
+                  Text(
+                    'v$appVersion',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade400,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
