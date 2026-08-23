@@ -23,6 +23,11 @@ class PipePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (tile.type == TileType.empty) return;
 
+    // Clip to cell bounds — prevents thick pipe strokes from bleeding
+    // into neighboring cells (especially curved corner arcs)
+    canvas.save();
+    canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
     final center = Offset(size.width / 2, size.height / 2);
 
     // Pipe thickness scales with tile size (roughly 22% of tile width)
@@ -138,6 +143,8 @@ class PipePainter extends CustomPainter {
             glowPaint..strokeWidth = pipeWidth * 1.5);
       }
     }
+
+    canvas.restore();
   }
 
   /// Draw a smooth corner pipe using an arc + two straight legs.
@@ -154,9 +161,6 @@ class PipePainter extends CustomPainter {
     Paint fillPaint,
     Paint highlightPaint,
   ) {
-    final dirs = openings.toList();
-    final dir1 = dirs[0];
-    final dir2 = dirs[1];
 
     // Find the corner point where the arc is anchored
     // The arc center is at the corner of the cell closest to both edges
@@ -202,16 +206,6 @@ class PipePainter extends CustomPainter {
     canvas.drawPath(arcPath, outlinePaint);
     canvas.drawPath(arcPath, fillPaint);
     canvas.drawPath(arcPath, highlightPaint);
-
-    // Draw rounded end caps at the edge midpoints
-    final capRadius = pipeWidth / 2;
-    final edgeMid1 = _edgeMidpoint(dir1, center, size);
-    final edgeMid2 = _edgeMidpoint(dir2, center, size);
-
-    for (final edge in [edgeMid1, edgeMid2]) {
-      canvas.drawCircle(edge, capRadius + 2, Paint()..color = outlinePaint.color);
-      canvas.drawCircle(edge, capRadius, Paint()..color = fillPaint.color);
-    }
   }
 
   /// Draw a T-junction: one straight pipe through the two aligned openings,
@@ -283,18 +277,6 @@ class PipePainter extends CustomPainter {
     }
   }
 
-  Offset _edgeMidpoint(Direction dir, Offset center, Size size) {
-    switch (dir) {
-      case Direction.north:
-        return Offset(center.dx, 0);
-      case Direction.south:
-        return Offset(center.dx, size.height);
-      case Direction.east:
-        return Offset(size.width, center.dy);
-      case Direction.west:
-        return Offset(0, center.dy);
-    }
-  }
 
   void _drawStraightPipe(
     Canvas canvas,
