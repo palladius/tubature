@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.0.1 — 2026-08-23
+
+### Visual Improvements 🎨
+- **Smooth corner pipes** — L-tiles now use quarter-circle arcs instead of ugly 3-piece joints
+- **Better T-junctions** — straight-through pipe with clean branch, no more circle blobs
+- **Bigger grids** — Easy 6×6, Medium 7-8, Hard 9-10 (kids said it was too easy!)
+- **Direction-biased DFS** — 60% same-direction preference creates longer chains, fewer dead-ends
+- **Faster difficulty ramp** — Medium after 2 wins, Hard after 5
+
 ## 2.0.0 — 2026-08-23
 
 ### 💥 BREAKING: New Game Mechanics

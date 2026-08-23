@@ -1,4 +1,5 @@
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
@@ -6,9 +7,9 @@ import '../theme/level_theme.dart';
 
 /// CustomPainter that renders a single pipe tile.
 ///
-/// Draws chunky, rounded pipe segments from the tile center to edge midpoints.
-/// Connected pipes are filled with the level's flow color; disconnected pipes
-/// are drawn in gray.
+/// Draws chunky, rounded pipe segments. Corners use smooth arcs instead
+/// of sharp joints. Connected pipes are filled with the level's flow color;
+/// disconnected pipes are drawn in gray.
 class PipePainter extends CustomPainter {
   final Tile tile;
   final LevelTheme theme;
@@ -23,11 +24,9 @@ class PipePainter extends CustomPainter {
     if (tile.type == TileType.empty) return;
 
     final center = Offset(size.width / 2, size.height / 2);
-    
 
-    // Pipe thickness scales with tile size (roughly 20% of tile width)
+    // Pipe thickness scales with tile size (roughly 22% of tile width)
     final pipeWidth = size.width * 0.22;
-    
 
     // Choose colors based on connection state
     final bool connected = tile.isConnected;
@@ -120,35 +119,13 @@ class PipePainter extends CustomPainter {
           canvas, edgeMidpoint(dirs[0]), edgeMidpoint(dirs[1]),
           outlinePaint, fillPaint, highlightPaint);
     } else if (tile.type == TileType.corner) {
-      // Corner: draw two segments from edge to center, creating a bend
-      final dirs = openings.toList();
-      for (final dir in dirs) {
-        final edge = edgeMidpoint(dir);
-        canvas.drawLine(center, edge, outlinePaint);
-        canvas.drawLine(center, edge, fillPaint);
-        canvas.drawLine(center, edge, highlightPaint);
-      }
-      // Filled circle at center to smooth the corner joint
-      canvas.drawCircle(
-          center, pipeWidth / 2 + 2, Paint()..color = strokeColor);
-      canvas.drawCircle(center, pipeWidth / 2, Paint()..color = fillColor);
-      canvas.drawCircle(
-          center, pipeWidth * 0.25, Paint()..color = lightFill);
+      // Corner: smooth arc with straight legs to edges
+      _drawCornerPipe(canvas, size, center, openings, pipeWidth,
+          outlinePaint, fillPaint, highlightPaint);
     } else if (tile.type == TileType.tee) {
-      // T-junction: draw three segments from edges to center
-      final dirs = openings.toList();
-      for (final dir in dirs) {
-        final edge = edgeMidpoint(dir);
-        canvas.drawLine(center, edge, outlinePaint);
-        canvas.drawLine(center, edge, fillPaint);
-        canvas.drawLine(center, edge, highlightPaint);
-      }
-      // Smooth center joint
-      canvas.drawCircle(
-          center, pipeWidth / 2 + 2, Paint()..color = strokeColor);
-      canvas.drawCircle(center, pipeWidth / 2, Paint()..color = fillColor);
-      canvas.drawCircle(
-          center, pipeWidth * 0.25, Paint()..color = lightFill);
+      // T-junction: find the straight-through pair and the branch
+      _drawTeePipe(canvas, size, center, openings, pipeWidth,
+          outlinePaint, fillPaint, highlightPaint, edgeMidpoint);
     }
 
     // If connected, add a subtle glow effect
@@ -157,8 +134,165 @@ class PipePainter extends CustomPainter {
         ..color = theme.flowColor.withValues(alpha: 0.15)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       for (final dir in openings) {
-        canvas.drawLine(center, edgeMidpoint(dir), glowPaint..strokeWidth = pipeWidth * 1.5);
+        canvas.drawLine(center, edgeMidpoint(dir),
+            glowPaint..strokeWidth = pipeWidth * 1.5);
       }
+    }
+  }
+
+  /// Draw a smooth corner pipe using an arc + two straight legs.
+  ///
+  /// The arc is a quarter-circle in the quadrant defined by the two opening
+  /// directions. The legs extend from the arc endpoints to the cell edges.
+  void _drawCornerPipe(
+    Canvas canvas,
+    Size size,
+    Offset center,
+    Set<Direction> openings,
+    double pipeWidth,
+    Paint outlinePaint,
+    Paint fillPaint,
+    Paint highlightPaint,
+  ) {
+    final dirs = openings.toList();
+    final dir1 = dirs[0];
+    final dir2 = dirs[1];
+
+    // Find the corner point where the arc is anchored
+    // The arc center is at the corner of the cell closest to both edges
+    final cornerX = (openings.contains(Direction.east))
+        ? size.width
+        : 0.0;
+    final cornerY = (openings.contains(Direction.south))
+        ? size.height
+        : 0.0;
+    final cornerPoint = Offset(cornerX, cornerY);
+
+    // Arc radius = half the cell size
+    final arcRadius = size.width / 2;
+
+    // Arc bounding rect centered on the corner point
+    final arcRect = Rect.fromCenter(
+      center: cornerPoint,
+      width: arcRadius * 2,
+      height: arcRadius * 2,
+    );
+
+    // Determine start angle based on which corner we're in
+    // Flutter arcs: 0 = right, pi/2 = down, pi = left, 3pi/2 = up
+    double startAngle;
+    if (cornerPoint == Offset(size.width, 0)) {
+      // Top-right corner: openings N + E → arc from left (π) to down, sweep π/2
+      startAngle = math.pi;
+    } else if (cornerPoint == Offset(size.width, size.height)) {
+      // Bottom-right corner: openings S + E → arc from up (3π/2) to left, sweep π/2
+      startAngle = math.pi * 1.5;
+    } else if (cornerPoint == const Offset(0, 0)) {
+      // Top-left corner: openings N + W → arc from down (π/2) to right, sweep π/2
+      startAngle = math.pi * 0.5;
+    } else {
+      // Bottom-left corner: openings S + W → arc from right (0) to up, sweep π/2
+      startAngle = 0;
+    }
+
+    // Draw the arc path
+    final arcPath = Path()
+      ..addArc(arcRect, startAngle, math.pi / 2);
+
+    canvas.drawPath(arcPath, outlinePaint);
+    canvas.drawPath(arcPath, fillPaint);
+    canvas.drawPath(arcPath, highlightPaint);
+
+    // Draw rounded end caps at the edge midpoints
+    final capRadius = pipeWidth / 2;
+    final edgeMid1 = _edgeMidpoint(dir1, center, size);
+    final edgeMid2 = _edgeMidpoint(dir2, center, size);
+
+    for (final edge in [edgeMid1, edgeMid2]) {
+      canvas.drawCircle(edge, capRadius + 2, Paint()..color = outlinePaint.color);
+      canvas.drawCircle(edge, capRadius, Paint()..color = fillPaint.color);
+    }
+  }
+
+  /// Draw a T-junction: one straight pipe through the two aligned openings,
+  /// plus a branch from center to the third opening.
+  void _drawTeePipe(
+    Canvas canvas,
+    Size size,
+    Offset center,
+    Set<Direction> openings,
+    double pipeWidth,
+    Paint outlinePaint,
+    Paint fillPaint,
+    Paint highlightPaint,
+    Offset Function(Direction) edgeMidpoint,
+  ) {
+    final dirs = openings.toList();
+
+    // Find the straight-through pair (opposite directions)
+    Direction? straightA;
+    Direction? straightB;
+    Direction? branch;
+
+    for (int i = 0; i < dirs.length; i++) {
+      for (int j = i + 1; j < dirs.length; j++) {
+        if (dirs[i].opposite == dirs[j]) {
+          straightA = dirs[i];
+          straightB = dirs[j];
+          // The remaining direction is the branch
+          branch = dirs.firstWhere((d) => d != dirs[i] && d != dirs[j]);
+          break;
+        }
+      }
+      if (straightA != null) break;
+    }
+
+    if (straightA != null && straightB != null && branch != null) {
+      // Draw the straight-through pipe
+      _drawStraightPipe(canvas, edgeMidpoint(straightA), edgeMidpoint(straightB),
+          outlinePaint, fillPaint, highlightPaint);
+
+      // Draw the branch from center to edge
+      final branchEdge = edgeMidpoint(branch);
+      canvas.drawLine(center, branchEdge, outlinePaint);
+      canvas.drawLine(center, branchEdge, fillPaint);
+      canvas.drawLine(center, branchEdge, highlightPaint);
+
+      // Smooth center junction — filled rectangle area
+      final junctionSize = pipeWidth / 2 + 2;
+      canvas.drawRect(
+        Rect.fromCenter(center: center, width: junctionSize * 2, height: junctionSize * 2),
+        Paint()..color = outlinePaint.color,
+      );
+      canvas.drawRect(
+        Rect.fromCenter(center: center, width: pipeWidth, height: pipeWidth),
+        Paint()..color = fillPaint.color,
+      );
+    } else {
+      // Fallback: draw all three as lines from center
+      for (final dir in dirs) {
+        final edge = edgeMidpoint(dir);
+        canvas.drawLine(center, edge, outlinePaint);
+        canvas.drawLine(center, edge, fillPaint);
+        canvas.drawLine(center, edge, highlightPaint);
+      }
+      // Center junction
+      canvas.drawCircle(
+          center, pipeWidth / 2 + 2, Paint()..color = outlinePaint.color);
+      canvas.drawCircle(center, pipeWidth / 2, Paint()..color = fillPaint.color);
+    }
+  }
+
+  Offset _edgeMidpoint(Direction dir, Offset center, Size size) {
+    switch (dir) {
+      case Direction.north:
+        return Offset(center.dx, 0);
+      case Direction.south:
+        return Offset(center.dx, size.height);
+      case Direction.east:
+        return Offset(size.width, center.dy);
+      case Direction.west:
+        return Offset(0, center.dy);
     }
   }
 
