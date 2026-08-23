@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.1.2 — 2026-08-23
+
+### Mobile-First Responsive Home Screen 📱🚰
+- **Fixed Mobile Sizing & Zoom** — locked HTML viewport to 1:1 scale (`user-scalable=no, maximum-scale=1.0`), preventing accidental browser zoom-out and microscopic UI on high-DPI mobile devices
+- **2×2 Large Difficulty Cards** — replaced cramped wrap chips with prominent full-width 2×2 grid cards designed for large finger taps (≥56dp)
+- **Full-Width Hero Buttons** — primary PLAY button ($72\text{dp}$ tall) and TUTORIAL button expand across the layout with clear bold typography and soft shadows
+- **Responsive Layout** — constrained layout automatically centers on desktop while filling 100% of mobile screens with comfortable padding
+
 ## 2.1.1 — 2026-08-23
 
 ### Pure Fantasy Medieval & D&D Themes 🐉🧙💎

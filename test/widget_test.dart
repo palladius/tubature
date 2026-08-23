@@ -19,7 +19,7 @@ void main() {
     );
 
     // Verify the main PLAY button exists
-    expect(find.text('▶  PLAY!'), findsOneWidget);
+    expect(find.text('PLAY!'), findsOneWidget);
 
     // Verify tutorial button
     expect(find.text('📖  TUTORIAL'), findsOneWidget);
@@ -27,7 +27,7 @@ void main() {
     // Verify progressive difficulty hint text
     expect(find.text('⚡ Progressive mode (difficulty increases)'), findsOneWidget);
 
-    // Verify difficulty selector chips exist
+    // Verify difficulty selector cards exist
     expect(find.text('Auto ⚡'), findsOneWidget);
     expect(find.text('Easy 🟢'), findsOneWidget);
     expect(find.text('Medium 🟡'), findsOneWidget);
@@ -39,18 +39,18 @@ void main() {
       const ProviderScope(child: TubatureApp()),
     );
 
-    // Tap Easy chip
+    // Tap Easy card
     await tester.tap(find.text('Easy 🟢'));
     await tester.pumpAndSettle();
 
-    expect(find.text('▶  PLAY!'), findsOneWidget);
+    expect(find.text('PLAY!'), findsOneWidget);
     expect(find.text('🟢 Fixed Easy mode (6×6 grid)'), findsOneWidget);
 
-    // Tap Hard chip
+    // Tap Hard card
     await tester.tap(find.text('Hard 🔴'));
     await tester.pumpAndSettle();
 
-    expect(find.text('▶  PLAY!'), findsOneWidget);
+    expect(find.text('PLAY!'), findsOneWidget);
     expect(find.text('🔴 Fixed Hard mode (9-10 grid)'), findsOneWidget);
   });
 }
