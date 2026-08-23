@@ -2,7 +2,7 @@ name: tubature
 description: "Tubature - The Magic Plumber! A pipe-puzzle game for kids."
 publish_to: 'none'
 
-version: 2.2.0+12
+version: 2.2.1+13
 
 environment:
   sdk: ^3.10.7

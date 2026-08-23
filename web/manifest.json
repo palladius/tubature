@@ -1,12 +1,12 @@
 {
-    "name": "tubature",
-    "short_name": "tubature",
+    "name": "Tubature: The Dungeon Plumber",
+    "short_name": "Tubature",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#161F28",
+    "theme_color": "#FFD54F",
+    "description": "Tubature - Riccardo the Dungeon Plumber! An enchanting pipe-puzzle game with magic conduits, dragons and gems 🚰🐉💎",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

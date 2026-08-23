@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.2.1 — 2026-08-23
+
+### Pixel 10 & Mobile Portrait Layout Overhaul 📱✨
+- **Unobstructed Hero Artwork** — on mobile portrait screens, the game title floats at the top while the interactive control panel docks at the bottom, leaving Riccardo and the baby dragon visible in the center
+- **Riccardo App Icon & Favicon** — cropped Riccardo's friendly yellow "R" cap face into high-res 512px, 192px app icons and favicon
+- **Mobile Viewport Fit & CSS Reset** — added `viewport-fit=cover`, `touch-action: manipulation`, and user-select locks to HTML
+- **README Game Permalink** — added prominent live play link badge at top of README.md
+
 ## 2.2.0 — 2026-08-23
 
 ### Riccardo the Dungeon Plumber Title Overhaul 🚰🐉💎

@@ -1,55 +1,65 @@
-# 🚰 Tubature — FlowConnect
+# 🚰 Tubature: The Dungeon Plumber 🐉💎
 
-A pipe-puzzle game where you rotate tiles to connect a **Source** to a **Sink**, letting color flow through the grid.
+> ### 🎮 **PLAY LIVE NOW**: [https://palladius.github.io/tubature/](https://palladius.github.io/tubature/) 🚀
 
-Built with **Flutter/Dart** for Android, iOS, and Web.
+[![Flutter Tests](https://img.shields.io/badge/tests-61%20passing-brightgreen.svg)]()
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)]()
+[![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Android%20%7C%20iOS-orange.svg)]()
 
-## Game Concept
+**Tubature** (*FlowConnect*) is a vibrant, enchanting fantasy pipe-puzzle game built with **Flutter & Riverpod**. Starring **Riccardo the Dungeon Plumber** (wearing his signature yellow **"R"** cap) and his cute baby emerald dragon companion, you rotate magical conduits on an ancient dungeon grid to let crystal water rush through **every single tile** on the board!
 
-**FlowConnect** is a grid-based puzzle game. Tap tiles to rotate them 90° clockwise and create an unbroken path from Source to Sink. Tiles fill with color as they connect, giving instant visual feedback.
+---
 
-### Tile Types (v1.1)
-- **Line (`I`)** — Straight segment (2 rotations)
-- **Corner (`L`)** — 90° curve (4 rotations)
-- **T-Junction (`T`)** — Three-way intersection (4 rotations)
-- **Source** ⊕ — Fixed starting point (1 opening)
-- **Sink** ⊗ — Fixed endpoint (1 opening)
+## 🌟 Game Features
 
-### Difficulty Progression
-1. **Easy** — `I` and `L` tiles, small grids
-2. **Medium** — `T` and `+` tiles, larger grids
-3. **Hard** — Bridges/Tunnels introduced
-4. **Expert** — Portals + all mechanics combined
+- 🎮 **Live Web Deployment**: Zero installation, play instantly on any phone, tablet, or browser: **[https://palladius.github.io/tubature/](https://palladius.github.io/tubature/)**
+- 🧙‍♂️ **Riccardo the Dungeon Plumber**: Explore ancient D&D castles, crystal grottos, and treasure vaults with your glowing magical golden wrench.
+- 🌊 **Liquid Flow & Staggered Water Animation**: Watch water rush dynamically from the source along newly connected pipes in real time.
+- 🎵 **Procedural Audio Synthesis**: Built-in sound effects (ratchet rotation clicks, bubbling fluid rushing, victory fanfares) synthesized on Web Audio API with zero external audio assets.
+- 📱 **Mobile-First & Kid-Friendly**: Large, finger-friendly touch targets (56dp+), locked 1:1 crisp scaling on mobile, with responsive glassmorphic cards on tablets and desktop.
+- 🐉 **Medieval Fantasy D&D Themes**:
+  - 🐉 **Dragon & Gems** (Emerald green)
+  - 🧙 **Wizard & Alchemy Lab** (Royal purple)
+  - 💎 **Crystal Caves** (Luminous cyan turquoise)
+  - 🪙 **Dungeon Treasure Vault** (Radiant amber gold)
+  - 🏛️ **Dragon Aqueduct** (Deep aquatic teal)
+- 🏆 **Dynamic Game Modes**:
+  - ⚡ **Auto / Progressive**: Starts easy and automatically ramps up grid size as you solve levels.
+  - 🟢 **Easy**: 6×6 grid
+  - 🟡 **Medium**: 7×7 / 8×8 grid
+  - 🔴 **Hard**: 9×9 / 10×10 grid
+  - 📖 **Tutorial**: 10 progressive handcrafted learning levels.
 
-## Tech Stack
+---
 
-- **Language**: Dart
-- **Framework**: Flutter
-- **Platforms**: Android, iOS, Web (HTML5)
-- **Game logic**: Pure Dart (no game engine needed for a tile puzzle)
-- **State management**: TBD (Riverpod or BLoC)
+## 🛠️ Quick Start
 
-## Project Structure
+```bash
+# Clone the repository
+git clone git@github.com:palladius/tubature.git
+cd tubature
 
+# Run tests
+just test
+# or
+flutter test
+
+# Run locally in browser
+just serve
+# opens http://localhost:8765
 ```
-lib/
-├── main.dart
-├── models/          # Tile, Grid, Level data models
-├── logic/           # Game logic, path verification (BFS/DFS)
-├── screens/         # Game screen, level select, menu
-├── widgets/         # TileWidget, GridWidget, FlowAnimation
-└── levels/          # Level definitions (JSON or Dart)
-```
 
-## Docs
+---
 
-- [Original Game Design (Italian)](docs/FlowConnect.md) — from Obsidian
-- [Design Images](docs/design/) — 5 reference mockups
+## 🏗️ Tech Stack
 
-## Status
+- **Framework**: Flutter (cross-platform Web, Android, iOS)
+- **Language**: Dart (pure game logic, decoupled from UI)
+- **State Management**: Flutter Riverpod
+- **Audio**: Procedural Web Audio API synthesizer (`dart:js_interop`)
 
-🚧 **In development** — Setting up with Conductor for spec-driven development.
+---
 
-## Version
+## 📜 Version & Changelog
 
-1.0.0
+Current version: **v2.2.0** — see [CHANGELOG.md](CHANGELOG.md) for full history.
