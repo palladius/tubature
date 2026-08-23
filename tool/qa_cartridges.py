@@ -39,12 +39,16 @@ class QuietHandler(SimpleHTTPRequestHandler):
         pass # suppress request logs for clean QA output
 
 def start_local_server():
-    handler = partial(QuietHandler, directory=WEB_DIR)
-    server = HTTPServer(("127.0.0.1", PORT), handler)
-    t = threading.Thread(target=server.serve_forever, daemon=True)
-    t.start()
-    print(f"  🌐 Localhost HTTP server running in background on port {PORT}")
-    return server
+    try:
+        handler = partial(QuietHandler, directory=WEB_DIR)
+        server = HTTPServer(("127.0.0.1", PORT), handler)
+        t = threading.Thread(target=server.serve_forever, daemon=True)
+        t.start()
+        print(f"  🌐 Localhost HTTP server running in background on port {PORT}")
+        return server
+    except OSError:
+        print(f"  🌐 Localhost HTTP server already listening on port {PORT}")
+        return None
 
 DEVICES = {
     "1_computer_desktop": {"w": 1440, "h": 900, "name": "Computer (Desktop 1440x900)"},

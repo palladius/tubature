@@ -134,17 +134,17 @@ class _TileWidgetState extends State<TileWidget>
             (cos(r * 1.7 - c * 2.9) * 20))
         .toInt();
 
-    final baseDelay = depth * 42;
-    final delayMs = max(0, min(baseDelay + chaosJitter, 750));
+    final baseDelay = depth * 85;
+    final delayMs = max(0, min(baseDelay + chaosJitter, 1500));
 
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         if (widget.tile.type == TileType.deadEnd) {
-          _flowController.duration = const Duration(milliseconds: 720);
+          _flowController.duration = const Duration(milliseconds: 1400);
           _flowController.forward(from: 0.0);
           AudioService.playAmpollaGlub();
         } else {
-          _flowController.duration = const Duration(milliseconds: 380);
+          _flowController.duration = const Duration(milliseconds: 760);
           _flowController.forward(from: 0.0);
           if (depth > 0) {
             AudioService.playWaterFlow(chainLength: depth);
