@@ -8,6 +8,10 @@ list:
 test:
     flutter test
 
+# Run automated interactive Visual QA
+qa:
+    python3 tool/qa_runner.py
+
 # Run tests with coverage
 coverage:
     flutter test --coverage
