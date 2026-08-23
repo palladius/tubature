@@ -1,0 +1,125 @@
+{
+  "version": "1.0",
+  "generator": "Hermes Agent (Ermete Bottazzi)",
+  "voices": [
+    {
+      "id": "a-scor-cle-un-piaser",
+      "filenames": [
+        "a-scor-cle-un-piaser.ogg",
+        "a-scor-cle-un-piaser.mp3"
+      ],
+      "category": "victory",
+      "display_name": "A scòr ch'l'è un piaśér!",
+      "meaning_it": "Scorre che è un piacere / una meraviglia! (L'acqua defluisce perfettamente)",
+      "engine": "edge-tts",
+      "voice": "it-IT-DiegoNeural",
+      "gender": "male",
+      "tts_prompt": "A scòr clé un piasér!",
+      "tts_rate": "+0%",
+      "post_processing": {
+        "pitch_shift_semitones": -4,
+        "ffmpeg_filter": "asetrate=38098,aresample=48000,atempo=1.260",
+        "description": "Tuned -4 semitones down for a deep, burly Romagnolo trucker persona (Ermete Bottazzi)"
+      }
+    },
+    {
+      "id": "a-scor-cle-un-piaser-low",
+      "filenames": [
+        "a-scor-cle-un-piaser-low.ogg",
+        "a-scor-cle-un-piaser-low.mp3"
+      ],
+      "category": "victory",
+      "display_name": "A scòr ch'l'è un piaśér! (Ottava Bassa)",
+      "meaning_it": "Scorre che è un piacere! (Versione baritonale / orco delle caverne)",
+      "engine": "edge-tts",
+      "voice": "it-IT-DiegoNeural",
+      "gender": "male",
+      "tts_prompt": "A scòr clé un piasér!",
+      "tts_rate": "+0%",
+      "post_processing": {
+        "pitch_shift_semitones": -12,
+        "ffmpeg_filter": "asetrate=24000,aresample=48000,atempo=2.0",
+        "description": "Full 1-octave downshift (-12 semitones, 50% pitch)"
+      }
+    },
+    {
+      "id": "mo-va-che-tubatura",
+      "filenames": [
+        "mo-va-che-tubatura.ogg",
+        "mo-va-che-tubatura.mp3"
+      ],
+      "category": "victory",
+      "display_name": "Mo và che tubatùra!",
+      "meaning_it": "Ma guarda che canalizzazione / impianto idraulico a regola d'arte!",
+      "engine": "edge-tts",
+      "voice": "it-IT-DiegoNeural",
+      "gender": "male",
+      "tts_prompt": "Mo và che tubatùra!",
+      "tts_rate": "+0%",
+      "post_processing": {
+        "pitch_shift_semitones": -4,
+        "ffmpeg_filter": "asetrate=38098,aresample=48000,atempo=1.260",
+        "description": "Tuned -4 semitones down for a deep, burly Romagnolo trucker persona (Ermete Bottazzi)"
+      }
+    },
+    {
+      "id": "ac-giurnadaza",
+      "filenames": [
+        "ac-giurnadaza.ogg",
+        "ac-giurnadaza.mp3"
+      ],
+      "category": "reaction / failure",
+      "display_name": "Ac giurnadàza!",
+      "meaning_it": "Che giornataccia! / Ma che giornata faticosa!",
+      "engine": "edge-tts",
+      "voice": "it-IT-DiegoNeural",
+      "gender": "male",
+      "tts_prompt": "Ack giurnadàza!",
+      "tts_prompt_note": "Phonetically spelled 'Ack' to prevent Italian TTS from expanding 'Ac' into 'Acquistare'",
+      "tts_rate": "+0%",
+      "post_processing": {
+        "pitch_shift_semitones": -4,
+        "ffmpeg_filter": "asetrate=38098,aresample=48000,atempo=1.260",
+        "description": "Tuned -4 semitones down for a deep, burly Romagnolo trucker persona (Ermete Bottazzi)"
+      }
+    },
+    {
+      "id": "non-capisci-proprio-un-tubo",
+      "filenames": [
+        "non-capisci-proprio-un-tubo.ogg",
+        "non-capisci-proprio-un-tubo.mp3"
+      ],
+      "category": "game_over / failure",
+      "display_name": "Non capisci proprio un tubo!",
+      "meaning_it": "Non capisci proprio niente / Tubo rotto o combinazione sbagliata!",
+      "engine": "edge-tts",
+      "voice": "it-IT-ElsaNeural",
+      "gender": "female",
+      "tts_prompt": "Non capisci proprio un tubo!",
+      "tts_rate": "+25%",
+      "post_processing": {
+        "pitch_shift_semitones": 0,
+        "description": "Speedup +25% for a snappy, witty arcade delivery"
+      }
+    },
+    {
+      "id": "non-capisci-un-tubo",
+      "filenames": [
+        "non-capisci-un-tubo.ogg",
+        "non-capisci-un-tubo.mp3"
+      ],
+      "category": "game_over / failure",
+      "display_name": "Non capisci un tubo!",
+      "meaning_it": "Versione breve e tagliente per il Game Over",
+      "engine": "edge-tts",
+      "voice": "it-IT-ElsaNeural",
+      "gender": "female",
+      "tts_prompt": "Non capisci un tubo!",
+      "tts_rate": "+20%",
+      "post_processing": {
+        "pitch_shift_semitones": 0,
+        "description": "Speedup +20% for a snappy arcade delivery"
+      }
+    }
+  ]
+}
