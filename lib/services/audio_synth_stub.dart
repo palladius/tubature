@@ -5,4 +5,6 @@ void playTileClick() {}
 
 void playWaterFlow(int chainLength) {}
 
+void playAmpollaGlub() {}
+
 void playVictoryFanfare() {}

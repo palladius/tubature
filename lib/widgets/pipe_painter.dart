@@ -347,40 +347,58 @@ class PipePainter extends CustomPainter {
         ..style = PaintingStyle.fill,
     );
 
-    // Bulb fluid chamber
+    // Bulb fluid chamber (fills up like a glass of water)
+    final fluidFillRadius = connected ? (bulbRadius - 1.0) * flowProgress : 0.0;
     final liquidPulse = connected ? sin(shimmer * 2 * pi) * 1.5 : 0.0;
+
+    // Empty chamber backdrop
     canvas.drawCircle(
       bulbCenter,
       bulbRadius - 1.0,
       Paint()
-        ..color = connected
-            ? Color.lerp(const Color(0xFF1E2D2F), fillColor, flowProgress)!
-            : const Color(0xFF2C3E50)
+        ..color = const Color(0xFF1A262F)
         ..style = PaintingStyle.fill,
     );
 
-    if (connected) {
-      // Swirling fluid core
+    // Rising liquid volume
+    if (connected && fluidFillRadius > 0.5) {
       canvas.drawCircle(
         bulbCenter,
-        (bulbRadius * 0.65) + liquidPulse,
+        fluidFillRadius,
         Paint()
-          ..color = Color.lerp(fillColor, lightFill, 0.45 + (sin(shimmer * 2 * pi) * 0.25))!
+          ..color = fillColor
           ..style = PaintingStyle.fill,
       );
 
-      // Bubbles in ampolla
-      final bubbleOffset = Offset(
-        sin(shimmer * 2 * pi) * (bulbRadius * 0.3),
-        cos(shimmer * 2 * pi) * (bulbRadius * 0.3),
-      );
+      // Swirling bright fluid core
       canvas.drawCircle(
-        bulbCenter + bubbleOffset,
-        bulbRadius * 0.22,
+        bulbCenter,
+        ((fluidFillRadius * 0.70) + liquidPulse).clamp(0.0, bulbRadius),
         Paint()
-          ..color = Colors.white.withValues(alpha: 0.8)
+          ..color = Color.lerp(
+            fillColor,
+            lightFill,
+            (0.40 + (sin(shimmer * 2 * pi) * 0.25)).clamp(0.0, 1.0),
+          )!
           ..style = PaintingStyle.fill,
       );
+
+      // Rising glub bubbles in ampolla
+      final bubbleCount = (flowProgress * 3).toInt() + 1;
+      for (int b = 0; b < bubbleCount; b++) {
+        final bPhase = (shimmer + (b * 0.33)) % 1.0;
+        final bOffset = Offset(
+          sin((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.45),
+          cos((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.45) - (bPhase * 3.0),
+        );
+        canvas.drawCircle(
+          bulbCenter + bOffset,
+          (fluidFillRadius * 0.18).clamp(1.5, 4.5),
+          Paint()
+            ..color = Colors.white.withValues(alpha: 0.85)
+            ..style = PaintingStyle.fill,
+        );
+      }
     }
 
     // Specular reflections

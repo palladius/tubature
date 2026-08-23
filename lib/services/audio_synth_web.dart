@@ -60,6 +60,29 @@ void _ensureInitialized() {
             osc.stop(t + delay + 0.13);
           }
         },
+        glub: function() {
+          this.init();
+          if (!this.ctx) return;
+          var t = this.ctx.currentTime;
+          // 4 rising water bubbles with liquid resonance (glub glub glub glub)
+          var pitches = [260, 360, 490, 650];
+          for (var i = 0; i < pitches.length; i++) {
+            var delay = i * 0.13;
+            var osc = this.ctx.createOscillator();
+            var gain = this.ctx.createGain();
+            var freq = pitches[i];
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq * 0.85, t + delay);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.55, t + delay + 0.09);
+            gain.gain.setValueAtTime(0.001, t + delay);
+            gain.gain.linearRampToValueAtTime(0.28, t + delay + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.15);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t + delay);
+            osc.stop(t + delay + 0.16);
+          }
+        },
         fanfare: function() {
           this.init();
           if (!this.ctx) return;
@@ -96,6 +119,13 @@ void playWaterFlow(int chainLength) {
   _ensureInitialized();
   try {
     _eval('if (window._tubatureAudio) window._tubatureAudio.water($chainLength);');
+  } catch (_) {}
+}
+
+void playAmpollaGlub() {
+  _ensureInitialized();
+  try {
+    _eval('if (window._tubatureAudio) window._tubatureAudio.glub();');
   } catch (_) {}
 }
 
