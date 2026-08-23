@@ -72,10 +72,21 @@ def get_driver(width, height):
 
 def click_point(driver, x, y, delay=0.3):
     try:
-        actions = ActionChains(driver)
-        actions.w3c_actions.pointer_action.move_to_location(x, y)
-        actions.w3c_actions.pointer_action.click()
-        actions.perform()
+        driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
+            "type": "mousePressed",
+            "x": int(x),
+            "y": int(y),
+            "button": "left",
+            "clickCount": 1
+        })
+        time.sleep(0.04)
+        driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
+            "type": "mouseReleased",
+            "x": int(x),
+            "y": int(y),
+            "button": "left",
+            "clickCount": 1
+        })
     except Exception as e:
         print(f"    (click at {x},{y} skipped: {e})")
     time.sleep(delay)
@@ -135,6 +146,11 @@ def run_all_qa():
         for i in range(3):
             click_point(driver, 206 + (i * 30), 450, delay=0.3)
         save_and_copy(driver, "cartridge_easy_03_tiles_rotated.png")
+
+        # Click Reset button (x=232, y=860) to trigger Ermete's voice reaction!
+        print("  4. Tapping Reset button to trigger Ermete reaction...")
+        click_point(driver, 232, 860, delay=0.8)
+        save_and_copy(driver, "cartridge_easy_04_ermete_speech.png")
     finally:
         driver.quit()
 
