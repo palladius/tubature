@@ -156,14 +156,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
-                    _selectedDifficulty == null
-                        ? 'Difficulty increases as you play!'
-                        : 'Fixed ${_selectedDifficulty!.name.toUpperCase()} mode',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF888888),
+                    _getDifficultyDescription(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade700,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -195,21 +194,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Color _getPlayButtonColor() {
-    if (_selectedDifficulty == null) return const Color(0xFF4CAF50);
+  String _getDifficultyDescription() {
+    if (_selectedDifficulty == null) return '⚡ Progressive mode (difficulty increases)';
     switch (_selectedDifficulty!) {
       case Difficulty.easy:
-        return const Color(0xFF4CAF50);
+        return '🟢 Fixed Easy mode (6×6 grid)';
       case Difficulty.medium:
-        return const Color(0xFFFF9800);
+        return '🟡 Fixed Medium mode (7-8 grid)';
       case Difficulty.hard:
-        return const Color(0xFFE91E63);
+        return '🔴 Fixed Hard mode (9-10 grid)';
+    }
+  }
+
+  Color _getPlayButtonColor() {
+    if (_selectedDifficulty == null) return const Color(0xFF1976D2);
+    switch (_selectedDifficulty!) {
+      case Difficulty.easy:
+        return const Color(0xFF2E7D32);
+      case Difficulty.medium:
+        return const Color(0xFFE65100);
+      case Difficulty.hard:
+        return const Color(0xFFC2185B);
     }
   }
 
   String _getPlayButtonText() {
-    if (_selectedDifficulty == null) return '▶  PLAY!';
-    return '▶  PLAY ${_selectedDifficulty!.name.toUpperCase()}!';
+    return '▶  PLAY!';
   }
 
   void _startPlay() {

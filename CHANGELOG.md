@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.0.5 — 2026-08-23
+
+### UI/UX Fixes 🎨
+- **Play Button Redesign** — standardized PLAY button label to `▶ PLAY!` across all difficulty choices, preventing any multi-line wrapping or text cut-off
+- **Dynamic Mode Caption** — selected difficulty and grid dimensions (e.g. `🟢 Fixed Easy mode (6×6 grid)`) are cleanly displayed below the button
+- **High-Contrast Theme Chips** — deep solid chip colors with crisp bold white text for maximum legibility
+
 ## 2.0.4 — 2026-08-23
 
 ### UI/UX & Quality Improvements 🧪

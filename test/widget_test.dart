@@ -25,7 +25,7 @@ void main() {
     expect(find.text('📖  TUTORIAL'), findsOneWidget);
 
     // Verify progressive difficulty hint text
-    expect(find.text('Difficulty increases as you play!'), findsOneWidget);
+    expect(find.text('⚡ Progressive mode (difficulty increases)'), findsOneWidget);
 
     // Verify difficulty selector chips exist
     expect(find.text('Auto ⚡'), findsOneWidget);
@@ -34,7 +34,7 @@ void main() {
     expect(find.text('Hard 🔴'), findsOneWidget);
   });
 
-  testWidgets('Selecting difficulty updates play button label', (WidgetTester tester) async {
+  testWidgets('Selecting difficulty updates mode description', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: TubatureApp()),
     );
@@ -43,14 +43,14 @@ void main() {
     await tester.tap(find.text('Easy 🟢'));
     await tester.pumpAndSettle();
 
-    expect(find.text('▶  PLAY EASY!'), findsOneWidget);
-    expect(find.text('Fixed EASY mode'), findsOneWidget);
+    expect(find.text('▶  PLAY!'), findsOneWidget);
+    expect(find.text('🟢 Fixed Easy mode (6×6 grid)'), findsOneWidget);
 
     // Tap Hard chip
     await tester.tap(find.text('Hard 🔴'));
     await tester.pumpAndSettle();
 
-    expect(find.text('▶  PLAY HARD!'), findsOneWidget);
-    expect(find.text('Fixed HARD mode'), findsOneWidget);
+    expect(find.text('▶  PLAY!'), findsOneWidget);
+    expect(find.text('🔴 Fixed Hard mode (9-10 grid)'), findsOneWidget);
   });
 }
