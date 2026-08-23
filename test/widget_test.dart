@@ -10,7 +10,7 @@ void main() {
 
     // Verify the app title is displayed
     expect(find.text('TUBATURE'), findsOneWidget);
-    expect(find.text('THE DUNGEON PLUMBER'), findsOneWidget);
+    expect(find.text('THE DUNGEON PLUMBERS'), findsOneWidget);
   });
 
   testWidgets('Home screen has play and tutorial buttons', (WidgetTester tester) async {
@@ -30,7 +30,7 @@ void main() {
     // Verify difficulty selector cards exist
     expect(find.text('Auto ⚡'), findsOneWidget);
     expect(find.text('Easy 🟢'), findsOneWidget);
-    expect(find.text('Medium 🟡'), findsOneWidget);
+    expect(find.text('Med 🟡'), findsOneWidget);
     expect(find.text('Hard 🔴'), findsOneWidget);
   });
 
