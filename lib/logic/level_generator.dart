@@ -21,13 +21,13 @@ class LevelGenerator {
   LevelGenerator([Random? random]) : _random = random ?? Random();
 
   Level generateLevel(Difficulty difficulty, {int? id}) {
-    int size = 5;
+    int size = 6;
     if (difficulty == Difficulty.easy) {
-      size = 5;
+      size = 6;
     } else if (difficulty == Difficulty.medium) {
-      size = _random.nextBool() ? 6 : 7;
+      size = _random.nextBool() ? 7 : 8;
     } else {
-      size = 8;
+      size = _random.nextBool() ? 9 : 10;
     }
 
     final theme = CreatureTheme.values[_random.nextInt(CreatureTheme.values.length)];
@@ -109,15 +109,23 @@ class LevelGenerator {
   }
 
   /// Randomized DFS to build a spanning tree.
+  /// 
+  /// Biased toward continuing in the same direction — this creates longer
+  /// winding paths with fewer dead-ends (leaf nodes), making puzzles harder.
   void _dfsSpanningTree(
     Position current,
     int rows,
     int cols,
     Set<Position> visited,
-    Map<Position, Set<Direction>> connections,
-  ) {
-    // Shuffle directions for randomness
+    Map<Position, Set<Direction>> connections, {
+    Direction? previousDirection,
+  }) {
+    // Bias: 60% chance to try the previous direction first (creates long chains)
     final dirs = List.of(Direction.values)..shuffle(_random);
+    if (previousDirection != null && _random.nextDouble() < 0.6) {
+      dirs.remove(previousDirection);
+      dirs.insert(0, previousDirection);
+    }
 
     for (final dir in dirs) {
       final neighbor = current.neighbor(dir);
@@ -129,8 +137,9 @@ class LevelGenerator {
       connections[neighbor]!.add(dir.opposite);
       visited.add(neighbor);
 
-      // Recurse
-      _dfsSpanningTree(neighbor, rows, cols, visited, connections);
+      // Recurse with direction bias
+      _dfsSpanningTree(neighbor, rows, cols, visited, connections,
+          previousDirection: dir);
     }
   }
 
@@ -251,7 +260,8 @@ class LevelGenerator {
   }
 
   Level getTutorialLevel(int number) {
-    int size = number <= 3 ? 3 : (number <= 6 ? 4 : 5);
+    // Tutorial progression: 4×4 → 5×5 → 6×6
+    int size = number <= 3 ? 4 : (number <= 6 ? 5 : 6);
     while (true) {
       final grid = _generateSpanningTreeGrid(size, size);
       if (grid != null && WinChecker.checkWin(grid)) {

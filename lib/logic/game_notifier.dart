@@ -48,13 +48,13 @@ class GameState {
 
   /// Determine the current difficulty based on levels completed.
   /// 
-  /// Progression:
-  /// - Levels 1-3: Easy (5×5)
-  /// - Levels 4-7: Medium (6×6 or 7×7)
-  /// - Levels 8+: Hard (8×8)
+  /// Progression (aggressive — kids said it was too easy!):
+  /// - Levels 1-2: Easy (6×6)
+  /// - Levels 3-5: Medium (7×7 or 8×8)
+  /// - Levels 6+: Hard (9×9 or 10×10)
   Difficulty get progressiveDifficulty {
-    if (levelsCompleted < 3) return Difficulty.easy;
-    if (levelsCompleted < 7) return Difficulty.medium;
+    if (levelsCompleted < 2) return Difficulty.easy;
+    if (levelsCompleted < 5) return Difficulty.medium;
     return Difficulty.hard;
   }
 
