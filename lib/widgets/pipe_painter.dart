@@ -7,7 +7,7 @@ import '../theme/level_theme.dart';
 
 /// CustomPainter that renders a single pipe tile.
 ///
-/// Draws chunky, rounded pipe segments. Corners use smooth arcs instead
+/// Draws chunky, rounded pipe segments from the tile center to edge midpoints.
 /// of sharp joints. Connected pipes are filled with the level's flow color;
 /// disconnected pipes are drawn in gray.
 class PipePainter extends CustomPainter {
@@ -142,17 +142,6 @@ class PipePainter extends CustomPainter {
       // T-junction: find the straight-through pair and the branch
       _drawTeePipe(canvas, size, center, openings, pipeWidth,
           outlinePaint, fillPaint, highlightPaint, edgeMidpoint);
-    }
-
-    // If connected, add a subtle glow effect
-    if (connected) {
-      final glowPaint = Paint()
-        ..color = theme.flowColor.withValues(alpha: 0.15)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-      for (final dir in openings) {
-        canvas.drawLine(center, edgeMidpoint(dir),
-            glowPaint..strokeWidth = pipeWidth * 1.5);
-      }
     }
 
     canvas.restore();
