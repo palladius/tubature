@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.3.0 — 2026-08-23
+
+### Riccardo, Ale & Seby: The Dungeon Plumbers! 🚰👦🧒🐉💎
+- **Family Character Consistency** — starring **Riccardo** (yellow **"R"** cap), **Alessandro** (green **"A"** cap), and **Sebastian** (orange **"S"** cap with little wrench) along with their cute baby emerald dragon companion
+- **Dual-Orientation Title Screens** — pixel-perfect portrait (3:4) and widescreen (16:9) background artworks
+- **Pixel 10 & Mobile-First UI** — top title header + bottom-docked glassmorphic control sheet leaving character art completely visible
+- **Custom Riccardo App Icons & Favicon** — cropped 512px, 192px app icons and favicon
+- **Live Play Badge** — added permalink directly at the top of README.md
+
 ## 2.2.1 — 2026-08-23
 
 ### Pixel 10 & Mobile Portrait Layout Overhaul 📱✨
