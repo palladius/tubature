@@ -1,25 +1,30 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
 import '../theme/level_theme.dart';
 
-/// CustomPainter that renders a single pipe tile.
+/// CustomPainter that renders a single pipe tile with realistic liquid fluid simulation.
 ///
-/// Draws chunky, rounded pipe segments from the tile center to edge midpoints.
-/// Connected pipes are filled with the level's flow color (smoothly animated
-/// via [flowProgress]); disconnected pipes are drawn in neutral gray.
-/// Supports whole-board celebration shine via [pulseProgress].
+/// Features:
+/// - Chunky, rounded pipe segments with seamless joints
+/// - Dynamic liquid flow animation with surging curved meniscus and micro-bubbles
+/// - Continuous caustics shimmer and pulsating fluid highlights
+/// - Swirling liquid flask for sealed dead-end ampolle
+/// - Whole-board celebration glow pulse
 class PipePainter extends CustomPainter {
   final Tile tile;
   final LevelTheme theme;
   final double flowProgress;
   final double pulseProgress;
+  final double shimmerProgress;
 
   const PipePainter({
     required this.tile,
     required this.theme,
     this.flowProgress = 1.0,
     this.pulseProgress = 0.0,
+    this.shimmerProgress = 0.0,
   });
 
   @override
@@ -27,18 +32,18 @@ class PipePainter extends CustomPainter {
     if (tile.type == TileType.empty) return;
 
     // Clip to cell bounds — prevents thick pipe strokes from bleeding
-    // into neighboring cells (especially curved corner arcs)
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     final center = Offset(size.width / 2, size.height / 2);
 
-    // Pipe thickness scales with tile size (roughly 22% of tile width)
+    // Base pipe thickness scales with tile size
     final basePipeWidth = size.width * 0.22;
-    final pipeWidth = basePipeWidth + (pulseProgress * 1.5);
+    final pipeWidth = basePipeWidth + (pulseProgress * 2.0);
 
-    // Choose colors based on connection state and animated flow progress
     final bool connected = tile.isConnected;
+    
+    // Liquid colors with flow interpolation
     final Color fillColor = connected
         ? Color.lerp(theme.pipeDisconnected, theme.flowColor, flowProgress)!
         : theme.pipeDisconnected;
@@ -49,15 +54,10 @@ class PipePainter extends CustomPainter {
         ? Color.lerp(const Color(0xFFE0E0E0), theme.flowColorLight, flowProgress)!
         : const Color(0xFFE0E0E0);
 
-    // Paint for the pipe fill (thick rounded line)
-    final fillPaint = Paint()
-      ..color = fillColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = pipeWidth
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+    // Liquid Shimmer Modulation: subtle wave pulse
+    final double shimmerMod = connected ? sin(shimmerProgress * 2 * pi) * 0.15 : 0.0;
 
-    // Paint for the pipe outline (slightly thicker, darker)
+    // 1. Pipe outline paint
     final outlinePaint = Paint()
       ..color = strokeColor
       ..style = PaintingStyle.stroke
@@ -65,21 +65,27 @@ class PipePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // Paint for the inner highlight (slightly thinner, lighter)
-    final highlightPaint = Paint()
-      ..color = pulseProgress > 0.0
-          ? Color.lerp(lightFill, Colors.white, pulseProgress * 0.7)!
-          : lightFill
+    // 2. Pipe fill paint
+    final fillPaint = Paint()
+      ..color = fillColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = pipeWidth * (0.5 + pulseProgress * 0.15)
+      ..strokeWidth = pipeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // Get the openings for this tile
+    // 3. Inner fluid highlight with moving caustics
+    final highlightPaint = Paint()
+      ..color = pulseProgress > 0.0
+          ? Color.lerp(lightFill, Colors.white, pulseProgress * 0.7)!
+          : Color.lerp(lightFill, Colors.white, (0.2 + shimmerMod).clamp(0.0, 1.0))!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = pipeWidth * (0.45 + (shimmerMod * 0.1) + (pulseProgress * 0.15))
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
     final openings = tile.openings;
     if (openings.isEmpty) return;
 
-    // Calculate edge midpoints for each direction
     Offset edgeMidpoint(Direction dir) {
       switch (dir) {
         case Direction.north:
@@ -93,43 +99,45 @@ class PipePainter extends CustomPainter {
       }
     }
 
-    // Draw source special marker
+    // Source marker
     if (tile.type == TileType.source) {
       _drawSourceMarker(canvas, size, center, connected);
     }
 
-    // Draw pipe segments based on tile type
+    // Draw pipes based on tile type
     if (tile.type == TileType.source) {
-      // Source: single pipe from center to edge
       final dir = openings.first;
       final edge = edgeMidpoint(dir);
       canvas.drawLine(center, edge, outlinePaint);
       canvas.drawLine(center, edge, fillPaint);
       canvas.drawLine(center, edge, highlightPaint);
+      if (connected) {
+        _drawLiquidBubbles(canvas, center, edge, size.width, shimmerProgress);
+      }
     } else if (tile.type == TileType.deadEnd) {
-      // Dead end (ampolla): pipe stem with a prominent sealed flask / bulb
       final dir = openings.first;
       _drawDeadEndPipe(
         canvas, size, center, dir, pipeWidth,
         outlinePaint, fillPaint, highlightPaint,
         edgeMidpoint, strokeColor, fillColor, lightFill, connected,
+        shimmerProgress,
       );
     } else if (tile.type == TileType.cross) {
-      // Cross: draw two straight lines through center
       _drawStraightPipe(
-          canvas, edgeMidpoint(Direction.north), edgeMidpoint(Direction.south),
-          outlinePaint, fillPaint, highlightPaint);
+        canvas, edgeMidpoint(Direction.north), edgeMidpoint(Direction.south),
+        outlinePaint, fillPaint, highlightPaint, connected, size.width, shimmerProgress,
+      );
       _drawStraightPipe(
-          canvas, edgeMidpoint(Direction.east), edgeMidpoint(Direction.west),
-          outlinePaint, fillPaint, highlightPaint);
+        canvas, edgeMidpoint(Direction.east), edgeMidpoint(Direction.west),
+        outlinePaint, fillPaint, highlightPaint, connected, size.width, shimmerProgress,
+      );
     } else if (tile.type == TileType.line) {
-      // Line: straight pipe between two opposite openings
       final dirs = openings.toList();
       _drawStraightPipe(
-          canvas, edgeMidpoint(dirs[0]), edgeMidpoint(dirs[1]),
-          outlinePaint, fillPaint, highlightPaint);
+        canvas, edgeMidpoint(dirs[0]), edgeMidpoint(dirs[1]),
+        outlinePaint, fillPaint, highlightPaint, connected, size.width, shimmerProgress,
+      );
     } else if (tile.type == TileType.corner) {
-      // Corner: continuous path connecting both edges through center (no center circle disk!)
       final dirs = openings.toList();
       final p1 = edgeMidpoint(dirs[0]);
       final p2 = edgeMidpoint(dirs[1]);
@@ -140,17 +148,48 @@ class PipePainter extends CustomPainter {
       canvas.drawPath(cornerPath, outlinePaint);
       canvas.drawPath(cornerPath, fillPaint);
       canvas.drawPath(cornerPath, highlightPaint);
+      if (connected) {
+        _drawLiquidBubbles(canvas, p1, center, size.width, shimmerProgress);
+        _drawLiquidBubbles(canvas, center, p2, size.width, (shimmerProgress + 0.5) % 1.0);
+      }
     } else if (tile.type == TileType.tee) {
-      // T-junction: straight pipe + branch, clean seamless join
-      _drawTeePipe(canvas, size, center, openings, pipeWidth,
-          outlinePaint, fillPaint, highlightPaint, edgeMidpoint);
+      _drawTeePipe(
+        canvas, size, center, openings, pipeWidth,
+        outlinePaint, fillPaint, highlightPaint, edgeMidpoint, connected, shimmerProgress,
+      );
+    }
+
+    // Draw active liquid surging meniscus wave front when filling
+    if (connected && flowProgress < 0.98) {
+      for (final dir in openings) {
+        final edge = edgeMidpoint(dir);
+        final currentFront = Offset.lerp(center, edge, flowProgress)!;
+        _drawFluidMeniscus(canvas, currentFront, pipeWidth, theme.flowColorLight);
+      }
     }
 
     canvas.restore();
   }
 
-  /// Draw a T-junction: one straight pipe through the two aligned openings,
-  /// plus a branch from center to the third opening.
+  void _drawStraightPipe(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Paint outlinePaint,
+    Paint fillPaint,
+    Paint highlightPaint,
+    bool connected,
+    double tileSize,
+    double shimmer,
+  ) {
+    canvas.drawLine(from, to, outlinePaint);
+    canvas.drawLine(from, to, fillPaint);
+    canvas.drawLine(from, to, highlightPaint);
+    if (connected) {
+      _drawLiquidBubbles(canvas, from, to, tileSize, shimmer);
+    }
+  }
+
   void _drawTeePipe(
     Canvas canvas,
     Size size,
@@ -161,10 +200,10 @@ class PipePainter extends CustomPainter {
     Paint fillPaint,
     Paint highlightPaint,
     Offset Function(Direction) edgeMidpoint,
+    bool connected,
+    double shimmer,
   ) {
     final dirs = openings.toList();
-
-    // Find the straight-through pair (opposite directions)
     Direction? straightA;
     Direction? straightB;
     Direction? branch;
@@ -174,7 +213,6 @@ class PipePainter extends CustomPainter {
         if (dirs[i].opposite == dirs[j]) {
           straightA = dirs[i];
           straightB = dirs[j];
-          // The remaining direction is the branch
           branch = dirs.firstWhere((d) => d != dirs[i] && d != dirs[j]);
           break;
         }
@@ -187,19 +225,20 @@ class PipePainter extends CustomPainter {
       final pB = edgeMidpoint(straightB);
       final pBranch = edgeMidpoint(branch);
 
-      // 1. Draw all outlines first
       canvas.drawLine(pA, pB, outlinePaint);
       canvas.drawLine(center, pBranch, outlinePaint);
 
-      // 2. Draw all fills (joins seamlessly)
       canvas.drawLine(pA, pB, fillPaint);
       canvas.drawLine(center, pBranch, fillPaint);
 
-      // 3. Draw highlights
       canvas.drawLine(pA, pB, highlightPaint);
       canvas.drawLine(center, pBranch, highlightPaint);
+
+      if (connected) {
+        _drawLiquidBubbles(canvas, pA, pB, size.width, shimmer);
+        _drawLiquidBubbles(canvas, center, pBranch, size.width, (shimmer + 0.4) % 1.0);
+      }
     } else {
-      // Fallback: draw all three branches layered
       for (final dir in dirs) {
         canvas.drawLine(center, edgeMidpoint(dir), outlinePaint);
       }
@@ -212,7 +251,42 @@ class PipePainter extends CustomPainter {
     }
   }
 
-  /// Draw a dead-end tile as a magic flask / bulb ("ampolla") termination.
+  /// Draw animated liquid bubbles flowing through a pipe segment
+  void _drawLiquidBubbles(Canvas canvas, Offset from, Offset to, double tileSize, double phase) {
+    final bubblePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.65)
+      ..style = PaintingStyle.fill;
+    
+    final glowPaint = Paint()
+      ..color = theme.flowColorLight.withValues(alpha: 0.40)
+      ..style = PaintingStyle.fill;
+
+    // Draw 2 moving micro bubbles
+    for (int i = 0; i < 2; i++) {
+      final offsetFrac = (phase + (i * 0.45)) % 1.0;
+      final bubblePos = Offset.lerp(from, to, offsetFrac)!;
+      final bubbleRadius = (tileSize * 0.035) * (1.0 + (sin((phase + i) * pi * 2) * 0.3));
+
+      canvas.drawCircle(bubblePos, bubbleRadius + 1.5, glowPaint);
+      canvas.drawCircle(bubblePos, bubbleRadius, bubblePaint);
+    }
+  }
+
+  /// Draw a surging fluid pressure front / curved meniscus
+  void _drawFluidMeniscus(Canvas canvas, Offset pos, double pipeWidth, Color glowColor) {
+    final meniscusPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.85)
+      ..style = PaintingStyle.fill;
+    
+    final auraPaint = Paint()
+      ..color = glowColor.withValues(alpha: 0.6)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+
+    final r = pipeWidth * 0.4;
+    canvas.drawCircle(pos, r * 1.4, auraPaint);
+    canvas.drawCircle(pos, r, meniscusPaint);
+  }
+
   void _drawDeadEndPipe(
     Canvas canvas,
     Size size,
@@ -227,124 +301,133 @@ class PipePainter extends CustomPainter {
     Color fillColor,
     Color lightFill,
     bool connected,
+    double shimmer,
   ) {
     final edge = edgeMidpoint(dir);
 
-    // Direction vector from center to edge
     final dx = (edge.dx - center.dx) / (size.width / 2);
     final dy = (edge.dy - center.dy) / (size.height / 2);
     final dirVector = Offset(dx, dy);
 
-    // Bulb center positioned slightly opposite to the opening
     final bulbCenter = center - dirVector * (pipeWidth * 0.15);
     final bulbRadius = pipeWidth * 0.85;
 
-    // Draw the pipe stem from edge into the bulb
+    // Pipe stem
     canvas.drawLine(edge, bulbCenter, outlinePaint);
     canvas.drawLine(edge, bulbCenter, fillPaint);
     canvas.drawLine(edge, bulbCenter, highlightPaint);
 
-    // Collar flange where pipe meets bulb
+    if (connected) {
+      _drawLiquidBubbles(canvas, edge, bulbCenter, size.width, shimmer);
+    }
+
+    // Collar ring
     final collarCenter = bulbCenter + dirVector * (bulbRadius * 0.7);
     canvas.drawCircle(
       collarCenter,
       pipeWidth * 0.58,
-      Paint()..color = strokeColor,
+      Paint()
+        ..color = strokeColor
+        ..style = PaintingStyle.fill,
     );
     canvas.drawCircle(
       collarCenter,
-      pipeWidth * 0.48,
-      Paint()..color = fillColor,
+      pipeWidth * 0.44,
+      Paint()
+        ..color = connected ? fillColor : theme.pipeDisconnected
+        ..style = PaintingStyle.fill,
     );
 
-    // Outer outline for ampolla bulb
+    // Bulb glass body
     canvas.drawCircle(
       bulbCenter,
-      bulbRadius + 2.5,
-      Paint()..color = strokeColor,
+      bulbRadius + 3.0,
+      Paint()
+        ..color = strokeColor
+        ..style = PaintingStyle.fill,
     );
 
-    // Main bulb body
+    // Bulb fluid chamber
+    final liquidPulse = connected ? sin(shimmer * 2 * pi) * 1.5 : 0.0;
     canvas.drawCircle(
       bulbCenter,
-      bulbRadius,
-      Paint()..color = fillColor,
+      bulbRadius - 1.0,
+      Paint()
+        ..color = connected
+            ? Color.lerp(const Color(0xFF1E2D2F), fillColor, flowProgress)!
+            : const Color(0xFF2C3E50)
+        ..style = PaintingStyle.fill,
     );
 
-    // Inner bright fluid core / glow
-    canvas.drawCircle(
-      bulbCenter,
-      bulbRadius * 0.65,
-      Paint()..color = lightFill,
-    );
-
-    // Specular glass highlights (white reflections)
-    final highlightAngle = Offset(-bulbRadius * 0.35, -bulbRadius * 0.35);
-    canvas.drawCircle(
-      bulbCenter + highlightAngle,
-      bulbRadius * 0.22,
-      Paint()..color = Colors.white.withValues(alpha: connected ? 0.75 : 0.45),
-    );
-
-    canvas.drawCircle(
-      bulbCenter + Offset(-bulbRadius * 0.15, -bulbRadius * 0.55),
-      bulbRadius * 0.12,
-      Paint()..color = Colors.white.withValues(alpha: connected ? 0.85 : 0.55),
-    );
-
-    // Animated sparkle pulse when bulb is filled and celebrating
-    if (connected && (flowProgress > 0.85 || pulseProgress > 0.0)) {
-      final sparkleAlpha = ((pulseProgress > 0.0 ? pulseProgress : (flowProgress - 0.85) * 6.6)).clamp(0.0, 1.0);
+    if (connected) {
+      // Swirling fluid core
       canvas.drawCircle(
         bulbCenter,
-        bulbRadius * (0.8 + pulseProgress * 0.3),
+        (bulbRadius * 0.65) + liquidPulse,
         Paint()
-          ..color = Colors.white.withValues(alpha: sparkleAlpha * 0.35)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5,
+          ..color = Color.lerp(fillColor, lightFill, 0.45 + (sin(shimmer * 2 * pi) * 0.25))!
+          ..style = PaintingStyle.fill,
+      );
+
+      // Bubbles in ampolla
+      final bubbleOffset = Offset(
+        sin(shimmer * 2 * pi) * (bulbRadius * 0.3),
+        cos(shimmer * 2 * pi) * (bulbRadius * 0.3),
+      );
+      canvas.drawCircle(
+        bulbCenter + bubbleOffset,
+        bulbRadius * 0.22,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.8)
+          ..style = PaintingStyle.fill,
       );
     }
+
+    // Specular reflections
+    final specularOffset = Offset(-bulbRadius * 0.32, -bulbRadius * 0.32);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: bulbCenter + specularOffset,
+        width: bulbRadius * 0.55,
+        height: bulbRadius * 0.30,
+      ),
+      Paint()
+        ..color = Colors.white.withValues(alpha: connected ? 0.75 : 0.45)
+        ..style = PaintingStyle.fill,
+    );
   }
 
-  void _drawStraightPipe(
-    Canvas canvas,
-    Offset from,
-    Offset to,
-    Paint outline,
-    Paint fill,
-    Paint highlight,
-  ) {
-    canvas.drawLine(from, to, outline);
-    canvas.drawLine(from, to, fill);
-    canvas.drawLine(from, to, highlight);
-  }
-
-  /// Draw the Source marker — a filled circle with inner ring.
-  void _drawSourceMarker(
-      Canvas canvas, Size size, Offset center, bool connected) {
-    final radius = size.width * 0.25;
-
-    final outerPaint = Paint()
-      ..color = connected ? theme.flowColor : theme.pipeDisconnected
-      ..style = PaintingStyle.fill;
-    final ringPaint = Paint()
-      ..color = connected ? theme.flowColorDark : theme.pipeStroke
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    final innerPaint = Paint()
-      ..color = connected ? theme.flowColorLight : const Color(0xFFE8E8E8)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(center, radius + 2, ringPaint);
-    canvas.drawCircle(center, radius, outerPaint);
-    canvas.drawCircle(center, radius * 0.4, innerPaint);
+  void _drawSourceMarker(Canvas canvas, Size size, Offset center, bool connected) {
+    final auraRadius = size.width * 0.38;
+    canvas.drawCircle(
+      center,
+      auraRadius,
+      Paint()
+        ..color = (connected ? theme.flowColor : Colors.amber).withValues(alpha: 0.25)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+    canvas.drawCircle(
+      center,
+      auraRadius * 0.7,
+      Paint()
+        ..color = (connected ? theme.flowColorDark : const Color(0xFFE65100))
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(
+      center,
+      auraRadius * 0.52,
+      Paint()
+        ..color = (connected ? theme.flowColorLight : const Color(0xFFFFD54F))
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override
   bool shouldRepaint(covariant PipePainter oldDelegate) {
-    return tile != oldDelegate.tile ||
-        theme != oldDelegate.theme ||
-        flowProgress != oldDelegate.flowProgress ||
-        pulseProgress != oldDelegate.pulseProgress;
+    return oldDelegate.tile != tile ||
+        oldDelegate.theme != theme ||
+        oldDelegate.flowProgress != flowProgress ||
+        oldDelegate.pulseProgress != pulseProgress ||
+        oldDelegate.shimmerProgress != shimmerProgress;
   }
 }

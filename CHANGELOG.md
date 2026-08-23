@@ -2,6 +2,16 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.3.2 — 2026-08-23
+
+### Organic Liquid Fluid Simulation & Mobile UI Fix 🌊🫧📱
+- **Turbulent Fluid Chaos & Jitter** — replaced deterministic BFS delays with organic spatial chaos delays (`TileWidget._triggerFlowAnimation`) creating realistic fluid bursts and surges through pipes
+- **Dynamic Caustic Waves & Moving Bubbles** — animated pulsating liquid shimmer (`PipePainter`) with floating micro-bubbles and moving caustic highlights
+- **Surging Meniscus Pressure Front** — dynamic curved meniscus with light aura when water rushes into empty pipes
+- **Swirling Ampolla Chamber** — dead-end flasks now feature swirling liquid cores and floating bubbles
+- **Pixel 10 Mobile Portrait Layout Overhaul** — spacious 2x2 difficulty selector cards with 56dp+ touch targets, 60dp PLAY button, and anti-squish glassmorphic container
+- **Aggressive Cache-Busting for Mobile Web** — added Cache-Control meta headers and `flutter_bootstrap.js?v=2.3.2` query parameter to force phone browsers to immediately display the updated UI
+
 ## 2.3.0 — 2026-08-23
 
 ### Riccardo, Ale & Seby: The Dungeon Plumbers! 🚰👦🧒🐉💎

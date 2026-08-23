@@ -23,9 +23,10 @@
 - [x] Task: Wire victory fanfare to level completion
 - [x] Task: Phase Verification & Checkpoint — audio playback verification on Web and Mobile
 
-## Phase 4: Verification & Automated QA
-- [x] Task: `flutter analyze` — 0 issues
-- [x] Task: `just test` — 100% pass rate
-- [x] Task: Run `just qa` automated browser inspection
-- [x] Task: Bump version in all 4 files (`version.dart`, `VERSION`, `pubspec.yaml`, `CHANGELOG.md`)
-- [x] Task: Deploy to GitHub Pages + verify on localhost
+## Phase 5: Organic Liquid Fluid Simulation (Chaos Jitter, Flow Shimmer & Meniscus)
+- [ ] Task: Replace deterministic BFS delays with turbulent fluid chaos jitter in `TileWidget`
+- [ ] Task: Implement animated flowing liquid shimmer & moving caustic highlights in `PipePainter`
+- [ ] Task: Add fluid surge meniscus (pressure front) and dynamic micro-bubbles inside connected pipes
+- [ ] Task: Add slosh/bounce easing on fluid arrival
+- [ ] Task: Phase Verification & Checkpoint — visual inspection on Web & Mobile
+

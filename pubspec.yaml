@@ -1,8 +1,8 @@
 name: tubature
-description: "Tubature - The Magic Plumber! A pipe-puzzle game for kids."
+description: "Tubature — An enchanting pipe-puzzle game starring Riccardo the Dungeon Plumber."
 publish_to: 'none'
 
-version: 2.3.0+14
+version: 2.3.2+16
 
 environment:
   sdk: ^3.10.7

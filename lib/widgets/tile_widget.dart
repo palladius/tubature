@@ -9,9 +9,11 @@ import 'creature_painter.dart';
 
 /// Widget for a single tile in the puzzle grid.
 ///
-/// Handles tap interaction (rotate on tap), rotation animation (200ms),
-/// scale pulse feedback, sequential fluid propagation animation based on BFS depth,
-/// and victory celebration pulsing.
+/// Features:
+/// - Smooth rotation animation (200ms) with tap scale bounce
+/// - Organic liquid fluid flow propagation with turbulent chaos jitter
+/// - Continuous fluid shimmer and moving bubbles
+/// - Victory pulse celebration
 class TileWidget extends StatefulWidget {
   final Tile tile;
   final Position position;
@@ -44,6 +46,9 @@ class _TileWidgetState extends State<TileWidget>
   late AnimationController _flowController;
   late Animation<double> _flowAnimation;
 
+  late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -59,12 +64,21 @@ class _TileWidgetState extends State<TileWidget>
     );
 
     _flowController = AnimationController(
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 280),
       vsync: this,
     );
     _flowAnimation = CurvedAnimation(
       parent: _flowController,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOutBack,
+    );
+
+    // Continuous subtle liquid shimmer
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2400),
+      vsync: this,
+    );
+    _shimmerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _shimmerController, curve: Curves.linear),
     );
 
     _pulseController = AnimationController(
@@ -76,6 +90,7 @@ class _TileWidgetState extends State<TileWidget>
     );
 
     if (widget.tile.isConnected) {
+      _shimmerController.repeat();
       _triggerFlowAnimation();
     }
 
@@ -90,8 +105,10 @@ class _TileWidgetState extends State<TileWidget>
 
     if (widget.tile.isConnected != oldWidget.tile.isConnected) {
       if (widget.tile.isConnected) {
+        _shimmerController.repeat();
         _triggerFlowAnimation();
       } else {
+        _shimmerController.stop();
         _flowController.reset();
       }
     }
@@ -106,13 +123,25 @@ class _TileWidgetState extends State<TileWidget>
     }
   }
 
+  /// Calculates organic chaotic delays for turbulent liquid simulation
   void _triggerFlowAnimation() {
-    final delayMs = min(widget.connectionDepth * 60, 600);
+    final r = widget.position.row;
+    final c = widget.position.col;
+    final depth = widget.connectionDepth;
+
+    // Organic turbulence: pseudo-random spatial jitter based on tile coordinates
+    final chaosJitter = ((sin(r * 3.8 + c * 2.3) * 35) +
+            (cos(r * 1.7 - c * 2.9) * 20))
+        .toInt();
+
+    final baseDelay = depth * 42;
+    final delayMs = max(0, min(baseDelay + chaosJitter, 750));
+
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         _flowController.forward(from: 0.0);
-        if (widget.connectionDepth > 0) {
-          AudioService.playWaterFlow(chainLength: widget.connectionDepth);
+        if (depth > 0) {
+          AudioService.playWaterFlow(chainLength: depth);
         }
       }
     });
@@ -122,6 +151,7 @@ class _TileWidgetState extends State<TileWidget>
   void dispose() {
     _scaleController.dispose();
     _flowController.dispose();
+    _shimmerController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -130,7 +160,6 @@ class _TileWidgetState extends State<TileWidget>
     if (widget.tile.isFixed) return;
     if (widget.onTap == null) return;
 
-    // Trigger click sound & scale pulse
     AudioService.playTileClick();
     _scaleController.forward().then((_) {
       if (mounted) _scaleController.reverse();
@@ -147,7 +176,12 @@ class _TileWidgetState extends State<TileWidget>
       onTap: _handleTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedBuilder(
-        animation: Listenable.merge([_scaleAnimation, _flowAnimation, _pulseAnimation]),
+        animation: Listenable.merge([
+          _scaleAnimation,
+          _flowAnimation,
+          _shimmerAnimation,
+          _pulseAnimation,
+        ]),
         builder: (context, child) {
           return Transform.scale(
             scale: _scaleAnimation.value,
@@ -157,14 +191,16 @@ class _TileWidgetState extends State<TileWidget>
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
                   color: widget.tile.isConnected
-                      ? widget.theme.flowColor.withValues(alpha: 0.3 * _flowAnimation.value)
+                      ? widget.theme.flowColor.withValues(
+                          alpha: 0.35 * _flowAnimation.value,
+                        )
                       : Colors.grey.withValues(alpha: 0.15),
                   width: 0.5,
                 ),
               ),
               child: Stack(
                 children: [
-                  // Pipe layer with rotation animation and water flow progress
+                  // Pipe layer with rotation and dynamic fluid simulation
                   AnimatedRotation(
                     turns: rotationTurns,
                     duration: const Duration(milliseconds: 200),
@@ -173,8 +209,12 @@ class _TileWidgetState extends State<TileWidget>
                       painter: PipePainter(
                         tile: widget.tile.copyWith(rotation: 0),
                         theme: widget.theme,
-                        flowProgress: widget.tile.isConnected ? _flowAnimation.value : 0.0,
-                        pulseProgress: widget.isVictoryCelebrating ? _pulseAnimation.value : 0.0,
+                        flowProgress:
+                            widget.tile.isConnected ? _flowAnimation.value : 0.0,
+                        pulseProgress:
+                            widget.isVictoryCelebrating ? _pulseAnimation.value : 0.0,
+                        shimmerProgress:
+                            widget.tile.isConnected ? _shimmerAnimation.value : 0.0,
                       ),
                       size: Size.infinite,
                     ),
@@ -201,11 +241,12 @@ class _TileWidgetState extends State<TileWidget>
 
   CreatureType _getSourceCreature() {
     switch (widget.creatureTheme) {
-      case 'wizard_dungeon':
-        return CreatureType.wizard;
-      case 'crystal_caves':
-        return CreatureType.crystal;
       case 'dragon_gems':
+        return CreatureType.dragon;
+      case 'wizard_alchemy':
+        return CreatureType.wizard;
+      case 'space_station':
+        return CreatureType.crystal;
       default:
         return CreatureType.dragon;
     }
