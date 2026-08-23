@@ -61,7 +61,7 @@
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var name of names) {
-          if (!name.includes('2.3.2')) {
+          if (!name.includes('2.3.3')) {
             caches.delete(name);
           }
         }
@@ -75,6 +75,6 @@
       });
     }
   </script>
-  <script src="flutter_bootstrap.js?v=2.3.2" async></script>
+  <script src="flutter_bootstrap.js?v=2.3.3" async></script>
 </body>
 </html>
