@@ -206,7 +206,7 @@ void main() {
       }
       expect(themes, contains(CreatureTheme.dragon_gems));
       expect(themes, contains(CreatureTheme.wizard_dungeon));
-      expect(themes, contains(CreatureTheme.space_wars));
+      expect(themes, contains(CreatureTheme.crystal_caves));
     });
   });
 

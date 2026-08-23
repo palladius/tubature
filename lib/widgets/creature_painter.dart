@@ -2,20 +2,20 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/level_theme.dart';
 
-/// Painting types for creatures
+/// Painting types for fantasy source creatures
 enum CreatureType {
-  /// Dragon Source — breathes magic into pipes
+  /// 🐉 Dragon Source — breathes magic into pipes
   dragon,
-  /// Wizard Source — casts spell into pipes
+  /// 🧙 Wizard Source — casts spells into pipes
   wizard,
-  /// Planet/Rocket Source — launches energy into pipes
-  rocket,
+  /// 💎 Crystal Gemstone Source — radiates magical fluid into pipes
+  crystal,
 }
 
-/// CustomPainter that renders cute creature icons for Source and Sink tiles.
+/// CustomPainter that renders cute fantasy creature icons for Source tiles.
 ///
-/// These are drawn as simple, bold vector shapes using Canvas operations.
-/// Think emoji-style — recognizable at small sizes, charming for kids.
+/// Drawn as simple, bold vector shapes using Canvas operations.
+/// Recognized at small sizes, charming for kids.
 class CreaturePainter extends CustomPainter {
   final CreatureType creatureType;
   final LevelTheme theme;
@@ -37,8 +37,8 @@ class CreaturePainter extends CustomPainter {
         _paintDragon(canvas, size, center, radius);
       case CreatureType.wizard:
         _paintWizard(canvas, size, center, radius);
-      case CreatureType.rocket:
-        _paintRocket(canvas, size, center, radius);
+      case CreatureType.crystal:
+        _paintCrystal(canvas, size, center, radius);
     }
   }
 
@@ -138,43 +138,70 @@ class CreaturePainter extends CustomPainter {
     }
   }
 
-  /// 🚀 Rocket/Planet — circle with ring (Saturn-like)
-  void _paintRocket(Canvas canvas, Size size, Offset center, double radius) {
+  /// 💎 Cut Gemstone Crystal — sparkling faceted diamond shape
+  void _paintCrystal(Canvas canvas, Size size, Offset center, double radius) {
     final color = isConnected ? theme.flowColor : theme.pipeDisconnected;
     final darkColor = isConnected ? theme.flowColorDark : theme.pipeStroke;
+    final lightColor = isConnected ? theme.flowColorLight : const Color(0xFFE0E0E0);
 
-    // Planet body
-    canvas.drawCircle(center, radius * 0.75, Paint()..color = color);
-    canvas.drawCircle(
-        center,
-        radius * 0.75,
+    final r = radius * 0.95;
+
+    // Diamond polygon points
+    final top = Offset(center.dx, center.dy - r * 1.1);
+    final right = Offset(center.dx + r, center.dy - r * 0.1);
+    final bottom = Offset(center.dx, center.dy + r * 1.1);
+    final left = Offset(center.dx - r, center.dy - r * 0.1);
+    final innerTop = Offset(center.dx, center.dy - r * 0.3);
+
+    final mainGemPath = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(right.dx, right.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(left.dx, left.dy)
+      ..close();
+
+    // Fill base gem
+    canvas.drawPath(mainGemPath, Paint()..color = color);
+    canvas.drawPath(
+        mainGemPath,
         Paint()
           ..color = darkColor
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2);
+          ..strokeWidth = 2.0);
 
-    // Ring (ellipse around the planet)
-    final ringRect = Rect.fromCenter(
-        center: center, width: radius * 2.2, height: radius * 0.7);
-    canvas.drawOval(
-        ringRect,
+    // Facet lines
+    final facetPaint = Paint()
+      ..color = darkColor.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    canvas.drawLine(top, innerTop, facetPaint);
+    canvas.drawLine(left, innerTop, facetPaint);
+    canvas.drawLine(right, innerTop, facetPaint);
+    canvas.drawLine(bottom, innerTop, facetPaint);
+
+    // Top-left facet highlight
+    final highlightFacet = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(left.dx, left.dy)
+      ..lineTo(innerTop.dx, innerTop.dy)
+      ..close();
+    canvas.drawPath(
+        highlightFacet,
         Paint()
-          ..color = darkColor.withValues(alpha: 0.5)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3);
+          ..color = lightColor.withValues(alpha: 0.6)
+          ..style = PaintingStyle.fill);
 
-    // Small crater dots
-    canvas.drawCircle(
-        center.translate(-radius * 0.2, -radius * 0.15),
-        radius * 0.1,
-        Paint()..color = Colors.white.withValues(alpha: 0.4));
-    canvas.drawCircle(
-        center.translate(radius * 0.25, radius * 0.2),
-        radius * 0.08,
-        Paint()..color = Colors.white.withValues(alpha: 0.3));
+    // Specular sparkle star on top facet
+    if (isConnected) {
+      _drawStar(
+        canvas,
+        Offset(center.dx - r * 0.35, center.dy - r * 0.45),
+        r * 0.25,
+        Colors.white,
+      );
+    }
   }
-
-  
 
   void _drawStar(Canvas canvas, Offset center, double radius, Color color) {
     final path = Path();

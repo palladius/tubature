@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'grid.dart';
 
 enum Difficulty { easy, medium, hard }
-enum CreatureTheme { dragon_gems, wizard_dungeon, space_wars }
+enum CreatureTheme { dragon_gems, wizard_dungeon, crystal_caves }
 
 class Level extends Equatable {
   final int id;

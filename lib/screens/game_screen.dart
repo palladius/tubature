@@ -64,8 +64,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         return LevelTheme.dragonGems;
       case CreatureTheme.wizard_dungeon:
         return LevelTheme.wizardDungeon;
-      case CreatureTheme.space_wars:
-        return LevelTheme.spaceWars;
+      case CreatureTheme.crystal_caves:
+        return LevelTheme.crystalCaves;
     }
   }
 

@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.1.1 — 2026-08-23
+
+### Pure Fantasy Medieval & D&D Themes 🐉🧙💎
+- **Removed Space Theme** — transitioned all themes and creature sources to cohesive medieval fantasy, dungeons, crystals, and gemstones
+- **Added Crystal Caves Theme (💎)** — glowing turquoise water, luminous crystals, and faceted gemstone source icon
+- **Bundled 5 High-Resolution Fantasy Backgrounds** — crystal cave, dungeon treasure vault, dragon gem lair, wizard alchemy lab, and dungeon aqueduct ready for background art & reveal modes
+- **Updated Home Screen Header** — header icons updated to `🐉 🧙 💎`
+
 ## 2.1.0 — 2026-08-23
 
 ### Fluid Flow, Victory Admiration & Audio 🌊🎵

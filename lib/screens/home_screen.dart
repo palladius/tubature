@@ -70,9 +70,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Creature icons row
+                  // Creature icons row (Fantasy Medieval D&D)
                   const Text(
-                    '🐉  🧙  🚀',
+                    '🐉  🧙  💎',
                     style: TextStyle(fontSize: 32),
                   ),
                   const SizedBox(height: 28),
@@ -170,7 +170,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Tutorial button
                   _PlayButton(
                     label: '📖  TUTORIAL',
-                    color: LevelTheme.spaceWars.flowColor,
+                    color: LevelTheme.crystalCaves.flowColor,
                     onTap: _startTutorial,
                   ),
                   const SizedBox(height: 36),

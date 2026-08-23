@@ -203,8 +203,8 @@ class _TileWidgetState extends State<TileWidget>
     switch (widget.creatureTheme) {
       case 'wizard_dungeon':
         return CreatureType.wizard;
-      case 'space_wars':
-        return CreatureType.rocket;
+      case 'crystal_caves':
+        return CreatureType.crystal;
       case 'dragon_gems':
       default:
         return CreatureType.dragon;
