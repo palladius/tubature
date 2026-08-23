@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
 import '../models/level.dart';
@@ -32,6 +33,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
+    // Lock orientation to portrait during gameplay for optimal pipe puzzle view
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     // Start game after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startGame();
@@ -40,6 +46,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   void dispose() {
+    // Restore free orientation rotation when leaving the game screen
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _victoryTimer?.cancel();
     super.dispose();
   }

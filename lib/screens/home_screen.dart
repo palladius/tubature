@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/level.dart';
 import '../version.dart';
@@ -8,9 +9,10 @@ import 'game_screen.dart';
 /// Home screen — Epic D&D Dungeon Plumber theme starring Riccardo & Baby Dragon.
 ///
 /// Responsive Design:
-/// - Portrait (Mobile/Pixel): Title floats at top, Riccardo & Dragon visible in center,
-///   touch controls comfortably docked in glassmorphic bottom sheet.
-/// - Landscape (Tablet/Desktop): Panoramic background on left, right-aligned controls panel.
+/// - Landscape (Mobile/Tablet/Desktop rotated): Full panoramic artwork on left,
+///   interactive controls panel on right.
+/// - Portrait (Mobile/Pixel 10): Balanced title at top, spacious character artwork,
+///   and generous, comfortable touch controls at bottom.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,9 +24,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Difficulty? _selectedDifficulty;
 
   @override
+  void initState() {
+    super.initState();
+    // Allow all orientations on the Home Screen
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isWide = size.width > size.height && size.width > 700;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape || size.width > size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xFF161F28),
@@ -33,7 +42,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           // 1. Fantasy Dungeon Plumber Background Artwork
           Image.asset(
-            isWide
+            isLandscape
                 ? 'assets/images/home_background_wide.jpg'
                 : 'assets/images/home_background.jpg',
             fit: BoxFit.cover,
@@ -54,7 +63,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: isWide
+                colors: isLandscape
                     ? [
                         Colors.black.withValues(alpha: 0.25),
                         Colors.black.withValues(alpha: 0.55),
@@ -62,63 +71,76 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     : [
                         Colors.black.withValues(alpha: 0.45),
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.65),
+                        Colors.black.withValues(alpha: 0.70),
                       ],
-                stops: isWide ? null : const [0.0, 0.45, 1.0],
+                stops: isLandscape ? null : const [0.0, 0.40, 1.0],
               ),
             ),
           ),
 
           // 3. Foreground Content
           SafeArea(
-            child: isWide ? _buildLandscapeLayout() : _buildPortraitLayout(),
+            child: isLandscape ? _buildLandscapeLayout() : _buildPortraitLayout(),
           ),
         ],
       ),
     );
   }
 
-  /// Mobile Portrait Layout: Top Header + Center Art Space + Bottom Controls
+  /// Mobile Portrait Layout (Pixel 10 / Phone): Beautifully balanced & spacious
   Widget _buildPortraitLayout() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 12),
-        // Top Header Banner
-        _buildHeader(),
-        // Open center space showcasing Riccardo & Dragon
-        const Spacer(),
-        // Bottom Glassmorphic Control Panel
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: _buildGlassmorphicPanel(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildDifficultySelector(),
-                const SizedBox(height: 14),
-                _buildPlayButton(),
-                const SizedBox(height: 6),
-                _buildDifficultyDescriptionText(),
-                const SizedBox(height: 12),
-                _buildTutorialButton(),
-                const SizedBox(height: 8),
-                _buildVersionFooter(),
-              ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top Header Banner
+                    _buildHeader(),
+                    
+                    // Center Art Breathing Space (shows Riccardo, Ale, Seby & Dragon)
+                    const Spacer(),
+
+                    // Bottom Glassmorphic Control Panel (Spacious & Comfortable)
+                    _buildGlassmorphicPanel(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildDifficultySelector(),
+                          const SizedBox(height: 14),
+                          _buildPlayButton(),
+                          const SizedBox(height: 8),
+                          _buildDifficultyDescriptionText(),
+                          const SizedBox(height: 12),
+                          _buildTutorialButton(),
+                          const SizedBox(height: 10),
+                          _buildVersionFooter(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  /// Tablet/Desktop Landscape Layout: Side-by-side with right-aligned card
+  /// Tablet/Desktop/Rotated Phone Landscape Layout: Side-by-side with right-aligned card
   Widget _buildLandscapeLayout() {
     return Align(
       alignment: Alignment.centerRight,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
           child: _buildGlassmorphicPanel(
@@ -127,15 +149,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildHeader(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _buildDifficultySelector(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _buildPlayButton(),
                 const SizedBox(height: 6),
                 _buildDifficultyDescriptionText(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 _buildTutorialButton(),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 _buildVersionFooter(),
               ],
             ),
@@ -151,9 +173,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
           decoration: BoxDecoration(
-            color: const Color(0xFF161F28).withValues(alpha: 0.82),
+            color: const Color(0xFF161F28).withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: const Color(0xFFFFD54F).withValues(alpha: 0.4),
@@ -161,7 +183,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: Colors.black.withValues(alpha: 0.55),
                 blurRadius: 20,
                 offset: const Offset(0, 6),
               ),
@@ -180,7 +202,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           'TUBATURE',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 42,
+            fontSize: 38,
             fontWeight: FontWeight.w900,
             color: Color(0xFFFFD54F),
             letterSpacing: 4,
@@ -203,7 +225,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           'THE DUNGEON PLUMBER',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w800,
             color: Color(0xFF80DEEA),
             letterSpacing: 3,
@@ -221,7 +243,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           '🐲 Quest for the Crystal Springs 💎',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
             color: Color(0xFFCFD8DC),
             fontStyle: FontStyle.italic,
@@ -304,7 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildPlayButton() {
     return SizedBox(
-      height: 60,
+      height: 62,
       child: ElevatedButton(
         onPressed: _startPlay,
         style: ElevatedButton.styleFrom(
@@ -462,7 +484,7 @@ class _FantasyDifficultyCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
               ? activeColor
