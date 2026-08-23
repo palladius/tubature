@@ -6,8 +6,8 @@ enum TileType {
   corner,
   tee,
   cross,
+  deadEnd,
   source,
-  sink,
   empty
 }
 
@@ -63,8 +63,11 @@ class Tile extends Equatable {
       case TileType.cross:
         baseOpenings = {Direction.north, Direction.east, Direction.south, Direction.west};
         break;
+      case TileType.deadEnd:
+        // Cap tile — one opening pointing south at rotation 0
+        baseOpenings = {Direction.south};
+        break;
       case TileType.source:
-      case TileType.sink:
         if (baseDirection != null) {
           baseOpenings = {baseDirection!};
         }

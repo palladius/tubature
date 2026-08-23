@@ -27,7 +27,7 @@ void main() {
   });
 
   group('Level Generation - Easy (5×5)', () {
-    test('generate 20 easy levels: correct dimensions, has source/sink, not pre-solved', () {
+    test('generate 20 easy levels: correct dimensions, has source, not pre-solved', () {
       for (int i = 0; i < 20; i++) {
         final level = generator.generateLevel(Difficulty.easy, id: i);
 
@@ -35,15 +35,12 @@ void main() {
         expect(level.grid.rows, 5, reason: 'Easy level $i');
         expect(level.grid.cols, 5, reason: 'Easy level $i');
 
-        // Verify source and sink exist
+        // Verify source exists
         final source = _findTileOfType(level.grid, TileType.source);
-        final sink = _findTileOfType(level.grid, TileType.sink);
         expect(source, isNotNull, reason: 'Easy level $i has source');
-        expect(sink, isNotNull, reason: 'Easy level $i has sink');
 
-        // Verify source/sink are fixed
+        // Verify source is fixed
         expect(level.grid.tileAt(source!)!.isFixed, isTrue);
-        expect(level.grid.tileAt(sink!)!.isFixed, isTrue);
 
         // Verify NOT already solved (shuffle must have changed something)
         expect(WinChecker.checkWin(level.grid), isFalse,
@@ -51,16 +48,13 @@ void main() {
       }
     });
 
-    test('generate 20 easy levels: source/sink are on edges', () {
+    test('generate 20 easy levels: source is on edge', () {
       for (int i = 0; i < 20; i++) {
         final level = generator.generateLevel(Difficulty.easy, id: i);
         final source = _findTileOfType(level.grid, TileType.source)!;
-        final sink = _findTileOfType(level.grid, TileType.sink)!;
 
         expect(_isOnEdge(source, level.grid), isTrue,
             reason: 'Easy level $i: source must be on edge');
-        expect(_isOnEdge(sink, level.grid), isTrue,
-            reason: 'Easy level $i: sink must be on edge');
       }
     });
   });
@@ -73,9 +67,7 @@ void main() {
         expect(level.grid.cols, inInclusiveRange(6, 7));
 
         final source = _findTileOfType(level.grid, TileType.source);
-        final sink = _findTileOfType(level.grid, TileType.sink);
         expect(source, isNotNull);
-        expect(sink, isNotNull);
         expect(WinChecker.checkWin(level.grid), isFalse);
       }
     });
@@ -89,9 +81,7 @@ void main() {
         expect(level.grid.cols, 8);
 
         final source = _findTileOfType(level.grid, TileType.source);
-        final sink = _findTileOfType(level.grid, TileType.sink);
         expect(source, isNotNull);
-        expect(sink, isNotNull);
         expect(WinChecker.checkWin(level.grid), isFalse);
       }
     });
@@ -102,9 +92,7 @@ void main() {
       for (int t = 1; t <= 10; t++) {
         final level = generator.getTutorialLevel(t);
         final source = _findTileOfType(level.grid, TileType.source);
-        final sink = _findTileOfType(level.grid, TileType.sink);
         expect(source, isNotNull, reason: 'Tutorial $t has source');
-        expect(sink, isNotNull, reason: 'Tutorial $t has sink');
         expect(WinChecker.checkWin(level.grid), isFalse,
             reason: 'Tutorial $t not pre-solved');
       }
@@ -175,18 +163,13 @@ void main() {
   });
 
   group('Tile Rotation Mechanics', () {
-    test('rotating source/sink is no-op', () {
+    test('rotating source is no-op', () {
       final level = generator.generateLevel(Difficulty.easy, id: 42);
       final sourcePos = _findTileOfType(level.grid, TileType.source)!;
-      final sinkPos = _findTileOfType(level.grid, TileType.sink)!;
 
       final srcBefore = level.grid.tileAt(sourcePos)!;
       final gridAfter = level.grid.withRotatedTile(sourcePos);
       expect(gridAfter.tileAt(sourcePos)!.rotation, srcBefore.rotation);
-
-      final sinkBefore = level.grid.tileAt(sinkPos)!;
-      final gridAfterSink = level.grid.withRotatedTile(sinkPos);
-      expect(gridAfterSink.tileAt(sinkPos)!.rotation, sinkBefore.rotation);
     });
 
     test('4 rotations return to original', () {
@@ -317,9 +300,7 @@ void main() {
 
         // Verify the grid is valid
         final source = _findTileOfType(state.grid!, TileType.source);
-        final sink = _findTileOfType(state.grid!, TileType.sink);
         expect(source, isNotNull, reason: 'Game $game has source');
-        expect(sink, isNotNull, reason: 'Game $game has sink');
 
         // Simulate some rotations (not solving, just exercising the code)
         int rotations = 0;
@@ -351,8 +332,8 @@ void main() {
 
   group('Small Grid Solver (3×3)', () {
     test('solver can solve a hand-crafted 3×3 grid', () {
-      // Create a simple 3×3 solvable grid:
-      // Source(N→S) at (0,1), path goes (0,1)→(1,1)→(1,2)→(2,2) Sink
+      // Create a 3×3 grid:
+      // Source(N→S) at (0,1), path goes (0,1)→(1,1)→(1,2)→(2,2) DeadEnd
       final tiles = [
         [
           const Tile(type: TileType.corner, rotation: 0), // S,E
@@ -367,20 +348,17 @@ void main() {
         [
           const Tile(type: TileType.line, rotation: 0), // N,S
           const Tile(type: TileType.corner, rotation: 180), // N,W
-          const Tile(type: TileType.sink, baseDirection: Direction.north, isFixed: true),
+          const Tile(type: TileType.deadEnd, rotation: 180, isFixed: false), // N
         ],
       ];
       final grid = Grid(3, 3, tiles);
 
-      // Source at (0,1) opens South → (1,1) corner at 270° opens {N,E}
-      // (1,1) opens East → (1,2) line at 0° opens {N,S} — NO East opening!
-      // So this grid is NOT solved as-is. Let me verify:
+      // Verify that the initial unsolved state is not won
       expect(WinChecker.checkWin(grid), isFalse);
 
-      // Now fix (1,2) to rotation 90 ({E,W}): still won't connect upward
-      // Actually let me just verify the path finder works:
-      final connected = PathFinder.findConnected(grid, Position(0, 1));
-      expect(connected.contains(Position(0, 1)), isTrue); // Source always connected
+      // Verify PathFinder correctly tracks connected tiles from source
+      final connected = PathFinder.findConnected(grid, const Position(0, 1));
+      expect(connected.contains(const Position(0, 1)), isTrue); // Source always connected
     });
   });
 }
@@ -397,8 +375,10 @@ Position? _findTileOfType(Grid grid, TileType type) {
 
 // Helper: check if position is on the grid edge
 bool _isOnEdge(Position pos, Grid grid) {
-  return pos.row == 0 || pos.row == grid.rows - 1 ||
-      pos.col == 0 || pos.col == grid.cols - 1;
+  return pos.row == 0 ||
+      pos.row == grid.rows - 1 ||
+      pos.col == 0 ||
+      pos.col == grid.cols - 1;
 }
 
 // Helper: find first non-fixed, non-empty tile

@@ -2,6 +2,27 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.0.0 — 2026-08-23
+
+### 💥 BREAKING: New Game Mechanics
+- **Removed Sink** — no more endpoint tile. Only the Source remains.
+- **Fill ALL tiles** — win condition is now: every tile on the grid must be connected to the source
+- **Spanning tree level generation** — randomized DFS creates grids where ALL tiles form one connected network when correctly rotated. Every generated level is guaranteed solvable!
+- **Dead-end tiles** — new cap tile type with 1 opening, for tree leaf nodes
+
+### Added
+- 💧 **Progress indicator** — shows "X/Y" connected tiles count during gameplay
+- 📌 **Version footer** — `v2.0.0` shown on home screen
+- 🔍 **Pinch-to-zoom** — viewport allows 0.5x to 5x zoom for accessibility
+- 🚀 **GitHub Pages** — playable at https://palladius.github.io/tubature/
+- 📦 **`just deploy`** — one-command deployment to GitHub Pages
+- 📦 **`just serve`** — local web server on port 8765
+
+### Removed
+- ❌ `TileType.sink` — removed from tile enum entirely
+- ❌ Sink creatures (gems, dungeon, starship) — only source creatures remain
+- ❌ Source-to-sink path generation — replaced by spanning tree
+
 ## 1.1.0 — 2026-08-22
 
 ### Fixed

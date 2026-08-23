@@ -202,6 +202,31 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          // Progress indicator: connected/total tiles
+          if (gameState.grid != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.water_drop, size: 16, color: theme.flowColor),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${gameState.connectedTiles.length}/${gameState.grid!.rows * gameState.grid!.cols}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: theme.flowColorDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

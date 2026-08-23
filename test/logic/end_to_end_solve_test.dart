@@ -152,11 +152,10 @@ bool _dfs(
   final tile = state.grid!.tileAt(pos)!;
 
   // Determine how many unique rotations to try
+  // Determine how many unique rotations to try
   final rotationsToTry = tile.type == TileType.cross
       ? 1
-      : tile.type == TileType.line
-          ? 2
-          : 4;
+      : (tile.type == TileType.line ? 2 : 4);
 
   for (int r = 0; r < rotationsToTry; r++) {
     // Try this rotation

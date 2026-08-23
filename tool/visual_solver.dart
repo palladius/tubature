@@ -93,8 +93,8 @@ void _printGrid(Grid grid, Level level) {
       String ch = _tileChar(tile);
       if (isConn) {
         ch = '\x1b[32m$ch\x1b[0m'; // Green for connected
-      } else if (tile.type == TileType.source || tile.type == TileType.sink) {
-        ch = '\x1b[33m$ch\x1b[0m'; // Yellow for source/sink
+      } else if (tile.type == TileType.source) {
+        ch = '\x1b[33m$ch\x1b[0m'; // Yellow for source
       }
       row.write(ch);
       row.write(' ');
@@ -107,8 +107,8 @@ String _tileChar(Tile tile) {
   switch (tile.type) {
     case TileType.source:
       return '⊕';
-    case TileType.sink:
-      return '⊗';
+    case TileType.deadEnd:
+      return '◄';
     case TileType.line:
       return tile.openings.contains(Direction.north) ? '│' : '─';
     case TileType.corner:

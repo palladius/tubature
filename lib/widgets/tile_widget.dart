@@ -8,7 +8,7 @@ import 'creature_painter.dart';
 /// Widget for a single tile in the puzzle grid.
 ///
 /// Handles tap interaction (rotate on tap), rotation animation (200ms),
-/// and visual feedback (scale pulse). Source/Sink tiles don't rotate.
+/// and visual feedback (scale pulse). Source tiles don't rotate.
 class TileWidget extends StatefulWidget {
   final Tile tile;
   final Position position;
@@ -66,7 +66,6 @@ class _TileWidgetState extends State<TileWidget>
 
   @override
   Widget build(BuildContext context) {
-    // Calculate rotation in turns (0.0 to 1.0) from rotation degrees
     final rotationTurns = widget.tile.rotation / 360.0;
 
     return GestureDetector(
@@ -106,22 +105,12 @@ class _TileWidgetState extends State<TileWidget>
                   size: Size.infinite,
                 ),
               ),
-              // Creature overlay for source/sink
+              // Creature overlay for source only
               if (widget.tile.type == TileType.source)
                 Positioned.fill(
                   child: CustomPaint(
                     painter: CreaturePainter(
                       creatureType: _getSourceCreature(),
-                      theme: widget.theme,
-                      isConnected: widget.tile.isConnected,
-                    ),
-                  ),
-                ),
-              if (widget.tile.type == TileType.sink)
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: CreaturePainter(
-                      creatureType: _getSinkCreature(),
                       theme: widget.theme,
                       isConnected: widget.tile.isConnected,
                     ),
@@ -143,18 +132,6 @@ class _TileWidgetState extends State<TileWidget>
       case 'dragon_gems':
       default:
         return CreatureType.dragon;
-    }
-  }
-
-  CreatureType _getSinkCreature() {
-    switch (widget.creatureTheme) {
-      case 'wizard_dungeon':
-        return CreatureType.dungeon;
-      case 'space_wars':
-        return CreatureType.starship;
-      case 'dragon_gems':
-      default:
-        return CreatureType.gems;
     }
   }
 }

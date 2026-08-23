@@ -1,29 +1,27 @@
 import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tubature/logic/level_generator.dart';
+import 'package:tubature/logic/win_checker.dart';
+import 'package:tubature/models/direction.dart';
+import 'package:tubature/models/grid.dart';
 import 'package:tubature/models/level.dart';
 import 'package:tubature/models/position.dart';
 import 'package:tubature/models/tile.dart';
 
-/// Detailed diagnostic tests to understand the level generator and path
-/// behavior, ensuring generated levels are valid and solvable.
+/// Diagnostic tests for LevelGenerator (v2.0 - Source-only spanning tree).
+///
+/// Ensures generated levels are valid, single-source networks with no sinks,
+/// where all tiles are connected in the pre-shuffle spanning tree.
 void main() {
-  group('Generator produces solvable grids', () {
-    test('pre-shuffle grid IS solved (generator creates valid path)', () {
-      // We need to verify the generator creates valid solution grids
-      // by peeking inside the generation process.
-      // Since _generateGrid is private, let's test indirectly:
-      // Generate many levels and verify the STRUCTURE is correct.
-
+  group('Generator produces valid v2.0 levels', () {
+    test('generated level has exactly 1 source, 0 empty tiles, and valid pipe tiles', () {
       final generator = LevelGenerator(Random(42));
 
       for (int i = 0; i < 10; i++) {
         final level = generator.generateLevel(Difficulty.easy, id: i);
         final grid = level.grid;
 
-        // Count tile types
         int sourceCount = 0;
-        int sinkCount = 0;
         int emptyCount = 0;
         int pipeCount = 0;
 
@@ -33,25 +31,28 @@ void main() {
             switch (tile.type) {
               case TileType.source:
                 sourceCount++;
-              case TileType.sink:
-                sinkCount++;
+                break;
               case TileType.empty:
                 emptyCount++;
-              default:
+                break;
+              case TileType.line:
+              case TileType.corner:
+              case TileType.tee:
+              case TileType.cross:
+              case TileType.deadEnd:
                 pipeCount++;
+                break;
             }
           }
         }
 
-        expect(sourceCount, 1, reason: 'Level $i has exactly 1 source');
-        expect(sinkCount, 1, reason: 'Level $i has exactly 1 sink');
-        expect(pipeCount, greaterThan(0), reason: 'Level $i has pipe tiles');
-        // No empty tiles should exist (generator fills all cells)
-        expect(emptyCount, 0, reason: 'Level $i has no empty tiles');
+        expect(sourceCount, 1, reason: 'Level $i must have exactly 1 source');
+        expect(pipeCount, greaterThan(0), reason: 'Level $i must have pipe/deadEnd tiles');
+        expect(emptyCount, 0, reason: 'Level $i generator fills all grid cells');
       }
     });
 
-    test('every non-fixed tile has valid type', () {
+    test('every non-fixed tile has valid openings', () {
       final generator = LevelGenerator(Random(42));
 
       for (int i = 0; i < 10; i++) {
@@ -59,7 +60,6 @@ void main() {
         for (int r = 0; r < level.grid.rows; r++) {
           for (int c = 0; c < level.grid.cols; c++) {
             final tile = level.grid.tiles[r][c];
-            // Every tile should have valid openings
             if (tile.type != TileType.empty) {
               expect(tile.openings, isNotEmpty,
                   reason: 'Tile at ($r,$c) type=${tile.type} should have openings');
@@ -69,45 +69,66 @@ void main() {
       }
     });
 
-    test('source and sink opening directions point inward', () {
+    test('source is on edge and opening points inward', () {
       final generator = LevelGenerator(Random(42));
 
       for (int i = 0; i < 10; i++) {
         final level = generator.generateLevel(Difficulty.easy, id: i);
         Position? sourcePos;
-        Position? sinkPos;
 
         for (int r = 0; r < level.grid.rows; r++) {
           for (int c = 0; c < level.grid.cols; c++) {
-            if (level.grid.tiles[r][c].type == TileType.source) sourcePos = Position(r, c);
-            if (level.grid.tiles[r][c].type == TileType.sink) sinkPos = Position(r, c);
+            if (level.grid.tiles[r][c].type == TileType.source) {
+              sourcePos = Position(r, c);
+            }
           }
         }
 
-        final sourceOpenings = level.grid.tileAt(sourcePos!)!.openings;
-        expect(sourceOpenings.length, 1, reason: 'Source has 1 opening');
+        expect(sourcePos, isNotNull, reason: 'Level $i has source');
+        expect(_isOnEdge(sourcePos!, level.grid), isTrue,
+            reason: 'Level $i: source must be on grid edge');
 
-        final sinkOpenings = level.grid.tileAt(sinkPos!)!.openings;
-        expect(sinkOpenings.length, 1, reason: 'Sink has 1 opening');
+        final sourceTile = level.grid.tileAt(sourcePos)!;
+        expect(sourceTile.isFixed, isTrue, reason: 'Source tile must be fixed');
 
-        // Source opening should point to a valid grid position
+        final sourceOpenings = sourceTile.openings;
+        expect(sourceOpenings.length, 1, reason: 'Source has exactly 1 opening');
+
+        // Source opening should point to a valid inner grid position
         final sourceDir = sourceOpenings.first;
-        final sourceNeighborPos = sourcePos.neighbor(sourceDir);
-        expect(level.grid.isValidPosition(sourceNeighborPos), isTrue,
+        final neighborPos = sourcePos.neighbor(sourceDir);
+        expect(level.grid.isValidPosition(neighborPos), isTrue,
             reason: 'Level $i: source opening must point inside grid');
-
-        // Sink opening should point to a valid grid position
-        final sinkDir = sinkOpenings.first;
-        final sinkNeighborPos = sinkPos.neighbor(sinkDir);
-        expect(level.grid.isValidPosition(sinkNeighborPos), isTrue,
-            reason: 'Level $i: sink opening must point inside grid');
       }
+    });
+
+    test('spanning tree grid passes WinChecker.checkWin (ALL tiles connected)', () {
+      // Hand-crafted 3×3 spanning tree grid where all tiles connect via source
+      final solvedGrid = Grid(3, 3, [
+        [
+          const Tile(type: TileType.source, baseDirection: Direction.south, isFixed: true),
+          const Tile(type: TileType.deadEnd, rotation: 0), // {S}
+          const Tile(type: TileType.deadEnd, rotation: 0), // {S}
+        ],
+        [
+          const Tile(type: TileType.corner, rotation: 270), // {E, N}
+          const Tile(type: TileType.cross), // {N, E, S, W}
+          const Tile(type: TileType.tee, rotation: 180), // {S, W, N}
+        ],
+        [
+          const Tile(type: TileType.deadEnd, rotation: 270), // {E}
+          const Tile(type: TileType.corner, rotation: 180), // {N, W}
+          const Tile(type: TileType.deadEnd, rotation: 180), // {N}
+        ],
+      ]);
+
+      expect(WinChecker.checkWin(solvedGrid), isTrue,
+          reason: 'Pre-shuffle spanning tree grid with all tiles connected must pass WinChecker');
     });
   });
 
   group('Shuffle verification', () {
-    test('shuffled grid has same tile types but different rotations', () {
-      // This test verifies the shuffle only changes rotations, not tile types
+    test('shuffled grid has same tile types but rotated angles', () {
       final generator = LevelGenerator(Random(42));
 
       for (int i = 0; i < 5; i++) {
@@ -126,5 +147,22 @@ void main() {
         }
       }
     });
+
+    test('post-shuffle grid is not pre-solved', () {
+      final generator = LevelGenerator(Random(42));
+
+      for (int i = 0; i < 10; i++) {
+        final level = generator.generateLevel(Difficulty.easy, id: i);
+        expect(WinChecker.checkWin(level.grid), isFalse,
+            reason: 'Level $i after shuffle must not be pre-solved');
+      }
+    });
   });
+}
+
+bool _isOnEdge(Position pos, Grid grid) {
+  return pos.row == 0 ||
+      pos.row == grid.rows - 1 ||
+      pos.col == 0 ||
+      pos.col == grid.cols - 1;
 }
