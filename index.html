@@ -56,7 +56,25 @@
   <title>Tubature — The Dungeon Plumber 🚰🐉💎</title>
   <link rel="manifest" href="manifest.json">
 </head>
-<body>
+  <script>
+    // Unconditionally clear outdated service worker caches to ensure fresh code on every update
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var name of names) {
+          if (!name.includes('2.3.2')) {
+            caches.delete(name);
+          }
+        }
+      });
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js?v=2.3.2" async></script>
 </body>
 </html>
