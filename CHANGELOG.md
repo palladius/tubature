@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.0.2 — 2026-08-23
+
+### Bug Fixes 🔧
+- **Fixed pipe bleeding** — canvas clipping prevents thick strokes from overflowing into neighboring cells
+- **Removed glow effect** — `MaskFilter.blur` doesn't respect `clipRect` on Flutter Web CanvasKit
+- **Reverted corner pipes** — back to original two-line + center-circle style (arcs were broken)
+- **Robust deploy** — `just deploy` copies build to /tmp before branch switch, auto-rebuilds for localhost
+
 ## 2.0.1 — 2026-08-23
 
 ### Visual Improvements 🎨

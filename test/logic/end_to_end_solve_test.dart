@@ -13,9 +13,8 @@ import 'package:tubature/models/tile.dart';
 /// NOTE: Skipped by default — DFS brute-force is exponentially slow on
 /// grids > 3×3 (4^16 = ~4 billion rotation combos for a 4×4 grid).
 /// Run manually with: flutter test test/logic/end_to_end_solve_test.dart
-@Skip('DFS brute-force solver too slow for grids > 3×3')
 void main() {
-  group('Full Game Solve', () {
+  group('Full Game Solve', skip: 'DFS brute-force solver too slow for grids > 3×3', () {
     test('solve tutorial levels 1-5 via DFS backtracking', () {
       for (int t = 1; t <= 5; t++) {
         final container = ProviderContainer();
