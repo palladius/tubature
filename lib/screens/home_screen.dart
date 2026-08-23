@@ -97,28 +97,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         label: 'Auto ⚡',
                         subLabel: 'Ramps up',
                         isSelected: _selectedDifficulty == null,
-                        color: const Color(0xFF4CAF50),
+                        color: const Color(0xFF1976D2), // high-contrast blue
                         onTap: () => setState(() => _selectedDifficulty = null),
                       ),
                       _DifficultyChip(
                         label: 'Easy 🟢',
                         subLabel: '6×6',
                         isSelected: _selectedDifficulty == Difficulty.easy,
-                        color: const Color(0xFF4CAF50),
+                        color: const Color(0xFF2E7D32), // rich deep green
                         onTap: () => setState(() => _selectedDifficulty = Difficulty.easy),
                       ),
                       _DifficultyChip(
                         label: 'Medium 🟡',
                         subLabel: '7-8',
                         isSelected: _selectedDifficulty == Difficulty.medium,
-                        color: const Color(0xFFFF9800),
+                        color: const Color(0xFFE65100), // rich deep amber
                         onTap: () => setState(() => _selectedDifficulty = Difficulty.medium),
                       ),
                       _DifficultyChip(
                         label: 'Hard 🔴',
                         subLabel: '9-10',
                         isSelected: _selectedDifficulty == Difficulty.hard,
-                        color: const Color(0xFFE91E63),
+                        color: const Color(0xFFC2185B), // rich deep berry
                         onTap: () => setState(() => _selectedDifficulty = Difficulty.hard),
                       ),
                     ],
@@ -140,12 +140,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         elevation: 6,
                         shadowColor: _getPlayButtonColor().withValues(alpha: 0.4),
                       ),
-                      child: Text(
-                        _getPlayButtonText(),
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _getPlayButtonText(),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -283,8 +289,8 @@ class _DifficultyChip extends StatelessWidget {
               subLabel,
               style: TextStyle(
                 fontSize: 10,
-                color: isSelected ? Colors.white.withValues(alpha: 0.85) : Colors.grey.shade500,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: isSelected ? Colors.white : Colors.grey.shade600,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
               ),
             ),
           ],

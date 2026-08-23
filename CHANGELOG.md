@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.0.4 — 2026-08-23
+
+### UI/UX & Quality Improvements 🧪
+- **Fixed Button Text Clipping** — wrapped Play button label in `FittedBox` with adaptive scaling, preventing multi-line overflow when difficulty names are displayed
+- **Enhanced Difficulty Chip Contrast** — increased contrast on active chips (deep emerald, amber, and berry backgrounds with crisp bold white text)
+- **Automated Visual QA Suite** — added `tool/qa_runner.py` and `just qa` for continuous headless visual inspection and playability regression checks
+
 ## 2.0.3 — 2026-08-23
 
 ### Visual & UX Improvements 🎨
