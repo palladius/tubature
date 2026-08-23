@@ -140,11 +140,11 @@ class _TileWidgetState extends State<TileWidget>
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         if (widget.tile.type == TileType.deadEnd) {
-          _flowController.duration = const Duration(milliseconds: 650);
+          _flowController.duration = const Duration(milliseconds: 720);
           _flowController.forward(from: 0.0);
           AudioService.playAmpollaGlub();
         } else {
-          _flowController.duration = const Duration(milliseconds: 280);
+          _flowController.duration = const Duration(milliseconds: 380);
           _flowController.forward(from: 0.0);
           if (depth > 0) {
             AudioService.playWaterFlow(chainLength: depth);
