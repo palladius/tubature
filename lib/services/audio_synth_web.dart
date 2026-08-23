@@ -112,8 +112,11 @@ void _ensureInitialized() {
             }
             var baseHref = document.querySelector('base') ? document.querySelector('base').getAttribute('href') : '';
             var fullPath = path;
-            if (baseHref && baseHref !== '/' && !path.startsWith('http') && !path.startsWith('/')) {
-              fullPath = baseHref + (baseHref.endsWith('/') ? '' : '/') + path;
+            if (!fullPath.startsWith('assets/assets/')) {
+              fullPath = 'assets/' + (fullPath.startsWith('/') ? fullPath.substring(1) : fullPath);
+            }
+            if (baseHref && baseHref !== '/' && !fullPath.startsWith('http')) {
+              fullPath = baseHref + (baseHref.endsWith('/') ? '' : '/') + fullPath;
             }
             var audio = new Audio(fullPath);
             audio.volume = 0.95;
