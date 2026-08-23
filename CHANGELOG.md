@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.0.3 — 2026-08-23
+
+### Visual & UX Improvements 🎨
+- **Seamless Corner Pipes** — removed the ugly circular center juncture blob; corners now render as clean continuous rounded elbows
+- **Dead-End "Ampolla" Redesign** — terminations now look like sealed glass magic flasks/bulbs with liquid fills and specular glass highlights
+- **Home Screen Difficulty Selector** — kids can now choose Auto ⚡, Easy 🟢 (6×6), Medium 🟡 (7-8), or Hard 🔴 (9-10) directly from home
+- **Clean T-Junctions & Crossings** — layered drawing prevents seams at pipe intersections
+
 ## 2.0.2 — 2026-08-23
 
 ### Bug Fixes 🔧

@@ -43,6 +43,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (widget.tutorialLevel != null) {
       _currentTutorialLevel = widget.tutorialLevel!;
       notifier.startTutorial(_currentTutorialLevel);
+    } else if (widget.difficulty != null) {
+      notifier.startNewGame(widget.difficulty!);
     } else {
       // Start progressive mode
       notifier.startProgressive();

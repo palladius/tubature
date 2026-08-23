@@ -26,5 +26,31 @@ void main() {
 
     // Verify progressive difficulty hint text
     expect(find.text('Difficulty increases as you play!'), findsOneWidget);
+
+    // Verify difficulty selector chips exist
+    expect(find.text('Auto ⚡'), findsOneWidget);
+    expect(find.text('Easy 🟢'), findsOneWidget);
+    expect(find.text('Medium 🟡'), findsOneWidget);
+    expect(find.text('Hard 🔴'), findsOneWidget);
+  });
+
+  testWidgets('Selecting difficulty updates play button label', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: TubatureApp()),
+    );
+
+    // Tap Easy chip
+    await tester.tap(find.text('Easy 🟢'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('▶  PLAY EASY!'), findsOneWidget);
+    expect(find.text('Fixed EASY mode'), findsOneWidget);
+
+    // Tap Hard chip
+    await tester.tap(find.text('Hard 🔴'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('▶  PLAY HARD!'), findsOneWidget);
+    expect(find.text('Fixed HARD mode'), findsOneWidget);
   });
 }

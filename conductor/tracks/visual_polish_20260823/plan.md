@@ -2,20 +2,19 @@
 
 **Track ID**: `visual_polish_20260823`
 
-## Phase 1: Dead-End "Ampolla" Redesign
-- [ ] Task: Design ampolla rendering using outward-arc (`addArc` positive sweep)
-- [ ] Task: Implement in `PipePainter._drawDeadEndPipe()` with all 4 rotations
-- [ ] Task: Test connected (blue ampolla) vs disconnected (gray flask) states
-- [ ] Task: Verify clipRect prevents bleeding into neighbor cells
+## Phase 1: Dead-End "Ampolla" Redesign & Corner Juncture Removal
+- [x] Task: Design ampolla rendering using magic flask bulb design with specular reflections
+- [x] Task: Implement in `PipePainter._drawDeadEndPipe()` with clean rendering
+- [x] Task: Remove circular center juncture blobs from corners and T-junctions
+- [x] Task: Verify clipRect prevents bleeding into neighbor cells
 - [ ] Task: Phase Verification — screenshot all 4 rotations
 
 ## Phase 2: Home Screen Difficulty Chooser
-- [ ] Task: Add `DifficultySelector` widget to home screen
-- [ ] Task: Show grid size per option ("Easy 6×6", "Medium 7-8", "Hard 9-10")
-- [ ] Task: Persist selection with `SharedPreferences`
-- [ ] Task: Wire selected difficulty into `GameNotifier.startGame()`
-- [ ] Task: Update existing auto-progression to respect manual selection
-- [ ] Task: Write unit tests for difficulty persistence
+- [x] Task: Add `DifficultySelector` widget to home screen
+- [x] Task: Show grid size per option ("Easy 6×6", "Medium 7-8", "Hard 9-10", "Auto ⚡")
+- [x] Task: Wire selected difficulty into `GameNotifier.startGame()` / `GameScreen`
+- [x] Task: Update existing auto-progression to respect manual selection
+- [x] Task: Write widget tests for difficulty selector interaction
 - [ ] Task: Phase Verification — play through all 3 difficulties
 
 ## Phase 3: Color Themes & Polish

@@ -15,6 +15,7 @@ class GameState {
   final bool isComplete;
   final int levelsCompleted;
   final int currentLevelNumber;
+  final Difficulty? chosenDifficulty;
 
   const GameState({
     this.currentLevel,
@@ -24,6 +25,7 @@ class GameState {
     this.isComplete = false,
     this.levelsCompleted = 0,
     this.currentLevelNumber = 1,
+    this.chosenDifficulty,
   });
 
   GameState copyWith({
@@ -34,6 +36,7 @@ class GameState {
     bool? isComplete,
     int? levelsCompleted,
     int? currentLevelNumber,
+    Difficulty? chosenDifficulty,
   }) {
     return GameState(
       currentLevel: currentLevel ?? this.currentLevel,
@@ -43,23 +46,24 @@ class GameState {
       isComplete: isComplete ?? this.isComplete,
       levelsCompleted: levelsCompleted ?? this.levelsCompleted,
       currentLevelNumber: currentLevelNumber ?? this.currentLevelNumber,
+      chosenDifficulty: chosenDifficulty ?? this.chosenDifficulty,
     );
   }
 
-  /// Determine the current difficulty based on levels completed.
-  /// 
-  /// Progression (aggressive — kids said it was too easy!):
-  /// - Levels 1-2: Easy (6×6)
-  /// - Levels 3-5: Medium (7×7 or 8×8)
-  /// - Levels 6+: Hard (9×9 or 10×10)
+  /// Determine the current difficulty based on chosen setting or progressive escalation.
   Difficulty get progressiveDifficulty {
     if (levelsCompleted < 2) return Difficulty.easy;
     if (levelsCompleted < 5) return Difficulty.medium;
     return Difficulty.hard;
   }
 
+  Difficulty get currentDifficulty {
+    if (chosenDifficulty != null) return chosenDifficulty!;
+    return progressiveDifficulty;
+  }
+
   String get difficultyLabel {
-    switch (progressiveDifficulty) {
+    switch (currentDifficulty) {
       case Difficulty.easy:
         return 'Easy';
       case Difficulty.medium:
@@ -80,7 +84,7 @@ class GameNotifier extends Notifier<GameState> {
 
   void startNewGame(Difficulty difficulty) {
     final level = _generator.generateLevel(difficulty);
-    _loadLevel(level, levelNumber: 1);
+    _loadLevel(level, levelNumber: 1, chosenDifficulty: difficulty);
   }
 
   /// Start a progressive game — difficulty increases as levels are beaten.
@@ -88,28 +92,25 @@ class GameNotifier extends Notifier<GameState> {
     const initialState = GameState();
     state = initialState;
     final level = _generator.generateLevel(Difficulty.easy);
-    _loadLevel(level, levelNumber: 1);
+    _loadLevel(level, levelNumber: 1, chosenDifficulty: null);
   }
 
   void startTutorial(int levelNumber) {
     final level = _generator.getTutorialLevel(levelNumber);
-    _loadLevel(level, levelNumber: levelNumber);
+    _loadLevel(level, levelNumber: levelNumber, chosenDifficulty: null);
   }
 
-  /// Move to the next level with progressive difficulty.
+  /// Move to the next level with progressive or fixed difficulty.
   void nextLevel() {
     final newCompleted = state.levelsCompleted + 1;
     final newLevelNum = state.currentLevelNumber + 1;
 
-    // Determine difficulty based on progression
-    final Difficulty difficulty;
-    if (newCompleted < 3) {
-      difficulty = Difficulty.easy;
-    } else if (newCompleted < 7) {
-      difficulty = Difficulty.medium;
-    } else {
-      difficulty = Difficulty.hard;
-    }
+    final Difficulty difficulty = state.chosenDifficulty ??
+        (newCompleted < 2
+            ? Difficulty.easy
+            : newCompleted < 5
+                ? Difficulty.medium
+                : Difficulty.hard);
 
     final level = _generator.generateLevel(difficulty, id: newLevelNum);
     final connected = _calculateConnected(level.grid);
@@ -121,6 +122,7 @@ class GameNotifier extends Notifier<GameState> {
       isComplete: false,
       levelsCompleted: newCompleted,
       currentLevelNumber: newLevelNum,
+      chosenDifficulty: state.chosenDifficulty,
     );
   }
 
@@ -137,7 +139,7 @@ class GameNotifier extends Notifier<GameState> {
     }
   }
 
-  void _loadLevel(Level level, {int levelNumber = 1}) {
+  void _loadLevel(Level level, {int levelNumber = 1, Difficulty? chosenDifficulty}) {
     final connected = _calculateConnected(level.grid);
     state = GameState(
       currentLevel: level,
@@ -147,6 +149,7 @@ class GameNotifier extends Notifier<GameState> {
       isComplete: false,
       levelsCompleted: state.levelsCompleted,
       currentLevelNumber: levelNumber,
+      chosenDifficulty: chosenDifficulty ?? state.chosenDifficulty,
     );
   }
 

@@ -8,8 +8,8 @@ void main() {
     final generator = LevelGenerator();
     final level = generator.generateLevel(Difficulty.easy);
     
-    expect(level.grid.rows, 5);
-    expect(level.grid.cols, 5);
+    expect(level.grid.rows, 6);
+    expect(level.grid.cols, 6);
     expect(WinChecker.checkWin(level.grid), isFalse); // Initially shuffled and unsolved
   });
 
@@ -17,8 +17,8 @@ void main() {
     final generator = LevelGenerator();
     final level = generator.getTutorialLevel(1);
     
-    expect(level.grid.rows, 3);
-    expect(level.grid.cols, 3);
+    expect(level.grid.rows, 4);
+    expect(level.grid.cols, 4);
     expect(WinChecker.checkWin(level.grid), isFalse);
   });
 }

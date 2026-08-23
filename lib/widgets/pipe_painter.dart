@@ -98,17 +98,13 @@ class PipePainter extends CustomPainter {
       canvas.drawLine(center, edge, fillPaint);
       canvas.drawLine(center, edge, highlightPaint);
     } else if (tile.type == TileType.deadEnd) {
-      // Dead end (cap): single pipe from center to edge, with a cap circle
+      // Dead end (ampolla): pipe stem with a prominent sealed flask / bulb
       final dir = openings.first;
-      final edge = edgeMidpoint(dir);
-      canvas.drawLine(center, edge, outlinePaint);
-      canvas.drawLine(center, edge, fillPaint);
-      canvas.drawLine(center, edge, highlightPaint);
-      // Draw a cap/plug at the center (opposite end from opening)
-      final capRadius = pipeWidth * 0.45;
-      canvas.drawCircle(center, capRadius + 2, Paint()..color = strokeColor);
-      canvas.drawCircle(center, capRadius, Paint()..color = fillColor);
-      canvas.drawCircle(center, capRadius * 0.4, Paint()..color = lightFill);
+      _drawDeadEndPipe(
+        canvas, size, center, dir, pipeWidth,
+        outlinePaint, fillPaint, highlightPaint,
+        edgeMidpoint, strokeColor, fillColor, lightFill, connected,
+      );
     } else if (tile.type == TileType.cross) {
       // Cross: draw two straight lines through center
       _drawStraightPipe(
@@ -124,22 +120,19 @@ class PipePainter extends CustomPainter {
           canvas, edgeMidpoint(dirs[0]), edgeMidpoint(dirs[1]),
           outlinePaint, fillPaint, highlightPaint);
     } else if (tile.type == TileType.corner) {
-      // Corner: draw two segments from edge to center, creating a bend
+      // Corner: continuous path connecting both edges through center (no center circle disk!)
       final dirs = openings.toList();
-      for (final dir in dirs) {
-        final edge = edgeMidpoint(dir);
-        canvas.drawLine(center, edge, outlinePaint);
-        canvas.drawLine(center, edge, fillPaint);
-        canvas.drawLine(center, edge, highlightPaint);
-      }
-      // Filled circle at center to smooth the corner joint
-      canvas.drawCircle(
-          center, pipeWidth / 2 + 2, Paint()..color = strokeColor);
-      canvas.drawCircle(center, pipeWidth / 2, Paint()..color = fillColor);
-      canvas.drawCircle(
-          center, pipeWidth * 0.25, Paint()..color = lightFill);
+      final p1 = edgeMidpoint(dirs[0]);
+      final p2 = edgeMidpoint(dirs[1]);
+      final cornerPath = Path()
+        ..moveTo(p1.dx, p1.dy)
+        ..lineTo(center.dx, center.dy)
+        ..lineTo(p2.dx, p2.dy);
+      canvas.drawPath(cornerPath, outlinePaint);
+      canvas.drawPath(cornerPath, fillPaint);
+      canvas.drawPath(cornerPath, highlightPaint);
     } else if (tile.type == TileType.tee) {
-      // T-junction: find the straight-through pair and the branch
+      // T-junction: straight pipe + branch, clean seamless join
       _drawTeePipe(canvas, size, center, openings, pipeWidth,
           outlinePaint, fillPaint, highlightPaint, edgeMidpoint);
     }
@@ -182,41 +175,116 @@ class PipePainter extends CustomPainter {
     }
 
     if (straightA != null && straightB != null && branch != null) {
-      // Draw the straight-through pipe
-      _drawStraightPipe(canvas, edgeMidpoint(straightA), edgeMidpoint(straightB),
-          outlinePaint, fillPaint, highlightPaint);
+      final pA = edgeMidpoint(straightA);
+      final pB = edgeMidpoint(straightB);
+      final pBranch = edgeMidpoint(branch);
 
-      // Draw the branch from center to edge
-      final branchEdge = edgeMidpoint(branch);
-      canvas.drawLine(center, branchEdge, outlinePaint);
-      canvas.drawLine(center, branchEdge, fillPaint);
-      canvas.drawLine(center, branchEdge, highlightPaint);
+      // 1. Draw all outlines first
+      canvas.drawLine(pA, pB, outlinePaint);
+      canvas.drawLine(center, pBranch, outlinePaint);
 
-      // Smooth center junction — filled rectangle area
-      final junctionSize = pipeWidth / 2 + 2;
-      canvas.drawRect(
-        Rect.fromCenter(center: center, width: junctionSize * 2, height: junctionSize * 2),
-        Paint()..color = outlinePaint.color,
-      );
-      canvas.drawRect(
-        Rect.fromCenter(center: center, width: pipeWidth, height: pipeWidth),
-        Paint()..color = fillPaint.color,
-      );
+      // 2. Draw all fills (joins seamlessly)
+      canvas.drawLine(pA, pB, fillPaint);
+      canvas.drawLine(center, pBranch, fillPaint);
+
+      // 3. Draw highlights
+      canvas.drawLine(pA, pB, highlightPaint);
+      canvas.drawLine(center, pBranch, highlightPaint);
     } else {
-      // Fallback: draw all three as lines from center
+      // Fallback: draw all three branches layered
       for (final dir in dirs) {
-        final edge = edgeMidpoint(dir);
-        canvas.drawLine(center, edge, outlinePaint);
-        canvas.drawLine(center, edge, fillPaint);
-        canvas.drawLine(center, edge, highlightPaint);
+        canvas.drawLine(center, edgeMidpoint(dir), outlinePaint);
       }
-      // Center junction
-      canvas.drawCircle(
-          center, pipeWidth / 2 + 2, Paint()..color = outlinePaint.color);
-      canvas.drawCircle(center, pipeWidth / 2, Paint()..color = fillPaint.color);
+      for (final dir in dirs) {
+        canvas.drawLine(center, edgeMidpoint(dir), fillPaint);
+      }
+      for (final dir in dirs) {
+        canvas.drawLine(center, edgeMidpoint(dir), highlightPaint);
+      }
     }
   }
 
+
+  /// Draw a dead-end tile as a magic flask / bulb ("ampolla") termination.
+  void _drawDeadEndPipe(
+    Canvas canvas,
+    Size size,
+    Offset center,
+    Direction dir,
+    double pipeWidth,
+    Paint outlinePaint,
+    Paint fillPaint,
+    Paint highlightPaint,
+    Offset Function(Direction) edgeMidpoint,
+    Color strokeColor,
+    Color fillColor,
+    Color lightFill,
+    bool connected,
+  ) {
+    final edge = edgeMidpoint(dir);
+
+    // Direction vector from center to edge
+    final dx = (edge.dx - center.dx) / (size.width / 2);
+    final dy = (edge.dy - center.dy) / (size.height / 2);
+    final dirVector = Offset(dx, dy);
+
+    // Bulb center positioned slightly opposite to the opening
+    final bulbCenter = center - dirVector * (pipeWidth * 0.15);
+    final bulbRadius = pipeWidth * 0.85;
+
+    // Draw the pipe stem from edge into the bulb
+    canvas.drawLine(edge, bulbCenter, outlinePaint);
+    canvas.drawLine(edge, bulbCenter, fillPaint);
+    canvas.drawLine(edge, bulbCenter, highlightPaint);
+
+    // Collar flange where pipe meets bulb
+    final collarCenter = bulbCenter + dirVector * (bulbRadius * 0.7);
+    canvas.drawCircle(
+      collarCenter,
+      pipeWidth * 0.58,
+      Paint()..color = strokeColor,
+    );
+    canvas.drawCircle(
+      collarCenter,
+      pipeWidth * 0.48,
+      Paint()..color = fillColor,
+    );
+
+    // Outer outline for ampolla bulb
+    canvas.drawCircle(
+      bulbCenter,
+      bulbRadius + 2.5,
+      Paint()..color = strokeColor,
+    );
+
+    // Main bulb body
+    canvas.drawCircle(
+      bulbCenter,
+      bulbRadius,
+      Paint()..color = fillColor,
+    );
+
+    // Inner bright fluid core / glow
+    canvas.drawCircle(
+      bulbCenter,
+      bulbRadius * 0.65,
+      Paint()..color = lightFill,
+    );
+
+    // Specular glass highlights (white reflections)
+    final highlightAngle = Offset(-bulbRadius * 0.35, -bulbRadius * 0.35);
+    canvas.drawCircle(
+      bulbCenter + highlightAngle,
+      bulbRadius * 0.22,
+      Paint()..color = Colors.white.withValues(alpha: connected ? 0.75 : 0.45),
+    );
+
+    canvas.drawCircle(
+      bulbCenter + Offset(-bulbRadius * 0.15, -bulbRadius * 0.55),
+      bulbRadius * 0.12,
+      Paint()..color = Colors.white.withValues(alpha: connected ? 0.85 : 0.55),
+    );
+  }
 
   void _drawStraightPipe(
     Canvas canvas,

@@ -20,7 +20,7 @@ void main() {
     
     final state = container.read(gameProvider);
     expect(state.grid, isNotNull);
-    expect(state.grid!.rows, 5);
+    expect(state.grid!.rows, 6);
     expect(state.moveCount, 0);
   });
 

@@ -26,14 +26,14 @@ void main() {
     generator = LevelGenerator(Random(42)); // Fixed seed for reproducibility
   });
 
-  group('Level Generation - Easy (5×5)', () {
+  group('Level Generation - Easy (6×6)', () {
     test('generate 20 easy levels: correct dimensions, has source, not pre-solved', () {
       for (int i = 0; i < 20; i++) {
         final level = generator.generateLevel(Difficulty.easy, id: i);
 
         // Verify grid dimensions
-        expect(level.grid.rows, 5, reason: 'Easy level $i');
-        expect(level.grid.cols, 5, reason: 'Easy level $i');
+        expect(level.grid.rows, 6, reason: 'Easy level $i');
+        expect(level.grid.cols, 6, reason: 'Easy level $i');
 
         // Verify source exists
         final source = _findTileOfType(level.grid, TileType.source);
@@ -59,12 +59,12 @@ void main() {
     });
   });
 
-  group('Level Generation - Medium (6-7)', () {
+  group('Level Generation - Medium (7-8)', () {
     test('generate 20 medium levels: correct dimensions', () {
       for (int i = 0; i < 20; i++) {
         final level = generator.generateLevel(Difficulty.medium, id: 100 + i);
-        expect(level.grid.rows, inInclusiveRange(6, 7));
-        expect(level.grid.cols, inInclusiveRange(6, 7));
+        expect(level.grid.rows, inInclusiveRange(7, 8));
+        expect(level.grid.cols, inInclusiveRange(7, 8));
 
         final source = _findTileOfType(level.grid, TileType.source);
         expect(source, isNotNull);
@@ -73,12 +73,12 @@ void main() {
     });
   });
 
-  group('Level Generation - Hard (8×8)', () {
+  group('Level Generation - Hard (9-10)', () {
     test('generate 10 hard levels: correct dimensions', () {
       for (int i = 0; i < 10; i++) {
         final level = generator.generateLevel(Difficulty.hard, id: 200 + i);
-        expect(level.grid.rows, 8);
-        expect(level.grid.cols, 8);
+        expect(level.grid.rows, inInclusiveRange(9, 10));
+        expect(level.grid.cols, inInclusiveRange(9, 10));
 
         final source = _findTileOfType(level.grid, TileType.source);
         expect(source, isNotNull);
