@@ -1,6 +1,8 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/tile.dart';
 import '../models/position.dart';
+import '../services/audio_service.dart';
 import '../theme/level_theme.dart';
 import 'pipe_painter.dart';
 import 'creature_painter.dart';
@@ -8,12 +10,15 @@ import 'creature_painter.dart';
 /// Widget for a single tile in the puzzle grid.
 ///
 /// Handles tap interaction (rotate on tap), rotation animation (200ms),
-/// and visual feedback (scale pulse). Source tiles don't rotate.
+/// scale pulse feedback, sequential fluid propagation animation based on BFS depth,
+/// and victory celebration pulsing.
 class TileWidget extends StatefulWidget {
   final Tile tile;
   final Position position;
   final LevelTheme theme;
   final String creatureTheme;
+  final int connectionDepth;
+  final bool isVictoryCelebrating;
   final VoidCallback? onTap;
 
   const TileWidget({
@@ -22,6 +27,8 @@ class TileWidget extends StatefulWidget {
     required this.position,
     required this.theme,
     required this.creatureTheme,
+    this.connectionDepth = 0,
+    this.isVictoryCelebrating = false,
     this.onTap,
   });
 
@@ -30,9 +37,15 @@ class TileWidget extends StatefulWidget {
 }
 
 class _TileWidgetState extends State<TileWidget>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
+
+  late AnimationController _flowController;
+  late Animation<double> _flowAnimation;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -44,11 +57,72 @@ class _TileWidgetState extends State<TileWidget>
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
     );
+
+    _flowController = AnimationController(
+      duration: const Duration(milliseconds: 220),
+      vsync: this,
+    );
+    _flowAnimation = CurvedAnimation(
+      parent: _flowController,
+      curve: Curves.easeOutCubic,
+    );
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    if (widget.tile.isConnected) {
+      _triggerFlowAnimation();
+    }
+
+    if (widget.isVictoryCelebrating) {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TileWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.tile.isConnected != oldWidget.tile.isConnected) {
+      if (widget.tile.isConnected) {
+        _triggerFlowAnimation();
+      } else {
+        _flowController.reset();
+      }
+    }
+
+    if (widget.isVictoryCelebrating != oldWidget.isVictoryCelebrating) {
+      if (widget.isVictoryCelebrating) {
+        _pulseController.repeat(reverse: true);
+      } else {
+        _pulseController.stop();
+        _pulseController.reset();
+      }
+    }
+  }
+
+  void _triggerFlowAnimation() {
+    final delayMs = min(widget.connectionDepth * 60, 600);
+    Future.delayed(Duration(milliseconds: delayMs), () {
+      if (mounted && widget.tile.isConnected) {
+        _flowController.forward(from: 0.0);
+        if (widget.connectionDepth > 0) {
+          AudioService.playWaterFlow(chainLength: widget.connectionDepth);
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     _scaleController.dispose();
+    _flowController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -56,9 +130,10 @@ class _TileWidgetState extends State<TileWidget>
     if (widget.tile.isFixed) return;
     if (widget.onTap == null) return;
 
-    // Scale pulse feedback
+    // Trigger click sound & scale pulse
+    AudioService.playTileClick();
     _scaleController.forward().then((_) {
-      _scaleController.reverse();
+      if (mounted) _scaleController.reverse();
     });
 
     widget.onTap!();
@@ -72,53 +147,54 @@ class _TileWidgetState extends State<TileWidget>
       onTap: _handleTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedBuilder(
-        animation: _scaleAnimation,
+        animation: Listenable.merge([_scaleAnimation, _flowAnimation, _pulseAnimation]),
         builder: (context, child) {
           return Transform.scale(
             scale: _scaleAnimation.value,
-            child: child,
-          );
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: widget.theme.tileBackground,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: widget.tile.isConnected
-                  ? widget.theme.flowColor.withValues(alpha: 0.3)
-                  : Colors.grey.withValues(alpha: 0.15),
-              width: 0.5,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Pipe layer with rotation animation
-              AnimatedRotation(
-                turns: rotationTurns,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                child: CustomPaint(
-                  painter: PipePainter(
-                    tile: widget.tile.copyWith(rotation: 0),
-                    theme: widget.theme,
-                  ),
-                  size: Size.infinite,
+            child: Container(
+              decoration: BoxDecoration(
+                color: widget.theme.tileBackground,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: widget.tile.isConnected
+                      ? widget.theme.flowColor.withValues(alpha: 0.3 * _flowAnimation.value)
+                      : Colors.grey.withValues(alpha: 0.15),
+                  width: 0.5,
                 ),
               ),
-              // Creature overlay for source only
-              if (widget.tile.type == TileType.source)
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: CreaturePainter(
-                      creatureType: _getSourceCreature(),
-                      theme: widget.theme,
-                      isConnected: widget.tile.isConnected,
+              child: Stack(
+                children: [
+                  // Pipe layer with rotation animation and water flow progress
+                  AnimatedRotation(
+                    turns: rotationTurns,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    child: CustomPaint(
+                      painter: PipePainter(
+                        tile: widget.tile.copyWith(rotation: 0),
+                        theme: widget.theme,
+                        flowProgress: widget.tile.isConnected ? _flowAnimation.value : 0.0,
+                        pulseProgress: widget.isVictoryCelebrating ? _pulseAnimation.value : 0.0,
+                      ),
+                      size: Size.infinite,
                     ),
                   ),
-                ),
-            ],
-          ),
-        ),
+                  // Creature overlay for source only
+                  if (widget.tile.type == TileType.source)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: CreaturePainter(
+                          creatureType: _getSourceCreature(),
+                          theme: widget.theme,
+                          isConnected: widget.tile.isConnected,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

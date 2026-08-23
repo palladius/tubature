@@ -11,6 +11,7 @@ class GameState {
   final Level? currentLevel;
   final Grid? grid;
   final Set<Position> connectedTiles;
+  final Map<Position, int> connectionDepths;
   final int moveCount;
   final bool isComplete;
   final int levelsCompleted;
@@ -21,6 +22,7 @@ class GameState {
     this.currentLevel,
     this.grid,
     this.connectedTiles = const {},
+    this.connectionDepths = const {},
     this.moveCount = 0,
     this.isComplete = false,
     this.levelsCompleted = 0,
@@ -32,6 +34,7 @@ class GameState {
     Level? currentLevel,
     Grid? grid,
     Set<Position>? connectedTiles,
+    Map<Position, int>? connectionDepths,
     int? moveCount,
     bool? isComplete,
     int? levelsCompleted,
@@ -42,6 +45,7 @@ class GameState {
       currentLevel: currentLevel ?? this.currentLevel,
       grid: grid ?? this.grid,
       connectedTiles: connectedTiles ?? this.connectedTiles,
+      connectionDepths: connectionDepths ?? this.connectionDepths,
       moveCount: moveCount ?? this.moveCount,
       isComplete: isComplete ?? this.isComplete,
       levelsCompleted: levelsCompleted ?? this.levelsCompleted,
@@ -113,11 +117,12 @@ class GameNotifier extends Notifier<GameState> {
                 : Difficulty.hard);
 
     final level = _generator.generateLevel(difficulty, id: newLevelNum);
-    final connected = _calculateConnected(level.grid);
+    final depths = _calculateConnectionDepths(level.grid);
     state = GameState(
       currentLevel: level,
       grid: level.grid,
-      connectedTiles: connected,
+      connectedTiles: depths.keys.toSet(),
+      connectionDepths: depths,
       moveCount: 0,
       isComplete: false,
       levelsCompleted: newCompleted,
@@ -129,10 +134,11 @@ class GameNotifier extends Notifier<GameState> {
   void resetLevel() {
     if (state.currentLevel != null) {
       final level = state.currentLevel!;
-      final connected = _calculateConnected(level.grid);
+      final depths = _calculateConnectionDepths(level.grid);
       state = state.copyWith(
         grid: level.grid,
-        connectedTiles: connected,
+        connectedTiles: depths.keys.toSet(),
+        connectionDepths: depths,
         moveCount: 0,
         isComplete: false,
       );
@@ -140,11 +146,12 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void _loadLevel(Level level, {int levelNumber = 1, Difficulty? chosenDifficulty}) {
-    final connected = _calculateConnected(level.grid);
+    final depths = _calculateConnectionDepths(level.grid);
     state = GameState(
       currentLevel: level,
       grid: level.grid,
-      connectedTiles: connected,
+      connectedTiles: depths.keys.toSet(),
+      connectionDepths: depths,
       moveCount: 0,
       isComplete: false,
       levelsCompleted: state.levelsCompleted,
@@ -160,18 +167,19 @@ class GameNotifier extends Notifier<GameState> {
     if (tile == null || tile.isFixed) return;
 
     final newGrid = state.grid!.withRotatedTile(pos);
-    final connected = _calculateConnected(newGrid);
+    final depths = _calculateConnectionDepths(newGrid);
     final isComplete = WinChecker.checkWin(newGrid);
 
     state = state.copyWith(
       grid: newGrid,
-      connectedTiles: connected,
+      connectedTiles: depths.keys.toSet(),
+      connectionDepths: depths,
       moveCount: state.moveCount + 1,
       isComplete: isComplete,
     );
   }
 
-  Set<Position> _calculateConnected(Grid grid) {
+  Map<Position, int> _calculateConnectionDepths(Grid grid) {
     Position? sourcePos;
     for (int r = 0; r < grid.rows; r++) {
       for (int c = 0; c < grid.cols; c++) {
@@ -184,7 +192,7 @@ class GameNotifier extends Notifier<GameState> {
     }
     
     if (sourcePos == null) return {};
-    return PathFinder.findConnected(grid, sourcePos);
+    return PathFinder.findConnectionDepths(grid, sourcePos);
   }
 }
 

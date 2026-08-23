@@ -1,0 +1,8 @@
+// Audio synthesis stub for non-web / VM testing platforms.
+library;
+
+void playTileClick() {}
+
+void playWaterFlow(int chainLength) {}
+
+void playVictoryFanfare() {}

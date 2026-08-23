@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.1.0 — 2026-08-23
+
+### Fluid Flow, Victory Admiration & Audio 🌊🎵
+- **Dynamic BFS Water Flow Animation** — fluid advances through newly connected pipes with progressive depth delays (60ms/step), creating a lively wave from the source
+- **Ampolla Sparkle & Liquid Fill** — sealed dead-end flasks light up with animated liquid glow and sparkle effects when fluid arrives
+- **Victory Input Lock & 3-Second Admiration Window** — board input immediately locks on win while a full-network fluid pulse and celebratory banner (`ALL PIPES CONNECTED! 🌊✨`) let players admire their completed puzzle for 3 seconds before the victory card appears
+- **Procedural Sound Effects & Web Audio Synthesis** — mechanical pipe clicks on rotation, organic water bubbling whooshes on fluid advancement, and an arpeggio victory fanfare, with top-bar sound toggle
+
 ## 2.0.5 — 2026-08-23
 
 ### UI/UX Fixes 🎨

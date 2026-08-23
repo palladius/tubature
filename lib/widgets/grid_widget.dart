@@ -8,10 +8,12 @@ import 'tile_widget.dart';
 ///
 /// Calculates tile size from available width to ensure tiles are square
 /// and large enough for kid-friendly tapping (≥56dp). Centers the grid
-/// on screen.
+/// on screen and supports wave flow depth propagation & victory celebration pulsing.
 class GridWidget extends StatelessWidget {
   final Grid grid;
   final Set<Position> connectedTiles;
+  final Map<Position, int> connectionDepths;
+  final bool isVictoryCelebrating;
   final LevelTheme theme;
   final String creatureTheme;
   final void Function(Position) onTileTap;
@@ -20,6 +22,8 @@ class GridWidget extends StatelessWidget {
     super.key,
     required this.grid,
     required this.connectedTiles,
+    this.connectionDepths = const {},
+    this.isVictoryCelebrating = false,
     required this.theme,
     required this.creatureTheme,
     required this.onTileTap,
@@ -30,7 +34,7 @@ class GridWidget extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate tile size: fill available width with padding
-        final horizontalPadding = 16.0;
+        const horizontalPadding = 16.0;
         final availableWidth = constraints.maxWidth - (horizontalPadding * 2);
         final availableHeight = constraints.maxHeight - (horizontalPadding * 2);
 
@@ -55,8 +59,10 @@ class GridWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
+                  color: isVictoryCelebrating
+                      ? theme.flowColor.withValues(alpha: 0.35)
+                      : Colors.black.withValues(alpha: 0.08),
+                  blurRadius: isVictoryCelebrating ? 24 : 12,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -73,6 +79,7 @@ class GridWidget extends StatelessWidget {
                       final tile = grid.tiles[row][col];
                       // Mark tile as connected based on path finder results
                       final isConnected = connectedTiles.contains(position);
+                      final depth = connectionDepths[position] ?? 0;
                       final displayTile = tile.copyWith(isConnected: isConnected);
 
                       return SizedBox(
@@ -81,6 +88,8 @@ class GridWidget extends StatelessWidget {
                         child: TileWidget(
                           tile: displayTile,
                           position: position,
+                          connectionDepth: depth,
+                          isVictoryCelebrating: isVictoryCelebrating,
                           theme: theme,
                           creatureTheme: creatureTheme,
                           onTap: () => onTileTap(position),

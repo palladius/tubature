@@ -1,17 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
 import '../models/level.dart';
+import '../services/audio_service.dart';
 import '../theme/level_theme.dart';
 import '../widgets/grid_widget.dart';
 import 'victory_overlay.dart';
 
-/// The main game screen — shows the puzzle grid with top bar and hint button.
-///
-/// Supports two modes:
-/// - **Progressive** (default): difficulty increases as you beat levels.
-///   Easy (1-3) → Medium (4-7) → Hard (8+)
-/// - **Tutorial**: hand-crafted levels 1-10.
+/// The main game screen — shows the puzzle grid with top bar, fluid propagation,
+/// interactive sound effects, and victory admiration lock.
 class GameScreen extends ConsumerStatefulWidget {
   final Difficulty? difficulty;
   final int? tutorialLevel;
@@ -28,6 +26,8 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   int _currentTutorialLevel = 1;
+  bool _showVictoryOverlay = false;
+  Timer? _victoryTimer;
 
   @override
   void initState() {
@@ -36,6 +36,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startGame();
     });
+  }
+
+  @override
+  void dispose() {
+    _victoryTimer?.cancel();
+    super.dispose();
   }
 
   void _startGame() {
@@ -76,6 +82,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _handleNextLevel() {
+    _victoryTimer?.cancel();
+    setState(() => _showVictoryOverlay = false);
     final notifier = ref.read(gameProvider.notifier);
     if (widget.tutorialLevel != null) {
       _currentTutorialLevel++;
@@ -87,8 +95,33 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
+  void _handlePlayAgain() {
+    _victoryTimer?.cancel();
+    setState(() => _showVictoryOverlay = false);
+    ref.read(gameProvider.notifier).resetLevel();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Listen for victory to trigger sound and 3-second admiration delay
+    ref.listen<GameState>(gameProvider, (previous, next) {
+      if ((previous == null || !previous.isComplete) && next.isComplete) {
+        AudioService.playVictoryFanfare();
+        _victoryTimer?.cancel();
+        setState(() => _showVictoryOverlay = false);
+        _victoryTimer = Timer(const Duration(milliseconds: 2800), () {
+          if (mounted) {
+            setState(() => _showVictoryOverlay = true);
+          }
+        });
+      } else if (previous != null && previous.isComplete && !next.isComplete) {
+        _victoryTimer?.cancel();
+        if (_showVictoryOverlay) {
+          setState(() => _showVictoryOverlay = false);
+        }
+      }
+    });
+
     final gameState = ref.watch(gameProvider);
     final levelTheme = _getTheme(gameState);
 
@@ -120,9 +153,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             child: GridWidget(
                               grid: gameState.grid!,
                               connectedTiles: gameState.connectedTiles,
+                              connectionDepths: gameState.connectionDepths,
+                              isVictoryCelebrating: gameState.isComplete,
                               theme: levelTheme,
                               creatureTheme: _getCreatureThemeString(gameState),
                               onTileTap: (pos) {
+                                // Locked if level is complete
                                 if (!gameState.isComplete) {
                                   ref
                                       .read(gameProvider.notifier)
@@ -140,14 +176,52 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ],
               ),
 
-              // Victory overlay
-              if (gameState.isComplete)
+              // Floating Admiration Banner during the 3-second celebration window
+              if (gameState.isComplete && !_showVictoryOverlay)
+                Positioned(
+                  top: 70,
+                  left: 24,
+                  right: 24,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: levelTheme.flowColor.withValues(alpha: 0.4),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.stars_rounded, color: levelTheme.flowColor, size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            'ALL PIPES CONNECTED! 🌊✨',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: levelTheme.flowColorDark,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Victory overlay (appears after 2.8s admiration window)
+              if (gameState.isComplete && _showVictoryOverlay)
                 VictoryOverlay(
                   moveCount: gameState.moveCount,
                   onNextLevel: _handleNextLevel,
-                  onPlayAgain: () {
-                    ref.read(gameProvider.notifier).resetLevel();
-                  },
+                  onPlayAgain: _handlePlayAgain,
                 ),
             ],
           ),
@@ -229,6 +303,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ],
               ),
             ),
+          const SizedBox(width: 4),
+          // Audio mute toggle
+          IconButton(
+            onPressed: () {
+              setState(() {
+                AudioService.toggleMute();
+              });
+            },
+            icon: Icon(
+              AudioService.isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+              color: AudioService.isMuted ? Colors.grey.shade400 : theme.flowColorDark,
+              size: 22,
+            ),
+            tooltip: AudioService.isMuted ? 'Unmute Sound' : 'Mute Sound',
+          ),
         ],
       ),
     );
@@ -240,7 +329,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Hint button (placeholder)
+          // Hint button
           Container(
             decoration: BoxDecoration(
               color: Colors.white,

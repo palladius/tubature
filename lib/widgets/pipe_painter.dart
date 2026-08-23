@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
@@ -8,15 +6,20 @@ import '../theme/level_theme.dart';
 /// CustomPainter that renders a single pipe tile.
 ///
 /// Draws chunky, rounded pipe segments from the tile center to edge midpoints.
-/// of sharp joints. Connected pipes are filled with the level's flow color;
-/// disconnected pipes are drawn in gray.
+/// Connected pipes are filled with the level's flow color (smoothly animated
+/// via [flowProgress]); disconnected pipes are drawn in neutral gray.
+/// Supports whole-board celebration shine via [pulseProgress].
 class PipePainter extends CustomPainter {
   final Tile tile;
   final LevelTheme theme;
+  final double flowProgress;
+  final double pulseProgress;
 
   const PipePainter({
     required this.tile,
     required this.theme,
+    this.flowProgress = 1.0,
+    this.pulseProgress = 0.0,
   });
 
   @override
@@ -31,16 +34,20 @@ class PipePainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
 
     // Pipe thickness scales with tile size (roughly 22% of tile width)
-    final pipeWidth = size.width * 0.22;
+    final basePipeWidth = size.width * 0.22;
+    final pipeWidth = basePipeWidth + (pulseProgress * 1.5);
 
-    // Choose colors based on connection state
+    // Choose colors based on connection state and animated flow progress
     final bool connected = tile.isConnected;
-    final Color fillColor =
-        connected ? theme.flowColor : theme.pipeDisconnected;
-    final Color strokeColor =
-        connected ? theme.flowColorDark : theme.pipeStroke;
-    final Color lightFill =
-        connected ? theme.flowColorLight : const Color(0xFFE0E0E0);
+    final Color fillColor = connected
+        ? Color.lerp(theme.pipeDisconnected, theme.flowColor, flowProgress)!
+        : theme.pipeDisconnected;
+    final Color strokeColor = connected
+        ? Color.lerp(theme.pipeStroke, theme.flowColorDark, flowProgress)!
+        : theme.pipeStroke;
+    final Color lightFill = connected
+        ? Color.lerp(const Color(0xFFE0E0E0), theme.flowColorLight, flowProgress)!
+        : const Color(0xFFE0E0E0);
 
     // Paint for the pipe fill (thick rounded line)
     final fillPaint = Paint()
@@ -60,9 +67,11 @@ class PipePainter extends CustomPainter {
 
     // Paint for the inner highlight (slightly thinner, lighter)
     final highlightPaint = Paint()
-      ..color = lightFill
+      ..color = pulseProgress > 0.0
+          ? Color.lerp(lightFill, Colors.white, pulseProgress * 0.7)!
+          : lightFill
       ..style = PaintingStyle.stroke
-      ..strokeWidth = pipeWidth * 0.5
+      ..strokeWidth = pipeWidth * (0.5 + pulseProgress * 0.15)
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -140,7 +149,6 @@ class PipePainter extends CustomPainter {
     canvas.restore();
   }
 
-
   /// Draw a T-junction: one straight pipe through the two aligned openings,
   /// plus a branch from center to the third opening.
   void _drawTeePipe(
@@ -203,7 +211,6 @@ class PipePainter extends CustomPainter {
       }
     }
   }
-
 
   /// Draw a dead-end tile as a magic flask / bulb ("ampolla") termination.
   void _drawDeadEndPipe(
@@ -284,6 +291,19 @@ class PipePainter extends CustomPainter {
       bulbRadius * 0.12,
       Paint()..color = Colors.white.withValues(alpha: connected ? 0.85 : 0.55),
     );
+
+    // Animated sparkle pulse when bulb is filled and celebrating
+    if (connected && (flowProgress > 0.85 || pulseProgress > 0.0)) {
+      final sparkleAlpha = ((pulseProgress > 0.0 ? pulseProgress : (flowProgress - 0.85) * 6.6)).clamp(0.0, 1.0);
+      canvas.drawCircle(
+        bulbCenter,
+        bulbRadius * (0.8 + pulseProgress * 0.3),
+        Paint()
+          ..color = Colors.white.withValues(alpha: sparkleAlpha * 0.35)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+    }
   }
 
   void _drawStraightPipe(
@@ -322,6 +342,9 @@ class PipePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant PipePainter oldDelegate) {
-    return tile != oldDelegate.tile || theme != oldDelegate.theme;
+    return tile != oldDelegate.tile ||
+        theme != oldDelegate.theme ||
+        flowProgress != oldDelegate.flowProgress ||
+        pulseProgress != oldDelegate.pulseProgress;
   }
 }
