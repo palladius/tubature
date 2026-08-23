@@ -309,8 +309,9 @@ class PipePainter extends CustomPainter {
     final dy = (edge.dy - center.dy) / (size.height / 2);
     final dirVector = Offset(dx, dy);
 
-    final bulbCenter = center - dirVector * (pipeWidth * 0.15);
-    final bulbRadius = pipeWidth * 0.85;
+    // Big, beautiful magic flask bulb (2x bigger in x & y)
+    final bulbCenter = center - dirVector * (pipeWidth * 0.10);
+    final bulbRadius = pipeWidth * 1.55;
 
     // Pipe stem
     canvas.drawLine(edge, bulbCenter, outlinePaint);
@@ -321,27 +322,27 @@ class PipePainter extends CustomPainter {
       _drawLiquidBubbles(canvas, edge, bulbCenter, size.width, shimmer);
     }
 
-    // Collar ring
-    final collarCenter = bulbCenter + dirVector * (bulbRadius * 0.7);
+    // Collar ring joining pipe to bulb
+    final collarCenter = bulbCenter + dirVector * (bulbRadius * 0.82);
     canvas.drawCircle(
       collarCenter,
-      pipeWidth * 0.58,
+      pipeWidth * 0.72,
       Paint()
         ..color = strokeColor
         ..style = PaintingStyle.fill,
     );
     canvas.drawCircle(
       collarCenter,
-      pipeWidth * 0.44,
+      pipeWidth * 0.52,
       Paint()
         ..color = connected ? fillColor : theme.pipeDisconnected
         ..style = PaintingStyle.fill,
     );
 
-    // Bulb glass body
+    // Bulb glass outer contour
     canvas.drawCircle(
       bulbCenter,
-      bulbRadius + 3.0,
+      bulbRadius + 3.5,
       Paint()
         ..color = strokeColor
         ..style = PaintingStyle.fill,
@@ -349,14 +350,14 @@ class PipePainter extends CustomPainter {
 
     // Bulb fluid chamber (fills up like a glass of water)
     final fluidFillRadius = connected ? (bulbRadius - 1.0) * flowProgress : 0.0;
-    final liquidPulse = connected ? sin(shimmer * 2 * pi) * 1.5 : 0.0;
+    final liquidPulse = connected ? sin(shimmer * 2 * pi) * 2.0 : 0.0;
 
-    // Empty chamber backdrop
+    // Empty chamber dark glass backdrop
     canvas.drawCircle(
       bulbCenter,
       bulbRadius - 1.0,
       Paint()
-        ..color = const Color(0xFF1A262F)
+        ..color = const Color(0xFF162128)
         ..style = PaintingStyle.fill,
     );
 
@@ -373,7 +374,7 @@ class PipePainter extends CustomPainter {
       // Swirling bright fluid core
       canvas.drawCircle(
         bulbCenter,
-        ((fluidFillRadius * 0.70) + liquidPulse).clamp(0.0, bulbRadius),
+        ((fluidFillRadius * 0.72) + liquidPulse).clamp(0.0, bulbRadius),
         Paint()
           ..color = Color.lerp(
             fillColor,
@@ -384,16 +385,16 @@ class PipePainter extends CustomPainter {
       );
 
       // Rising glub bubbles in ampolla
-      final bubbleCount = (flowProgress * 3).toInt() + 1;
+      final bubbleCount = (flowProgress * 4).toInt() + 1;
       for (int b = 0; b < bubbleCount; b++) {
-        final bPhase = (shimmer + (b * 0.33)) % 1.0;
+        final bPhase = (shimmer + (b * 0.25)) % 1.0;
         final bOffset = Offset(
-          sin((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.45),
-          cos((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.45) - (bPhase * 3.0),
+          sin((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.50),
+          cos((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.50) - (bPhase * 4.0),
         );
         canvas.drawCircle(
           bulbCenter + bOffset,
-          (fluidFillRadius * 0.18).clamp(1.5, 4.5),
+          (fluidFillRadius * 0.16).clamp(1.8, 6.0),
           Paint()
             ..color = Colors.white.withValues(alpha: 0.85)
             ..style = PaintingStyle.fill,
@@ -401,16 +402,28 @@ class PipePainter extends CustomPainter {
       }
     }
 
-    // Specular reflections
-    final specularOffset = Offset(-bulbRadius * 0.32, -bulbRadius * 0.32);
+    // Double specular reflections for 3D crystal glass effect
+    final specularOffset = Offset(-bulbRadius * 0.36, -bulbRadius * 0.36);
     canvas.drawOval(
       Rect.fromCenter(
         center: bulbCenter + specularOffset,
-        width: bulbRadius * 0.55,
-        height: bulbRadius * 0.30,
+        width: bulbRadius * 0.65,
+        height: bulbRadius * 0.35,
       ),
       Paint()
-        ..color = Colors.white.withValues(alpha: connected ? 0.75 : 0.45)
+        ..color = Colors.white.withValues(alpha: connected ? 0.80 : 0.50)
+        ..style = PaintingStyle.fill,
+    );
+    // Secondary subtle rim reflection
+    final rimOffset = Offset(bulbRadius * 0.38, bulbRadius * 0.38);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: bulbCenter + rimOffset,
+        width: bulbRadius * 0.35,
+        height: bulbRadius * 0.18,
+      ),
+      Paint()
+        ..color = Colors.white.withValues(alpha: connected ? 0.40 : 0.25)
         ..style = PaintingStyle.fill,
     );
   }
