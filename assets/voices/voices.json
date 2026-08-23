@@ -120,6 +120,29 @@
         "pitch_shift_semitones": 0,
         "description": "Speedup +20% for a snappy arcade delivery"
       }
+    },
+    {
+      "id": "mayal-ac-du-bal",
+      "filenames": [
+        "mayal-ac-du-bal.ogg",
+        "mayal-ac-du-bal.mp3",
+        "mayal-akdubal.ogg",
+        "mayal-akdubal.mp3"
+      ],
+      "category": "easter_egg / reaction",
+      "display_name": "Mayàl, ac du bàl!",
+      "meaning_it": "Maiale, che due palle! (Esclamazione tipica ferrarese / trigger con 2 palle in gioco)",
+      "engine": "edge-tts",
+      "voice": "it-IT-DiegoNeural",
+      "gender": "male",
+      "tts_prompt": "Mayàl... ack du bàl!",
+      "tts_prompt_note": "'Mayàl' to get soft Y sound; 'ack' to avoid 'acquistare' expansion",
+      "tts_rate": "-15%",
+      "post_processing": {
+        "pitch_shift_semitones": -5,
+        "ffmpeg_filter": "asetrate=17979,aresample=24000,atempo=1.15",
+        "description": "Deep baritone tuning (-5 semitones from 24kHz native input) with relaxed natural pacing"
+      }
     }
   ]
 }
