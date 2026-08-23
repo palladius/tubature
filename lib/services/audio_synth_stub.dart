@@ -8,3 +8,5 @@ void playWaterFlow(int chainLength) {}
 void playAmpollaGlub() {}
 
 void playVictoryFanfare() {}
+
+void playVoiceFile(String assetPath) {}

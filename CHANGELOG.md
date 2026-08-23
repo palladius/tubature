@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.3.3 — 2026-08-23
+
+### Ferrarese Plumber Voice Reactions & Animated Lip-Sync 🎭🎙️👃
+- **Ermete da Ferrara Talking Avatar** — cartoon plumber avatar with signature prominent Ferrarese nose 👃, messy green cap 🧢, thick mustache, and synchronized animated mouth flapping when voice lines are spoken!
+- **Comic Speech Bubbles** — picture-in-picture pop-up balloon showing authentic Ferrarese / Romagnolo dialect lines with Italian subtitles
+- **Easter Egg: "Mayàl, ac du bàl!"** — triggers 100% of the time when solving a puzzle with **exactly 2 ampolle**!
+- **Good & Bad Categorized Voice Catalog** — organized voice assets into `assets/voices/good/` and `assets/voices/bad/` for easy expansion
+- **Reset & Misplay Voice Reactions** — Ermete reacts with *"Ac giurnadàza!"* or *"Non capisci proprio un tubo!"* when resetting a puzzle
+
 ## 2.3.2 — 2026-08-23
 
 ### Organic Liquid Fluid Simulation & Mobile UI Fix 🌊🫧📱

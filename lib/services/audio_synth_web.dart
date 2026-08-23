@@ -12,6 +12,7 @@ void _ensureInitialized() {
     _eval('''
       window._tubatureAudio = {
         ctx: null,
+        currentVoiceAudio: null,
         init: function() {
           if (!this.ctx) {
             var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -64,7 +65,6 @@ void _ensureInitialized() {
           this.init();
           if (!this.ctx) return;
           var t = this.ctx.currentTime;
-          // 4 rising water bubbles with liquid resonance (glub glub glub glub)
           var pitches = [260, 360, 490, 650];
           for (var i = 0; i < pitches.length; i++) {
             var delay = i * 0.13;
@@ -87,7 +87,7 @@ void _ensureInitialized() {
           this.init();
           if (!this.ctx) return;
           var t = this.ctx.currentTime;
-          var notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+          var notes = [523.25, 659.25, 783.99, 1046.50];
           for (var i = 0; i < notes.length; i++) {
             var delay = i * 0.14;
             var osc = this.ctx.createOscillator();
@@ -102,6 +102,24 @@ void _ensureInitialized() {
             osc.start(t + delay);
             osc.stop(t + delay + (i === 3 ? 1.0 : 0.5));
           }
+        },
+        playVoice: function(path) {
+          this.init();
+          try {
+            if (this.currentVoiceAudio) {
+              this.currentVoiceAudio.pause();
+              this.currentVoiceAudio = null;
+            }
+            var baseHref = document.querySelector('base') ? document.querySelector('base').getAttribute('href') : '';
+            var fullPath = path;
+            if (baseHref && baseHref !== '/' && !path.startsWith('http') && !path.startsWith('/')) {
+              fullPath = baseHref + (baseHref.endsWith('/') ? '' : '/') + path;
+            }
+            var audio = new Audio(fullPath);
+            audio.volume = 0.95;
+            this.currentVoiceAudio = audio;
+            audio.play().catch(function(_) {});
+          } catch (_) {}
         }
       };
     ''');
@@ -133,5 +151,12 @@ void playVictoryFanfare() {
   _ensureInitialized();
   try {
     _eval('if (window._tubatureAudio) window._tubatureAudio.fanfare();');
+  } catch (_) {}
+}
+
+void playVoiceFile(String assetPath) {
+  _ensureInitialized();
+  try {
+    _eval('if (window._tubatureAudio) window._tubatureAudio.playVoice("$assetPath");');
   } catch (_) {}
 }

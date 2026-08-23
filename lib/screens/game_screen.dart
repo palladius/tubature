@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
+import '../models/tile.dart';
 import '../models/level.dart';
 import '../services/audio_service.dart';
 import '../theme/level_theme.dart';
 import '../widgets/grid_widget.dart';
+import '../widgets/talking_avatar_widget.dart';
 import 'victory_overlay.dart';
 
 /// The main game screen — shows the puzzle grid with top bar, fluid propagation,
@@ -115,10 +117,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     ref.listen<GameState>(gameProvider, (previous, next) {
       if ((previous == null || !previous.isComplete) && next.isComplete) {
         AudioService.playVictoryFanfare();
+        final ampollaCount = next.grid?.tiles.expand((row) => row).where((t) => t.type == TileType.deadEnd).length ?? 0;
+        AudioService.playVictoryVoice(ampollaCount: ampollaCount);
+
         _victoryTimer?.cancel();
         setState(() => _showVictoryOverlay = false);
         _victoryTimer = Timer(const Duration(milliseconds: 2800), () {
-          if (mounted) {
+          if (mounted && next.isComplete) {
             setState(() => _showVictoryOverlay = true);
           }
         });
@@ -223,6 +228,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     ),
                   ),
                 ),
+
+              // Floating Talking Avatar Overlay (Ermete da Ferrara)
+              const Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: TalkingAvatarWidget(),
+                ),
+              ),
 
               // Victory overlay (appears after 2.8s admiration window)
               if (gameState.isComplete && _showVictoryOverlay)
@@ -381,6 +396,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
             child: IconButton(
               onPressed: () {
+                AudioService.playFailureVoice();
                 ref.read(gameProvider.notifier).resetLevel();
               },
               icon: const Icon(Icons.refresh_rounded),
