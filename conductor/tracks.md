@@ -1,7 +1,7 @@
 # Conductor Tracks Registry
 
 | Track ID | Title | Status | Created | Links |
-| :--- | :--- | :--- | :--- | :--- |
+| `device_screenshots_showcase_20260823` | Multi-Device Screenshot Showcase Pipeline | `new` | 2026-08-23 | [Index](file:///Users/ricc/git/tubature/conductor/tracks/device_screenshots_showcase_20260823/index.md) / [Spec](file:///Users/ricc/git/tubature/conductor/tracks/device_screenshots_showcase_20260823/spec.md) / [Plan](file:///Users/ricc/git/tubature/conductor/tracks/device_screenshots_showcase_20260823/plan.md) |
 | `curvy_grid_generator_20260823` | Curvy & Intricate Grid Generation (Chaos Monkey) | `new` | 2026-08-23 | [Index](file:///Users/ricc/git/tubature/conductor/tracks/curvy_grid_generator_20260823/index.md) / [Spec](file:///Users/ricc/git/tubature/conductor/tracks/curvy_grid_generator_20260823/spec.md) / [Plan](file:///Users/ricc/git/tubature/conductor/tracks/curvy_grid_generator_20260823/plan.md) |
 | `hidden_image_20260823` | Hidden Image Reveal Mode | `new` | 2026-08-23 | [Index](file:///Users/ricc/git/tubature/conductor/tracks/hidden_image_20260823/index.md) / [Spec](file:///Users/ricc/git/tubature/conductor/tracks/hidden_image_20260823/spec.md) / [Plan](file:///Users/ricc/git/tubature/conductor/tracks/hidden_image_20260823/plan.md) |
 | `visual_polish_20260823` | Visual Polish & Dead-End Redesign | `complete` | 2026-08-23 | [Index](file:///Users/ricc/git/tubature/conductor/tracks/visual_polish_20260823/index.md) / [Spec](file:///Users/ricc/git/tubature/conductor/tracks/visual_polish_20260823/spec.md) / [Plan](file:///Users/ricc/git/tubature/conductor/tracks/visual_polish_20260823/plan.md) |
