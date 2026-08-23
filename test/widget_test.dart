@@ -10,7 +10,7 @@ void main() {
 
     // Verify the app title is displayed
     expect(find.text('TUBATURE'), findsOneWidget);
-    expect(find.text('The Magic Plumber'), findsOneWidget);
+    expect(find.text('THE DUNGEON PLUMBER'), findsOneWidget);
   });
 
   testWidgets('Home screen has play and tutorial buttons', (WidgetTester tester) async {

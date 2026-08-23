@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.2.0 — 2026-08-23
+
+### Riccardo the Dungeon Plumber Title Overhaul 🚰🐉💎
+- **Riccardo the Plumber Hero Artwork** — starring Riccardo in his signature yellow cap with red **"R"**, blue overalls, magic glowing golden wrench, and cute baby dragon companion
+- **Dynamic Dual-Orientation Backgrounds** — automatic switching between vertical portrait (`assets/images/home_background.jpg`) on phones/tablets and panoramic 16:9 widescreen (`assets/images/home_background_wide.jpg`) on desktop/tablets
+- **Glassmorphic Hero Title Panel** — gold embossed `TUBATURE` branding, subtitle *"THE DUNGEON PLUMBER: Quest for the Crystal Springs"*, glowing 2×2 difficulty cards, and hero Play/Tutorial actions
+- **Trademark Safe & Cohesive Lore** — distinct Italian dungeon plumber artificer hero repairing mystical conduit networks in ancient D&D castles
+
 ## 2.1.2 — 2026-08-23
 
 ### Mobile-First Responsive Home Screen 📱🚰
