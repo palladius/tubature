@@ -184,10 +184,7 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                             alignment: WrapAlignment.center,
                             children: widget.revealedGoodies.map((goodie) {
                               final ui.Image? img = GoodiesImageService.getImage(goodie.id);
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
+                              return Container(
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
@@ -212,13 +209,6 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                                           ? RawImage(image: img, fit: BoxFit.cover)
                                           : Center(child: Text(goodie.emoji, style: const TextStyle(fontSize: 20))),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    goodie.emoji,
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
                               );
                             }).toList(),
                           ),
