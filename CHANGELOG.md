@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.4.3 — 2026-08-24
+
+### Magic Cauldron Reveal - Phase 2 & 3
+- Added CauldronGoodie model and catalog with standard and legendary goodies.
+- Implemented assignment logic to distribute unique goodies to dead-end tiles, including rare Schmoogle on Hard mode.
+- Added GoodiesImageService for preloading canvas images to prevent jank.
+
 ## 2.4.2 — 2026-08-24
 
 ### Truly Fluid Wave Propagation & Corner Junction Fix 🌊🔧
