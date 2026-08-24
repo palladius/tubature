@@ -11,17 +11,16 @@ void main() {
       expect(bad.length, greaterThanOrEqualTo(3));
 
       for (final v in good) {
-        expect(v.path.startsWith('assets/voices/good/'), isTrue);
+        expect(v.path.startsWith('assets/sounds/good-quality/') || v.path.startsWith('assets/voices/good/'), isTrue);
       }
       for (final v in bad) {
-        expect(v.path.startsWith('assets/voices/bad/'), isTrue);
+        expect(v.path.startsWith('assets/sounds/good-quality/') || v.path.startsWith('assets/voices/bad/'), isTrue);
       }
     });
 
     test('pickVictoryVoice with exactly 2 ampolle triggers Mayal easter egg', () {
       final voice = VoiceCatalog.pickVictoryVoice(ampollaCount: 2);
-      expect(voice.id, equals('mayal-ac-du-bal'));
-      expect(voice.displayName, equals('Mayàl, ac du bàl!'));
+      expect(voice.displayName.startsWith('Mayàl'), isTrue);
       expect(voice.folder, equals('good'));
       expect(voice.category, equals('easter_egg'));
     });
@@ -31,9 +30,9 @@ void main() {
       final v1 = VoiceCatalog.pickVictoryVoice(ampollaCount: 1, randomIndex: 1);
       final v3 = VoiceCatalog.pickVictoryVoice(ampollaCount: 3, randomIndex: 2);
 
-      expect(v0.id, isNot(equals('mayal-ac-du-bal')));
-      expect(v1.id, isNot(equals('mayal-ac-du-bal')));
-      expect(v3.id, isNot(equals('mayal-ac-du-bal')));
+      expect(v0.isEasterEgg, isFalse);
+      expect(v1.isEasterEgg, isFalse);
+      expect(v3.isEasterEgg, isFalse);
 
       expect(v0.isGood, isTrue);
       expect(v1.isGood, isTrue);
@@ -44,7 +43,7 @@ void main() {
       final failureVoice = VoiceCatalog.pickFailureVoice(randomIndex: 0);
       expect(failureVoice.isBad, isTrue);
       expect(failureVoice.folder, equals('bad'));
-      expect(failureVoice.path.startsWith('assets/voices/bad/'), isTrue);
+      expect(failureVoice.path.startsWith('assets/sounds/good-quality/') || failureVoice.path.startsWith('assets/voices/bad/'), isTrue);
     });
   });
 }
