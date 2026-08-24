@@ -10,16 +10,9 @@ import 'tile_widget.dart';
 
 /// Widget that displays the full puzzle grid.
 ///
-/// Calculates tile size from available width to ensure tiles are square
-/// and large enough for kid-friendly tapping (≥56dp). Centers the grid
-/// on screen and supports wave flow depth propagation & victory celebration pulsing.
-///
-/// Goodies zoom mechanics:
-/// - Hover on a REVEALED ampolla → 3x semi-transparent zoom preview
-/// - Hold H key → zoom on keyboard-focused tile (if revealed)
-/// - Long press on mobile → zoom popup
-/// - Ampolle become "revealed" 8 seconds after water reaches them
-/// - Once revealed, stays revealed even if pipe is broken
+/// Goodies zoom: hover/H-key/long-press shows 3x preview.
+/// Gate: tile must be connected AND 8 seconds must have passed since connection.
+/// Once revealed, stays revealed even if pipe is broken.
 class GridWidget extends StatefulWidget {
   final Grid grid;
   final Set<Position> connectedTiles;
@@ -56,130 +49,117 @@ class _GridWidgetState extends State<GridWidget> {
   Position? _hoveredTile;
   Position? _longPressedTile;
 
-  /// Ampolle that have completed their reveal animation (persistent!)
-  final Set<Position> _revealedPositions = {};
-
-  /// Track when each ampolla first got connected (for 8s delay)
-  final Map<Position, DateTime> _connectionStartTimes = {};
-
-  /// Timers for delayed reveal
-  final Map<Position, Timer> _revealTimers = {};
-
-  /// Track grid identity to detect level changes
-  int? _lastGridRows;
-  int? _lastGridCols;
+  // Persistent set: once an ampolla is revealed, it stays revealed
+  final Set<Position> _revealed = {};
+  // Timers waiting the 8s before revealing
+  final Map<Position, Timer> _pendingTimers = {};
+  // Positions that already have a timer started (to avoid duplicates)
+  final Set<Position> _timerStarted = {};
 
   @override
   void didUpdateWidget(covariant GridWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Clear all reveal state when grid changes (new level)
-    if (widget.grid.rows != _lastGridRows ||
-        widget.grid.cols != _lastGridCols ||
-        widget.ampolleGoodies.length != oldWidget.ampolleGoodies.length) {
-      _resetRevealState();
-      _lastGridRows = widget.grid.rows;
-      _lastGridCols = widget.grid.cols;
-    }
-    _trackNewConnections();
-  }
 
-  @override
-  void initState() {
-    super.initState();
-    _lastGridRows = widget.grid.rows;
-    _lastGridCols = widget.grid.cols;
+    // Detect level change: if ampolleGoodies keys changed, reset everything
+    if (!_sameKeys(widget.ampolleGoodies, oldWidget.ampolleGoodies)) {
+      _resetAll();
+    }
+
+    // Start timers for newly connected goodie tiles
+    _checkForNewConnections();
   }
 
   @override
   void dispose() {
-    for (final timer in _revealTimers.values) {
-      timer.cancel();
+    for (final t in _pendingTimers.values) {
+      t.cancel();
     }
     super.dispose();
   }
 
-  void _resetRevealState() {
-    _revealedPositions.clear();
-    _connectionStartTimes.clear();
-    for (final timer in _revealTimers.values) {
-      timer.cancel();
+  bool _sameKeys(Map<Position, CauldronGoodie> a, Map<Position, CauldronGoodie> b) {
+    if (a.length != b.length) return false;
+    for (final k in a.keys) {
+      if (!b.containsKey(k)) return false;
     }
-    _revealTimers.clear();
+    return true;
+  }
+
+  void _resetAll() {
+    for (final t in _pendingTimers.values) {
+      t.cancel();
+    }
+    _pendingTimers.clear();
+    _timerStarted.clear();
+    _revealed.clear();
     _hoveredTile = null;
     _longPressedTile = null;
   }
 
-  /// When a dead-end tile with a goodie becomes connected, start
-  /// an 8-second countdown. After that, mark it as "revealed".
-  /// ONLY starts timer if the tile is genuinely connected right now.
-  void _trackNewConnections() {
-    for (final entry in widget.ampolleGoodies.entries) {
-      final pos = entry.key;
-      // Must be actually connected AND not already tracked
+  void _checkForNewConnections() {
+    for (final pos in widget.ampolleGoodies.keys) {
+      // Only start timer if: tile is connected AND no timer started yet AND not already revealed
       if (widget.connectedTiles.contains(pos) &&
-          !_revealedPositions.contains(pos) &&
-          !_connectionStartTimes.containsKey(pos)) {
-        _connectionStartTimes[pos] = DateTime.now();
-        _revealTimers[pos] = Timer(const Duration(seconds: 8), () {
-          // Double-check tile is still connected when timer fires
-          if (mounted && widget.connectedTiles.contains(pos)) {
-            setState(() {
-              _revealedPositions.add(pos);
-            });
+          !_timerStarted.contains(pos) &&
+          !_revealed.contains(pos)) {
+        _timerStarted.add(pos);
+        _pendingTimers[pos] = Timer(const Duration(seconds: 8), () {
+          if (mounted) {
+            setState(() => _revealed.add(pos));
           }
-          _revealTimers.remove(pos);
+          _pendingTimers.remove(pos);
         });
       }
     }
   }
 
-  bool _isRevealed(Position pos) {
-    return _revealedPositions.contains(pos);
+  /// Can we show zoom for this position?
+  bool _canZoom(Position pos) {
+    // Victory: all goodie tiles are zoomable
+    if (widget.isVictoryCelebrating && widget.ampolleGoodies.containsKey(pos)) {
+      return true;
+    }
+    // During gameplay: only if revealed (8s after water arrived)
+    return _revealed.contains(pos);
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate tile size: fill available width with padding
         const horizontalPadding = 16.0;
         final availableWidth = constraints.maxWidth - (horizontalPadding * 2);
         final availableHeight = constraints.maxHeight - (horizontalPadding * 2);
 
-        // Tile size is the minimum of width-based and height-based sizing
         final tileFromWidth = availableWidth / widget.grid.cols;
         final tileFromHeight = availableHeight / widget.grid.rows;
-        final tileSize = tileFromWidth < tileFromHeight
-            ? tileFromWidth
-            : tileFromHeight;
-
-        // Ensure minimum 48dp (Material guideline), prefer 56dp+
+        final tileSize = tileFromWidth < tileFromHeight ? tileFromWidth : tileFromHeight;
         final effectiveTileSize = tileSize.clamp(48.0, double.infinity);
 
         final gridWidth = effectiveTileSize * widget.grid.cols;
         final gridHeight = effectiveTileSize * widget.grid.rows;
 
-        // Determine which tile should show zoom:
-        // Priority: long press > hover > keyboard focus (if H held)
+        // Determine zoom target: long press > hover > H-key focus
         Position? zoomTile = _longPressedTile ?? _hoveredTile;
         if (zoomTile == null && widget.isZoomKeyHeld && widget.focusedTile != null) {
           zoomTile = widget.focusedTile;
         }
 
-        // Only zoom if the tile is revealed (or we're celebrating victory)
-        final canZoom = zoomTile != null &&
-            (_isRevealed(zoomTile) || widget.isVictoryCelebrating);
-        final zoomGoodie = canZoom ? widget.ampolleGoodies[zoomTile] : null;
-        final zoomImage = zoomGoodie != null ? GoodiesImageService.getImage(zoomGoodie.id) : null;
+        // Final gate: can we actually zoom this tile?
+        final showZoom = zoomTile != null && _canZoom(zoomTile);
+        final zoomGoodie = showZoom ? widget.ampolleGoodies[zoomTile] : null;
+        final zoomImage = zoomGoodie != null
+            ? GoodiesImageService.getImage(zoomGoodie.id)
+            : null;
 
         return Center(
           child: SizedBox(
             width: gridWidth + 4,
             height: gridHeight + 4,
             child: Stack(
-              clipBehavior: Clip.none, // allow zoom overlay to extend beyond grid
+              clipBehavior: Clip.none,
               children: [
-                // Main grid
+                // ─── Grid ───
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
@@ -208,7 +188,7 @@ class _GridWidgetState extends State<GridWidget> {
                             final inflowDir = widget.inflowDirections[position];
                             final displayTile = tile.copyWith(isConnected: isConnected);
                             final goodie = widget.ampolleGoodies[position];
-                            final revealed = _isRevealed(position);
+                            final zoomable = _canZoom(position);
 
                             final isFocused = widget.focusedTile != null &&
                                 widget.focusedTile!.row == row &&
@@ -219,8 +199,8 @@ class _GridWidgetState extends State<GridWidget> {
                               height: effectiveTileSize,
                               child: MouseRegion(
                                 onEnter: (_) {
-                                  // Hover zoom: only on revealed tiles (or during victory)
-                                  if (goodie != null && (revealed || widget.isVictoryCelebrating)) {
+                                  // STRICT: only allow hover if zoomable
+                                  if (goodie != null && zoomable) {
                                     setState(() => _hoveredTile = position);
                                   }
                                 },
@@ -230,8 +210,7 @@ class _GridWidgetState extends State<GridWidget> {
                                   }
                                 },
                                 child: GestureDetector(
-                                  // Long press → zoom popup (for mobile kids! 👆)
-                                  onLongPressStart: goodie != null && (revealed || widget.isVictoryCelebrating)
+                                  onLongPressStart: goodie != null && zoomable
                                       ? (_) => setState(() => _longPressedTile = position)
                                       : null,
                                   onLongPressEnd: goodie != null
@@ -250,7 +229,6 @@ class _GridWidgetState extends State<GridWidget> {
                                         creatureTheme: widget.creatureTheme,
                                         onTap: () => widget.onTileTap(position),
                                       ),
-                                      // Keyboard focus ring ⌨️
                                       if (isFocused)
                                         Positioned.fill(
                                           child: IgnorePointer(
@@ -285,10 +263,9 @@ class _GridWidgetState extends State<GridWidget> {
                   ),
                 ),
 
-                // Hover/Focus/LongPress zoom overlay for goodies 🔍
+                // ─── Zoom overlay 🔍 ───
                 if (zoomTile != null && zoomImage != null)
                   Positioned(
-                    // Center the 3x zoom on the tile, offset by 2px grid border
                     left: 2 + zoomTile.col * effectiveTileSize - effectiveTileSize,
                     top: 2 + zoomTile.row * effectiveTileSize - effectiveTileSize,
                     child: IgnorePointer(
