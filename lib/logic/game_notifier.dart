@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:js_interop';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/direction.dart';
 import '../models/grid.dart';
@@ -10,6 +14,14 @@ import 'goodies_assigner.dart';
 import 'level_generator.dart';
 import 'path_finder.dart';
 import 'win_checker.dart';
+
+/// JS interop: bind to window._tubatureGrid for the automated recorder.
+/// Top-level @JS declarations bind to globalThis (= window in browsers).
+@JS('_tubatureGrid')
+external set _jsTubatureGrid(JSString? value);
+
+@JS('_tubatureReady')
+external set _jsTubatureReady(JSBoolean? value);
 
 class GameState {
   final Level? currentLevel;
@@ -95,6 +107,9 @@ class GameNotifier extends Notifier<GameState> {
 
   @override
   GameState build() {
+    if (kIsWeb) {
+      try { _jsTubatureReady = true.toJS; } catch (_) {}
+    }
     return const GameState();
   }
 
@@ -192,6 +207,7 @@ class GameNotifier extends Notifier<GameState> {
       currentLevelNumber: levelNumber,
       chosenDifficulty: chosenDifficulty ?? state.chosenDifficulty,
     );
+    _exportGridToJs();
   }
 
   void rotateTile(Position pos) {
@@ -212,6 +228,7 @@ class GameNotifier extends Notifier<GameState> {
       moveCount: state.moveCount + 1,
       isComplete: isComplete,
     );
+    _exportGridToJs();
   }
 
   FlowInfo _calculateFlowInfo(Grid grid) {
@@ -229,8 +246,65 @@ class GameNotifier extends Notifier<GameState> {
     if (sourcePos == null) return const FlowInfo(depths: {}, inflowDirections: {});
     return PathFinder.findFlowInfo(grid, sourcePos);
   }
+
+  /// Export grid state to JavaScript for the automated recorder/solver.
+  /// Sets window._tubatureGrid as a JSON string on web platforms.
+  void _exportGridToJs() {
+    if (!kIsWeb) return;
+    final grid = state.grid;
+    if (grid == null) return;
+
+    final totalTiles = grid.rows * grid.cols;
+    final connectedCount = state.connectedTiles.length;
+
+    final solvedGrid = state.currentLevel?.solvedGrid;
+    final tiles = <List<Map<String, dynamic>>>[];
+    for (int r = 0; r < grid.rows; r++) {
+      final row = <Map<String, dynamic>>[];
+      for (int c = 0; c < grid.cols; c++) {
+        final tile = grid.tiles[r][c];
+        final tileData = {
+          'type': tile.type.name,
+          'rotation': tile.rotation,
+          'isFixed': tile.isFixed,
+          'baseDirection': tile.baseDirection?.name,
+          'isConnected': tile.isConnected,
+        };
+        // Expose solved rotation for the automated solver ("cheat code")
+        if (solvedGrid != null &&
+            r < solvedGrid.rows && c < solvedGrid.cols) {
+          tileData['solvedRotation'] = solvedGrid.tiles[r][c].rotation;
+        }
+        row.add(tileData);
+      }
+      tiles.add(row);
+    }
+
+    final data = jsonEncode({
+      'rows': grid.rows,
+      'cols': grid.cols,
+      'tiles': tiles,
+      'isComplete': state.isComplete,
+      'moveCount': state.moveCount,
+      'connectedCount': connectedCount,
+      'totalTiles': totalTiles,
+      'hasSolution': solvedGrid != null,
+    });
+
+    _setTubatureGrid(data);
+  }
+
+  /// Reliably set window._tubatureGrid via @JS top-level setter.
+  static void _setTubatureGrid(String jsonData) {
+    try {
+      _jsTubatureGrid = jsonData.toJS;
+    } catch (_) {
+      // Silently fail on non-web platforms
+    }
+  }
 }
 
 final gameProvider = NotifierProvider<GameNotifier, GameState>(() {
   return GameNotifier();
 });
+

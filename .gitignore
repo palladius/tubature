@@ -11,3 +11,5 @@ build/
 .env
 coverage/
 .gemini/
+out/
+__pycache__

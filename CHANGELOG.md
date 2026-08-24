@@ -2,7 +2,7 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
-## 2.5.0 — Magic Cauldron Image Reveal 🧪✨
+## 2.6.1 — Magic Cauldron Image Reveal 🧪✨
 - **New Feature**: CauldronGoodie images emerge from turbulent liquid inside ampolla (dead-end) tiles
 - 9 cartoon goodies: Papino, Alessandro, Sebi, Ruby, Dragon, Unicorn, Hot Wheel, Wizard + legendary Schmoogle
 - 4-phase convergence animation: turbulent chaos → emerging form → convergence → full reveal (8-10 sec)
@@ -11,30 +11,27 @@ All notable changes to FlowConnect (Tubature) are documented here.
 - Unique non-repeating goodies per level — every ampolla reveals a different surprise
 - Full TDD coverage with 90+ tests
 
-## 2.4.5 — 2026-08-24
+## 2.6.0 — 2026-08-24
 
-### Magic Cauldron Reveal - Phase 5
-- Integrated goodies assignment logic into the main game flow (GameState and GameNotifier).
-- Wired ampolle Goodies data through GridWidget and TileWidget.
-- Connected GoodiesImageService cache into PipePainter so that loaded goodies render beautifully inside the dead-end bulbs during the flood animation.
+### ⌨️ Keyboard Navigation & Controls for Desktop/Web
+- **Arrow keys + WASD** navigation — move focus cursor between tiles on the grid
+- **Space** rotates focused tile clockwise, **Shift+Space** rotates counter-clockwise
+- **R** resets level, **Escape** goes back to home screen
+- **Glowing focus ring** — theme-colored border with blur glow around focused tile
+- **Toroidal wrapping** — Pac-Man style: right edge wraps to left of same row, etc.
+- **Auto-hide on touch** — focus ring disappears when touching/clicking (mobile-friendly)
+- **GH Issue**: [#1](https://github.com/palladius/tubature/issues/1)
 
-## 2.4.5 — 2026-08-24
+## 2.5.0 — 2026-08-24
 
-### Magic Cauldron Reveal - Phase 6
-- Added Schmoogle legendary reveal mystical sound effect.
-
-## 2.4.4 — 2026-08-24
-
-### Magic Cauldron Reveal - Phase 4
-- Added CauldronRevealPainter utility to render images converging inside ampolla bulbs.
-- Integrated Goodie image rendering into PipePainter's Torrential River Flood animation.
-
-## 2.4.3 — 2026-08-24
-
-### Magic Cauldron Reveal - Phase 2 & 3
-- Added CauldronGoodie model and catalog with standard and legendary goodies.
-- Implemented assignment logic to distribute unique goodies to dead-end tiles, including rare Schmoogle on Hard mode.
-- Added GoodiesImageService for preloading canvas images to prevent jank.
+### AI Gameplay Solver & Automated Demo Recording 🤖🎬
+- **Deterministic O(n) Solver** — exposes `solvedRotation` cheat code via JS bridge (`window._tubatureGrid`), enabling a Python Selenium script to solve any grid with exact click counts
+- **`solvedGrid` in Level model** — level generator now stores the pre-shuffle solved grid alongside the shuffled one
+- **Automated Recording Pipeline** — `tool/record_gameplay.py` records gameplay videos with human-like clicking, progress bars, and victory celebration capture
+- **Service Worker Cache Bypass** — Chrome headless uses `--incognito` + CDP `Network.setBypassServiceWorker` to always load fresh builds
+- **Even-Dimension ffmpeg Fix** — `scale=trunc(iw/2)*2:trunc(ih/2)*2` filter for x264 compatibility with odd viewport heights (915px)
+- **README Demo Video** — embedded gameplay recording in README for instant wow-factor
+- **`just capture-video`** — one-command video recording with difficulty/device/speed params
 
 ## 2.4.2 — 2026-08-24
 

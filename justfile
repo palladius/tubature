@@ -76,3 +76,16 @@ deploy:
     @echo "⚠️  Rebuilding for localhost (no base-href)..."
     flutter build web
     @echo "✅ Localhost build ready. Run: just serve"
+
+# Record & capture gameplay video (default: medium mobile 2x speed)
+capture-video difficulty="medium" device="mobile" speed="2":
+    python3 tool/record_gameplay.py --difficulty {{difficulty}} --device {{device}} --speed {{speed}}
+
+# Alias: `just record` = `just capture-video`
+record difficulty="medium" device="mobile":
+    just capture-video {{difficulty}} {{device}}
+
+# Record all difficulties × all devices (6 videos)
+record-all:
+    python3 tool/record_gameplay.py --all --speed 2
+

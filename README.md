@@ -8,6 +8,16 @@
 
 **Tubature** (*FlowConnect*) is a vibrant, enchanting fantasy pipe-puzzle game built with **Flutter & Riverpod**. Starring **Riccardo the Dungeon Plumber** (wearing his signature yellow **"R"** cap) and his cute baby emerald dragon companion, you rotate magical conduits on an ancient dungeon grid to let crystal water rush through **every single tile** on the board!
 
+### 🎬 Gameplay Demo
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/palladius/tubature/main/docs/demos/20260824-game-v2.4.2-easy-mobile.gif" width="300" alt="Tubature gameplay — AI solver completes Easy 6×6"/>
+  <br/>
+  <em>🤖 AI solver plays an Easy 6×6 level — 62 clicks, 36/36 tiles connected! 🏆</em>
+</div>
+
+> See [`docs/demos/`](docs/demos/) for more recordings.
+
 ---
 
 ## 🌟 Game Features

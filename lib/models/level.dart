@@ -12,6 +12,8 @@ class Level extends Equatable {
   final Grid grid;
   final CreatureTheme theme;
   final int? optimalMoves;
+  /// The solved grid state (before shuffling). Used by the automated solver.
+  final Grid? solvedGrid;
 
   const Level({
     required this.id,
@@ -19,6 +21,7 @@ class Level extends Equatable {
     required this.grid,
     required this.theme,
     this.optimalMoves,
+    this.solvedGrid,
   });
 
   @override
