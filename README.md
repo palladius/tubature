@@ -11,7 +11,7 @@
 ### 🎬 Gameplay Demo
 
 <div align="center">
-  <img src="docs/demos/20260824-game-v2.4.2-easy-mobile.gif" width="300" alt="Tubature gameplay — AI solver completes Easy 6×6"/>
+  <img src="https://raw.githubusercontent.com/palladius/tubature/main/docs/demos/20260824-game-v2.4.2-easy-mobile.gif" width="300" alt="Tubature gameplay — AI solver completes Easy 6×6"/>
   <br/>
   <em>🤖 AI solver plays an Easy 6×6 level — 62 clicks, 36/36 tiles connected! 🏆</em>
 </div>
