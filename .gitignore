@@ -11,3 +11,4 @@ build/
 .env
 coverage/
 .gemini/
+out/
