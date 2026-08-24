@@ -169,6 +169,38 @@
           osc.stop(t + delay + (i === 3 ? 1.0 : 0.5));
         }
       },
+      schmoogle: function() {
+        this.init();
+        if (!this.ctx) return;
+        var t = this.ctx.currentTime;
+        var bellOsc = this.ctx.createOscillator();
+        var bellGain = this.ctx.createGain();
+        bellOsc.type = 'sine';
+        bellOsc.frequency.setValueAtTime(220, t);
+        bellOsc.frequency.exponentialRampToValueAtTime(110, t + 3.0);
+        bellGain.gain.setValueAtTime(0.001, t);
+        bellGain.gain.linearRampToValueAtTime(0.3, t + 0.5);
+        bellGain.gain.exponentialRampToValueAtTime(0.001, t + 3.0);
+        bellOsc.connect(bellGain);
+        bellGain.connect(this.ctx.destination);
+        bellOsc.start(t);
+        bellOsc.stop(t + 3.1);
+        var pentatonic = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73, 1318.51, 1479.98];
+        for (var i = 0; i < pentatonic.length; i++) {
+          var delay = i * 0.12;
+          var osc = this.ctx.createOscillator();
+          var gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(pentatonic[i], t + delay);
+          gain.gain.setValueAtTime(0.001, t + delay);
+          gain.gain.linearRampToValueAtTime(0.15, t + delay + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 1.5);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + delay);
+          osc.stop(t + delay + 1.6);
+        }
+      },
       playVoice: function(path) {
         this.init();
         try {

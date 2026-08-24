@@ -9,4 +9,6 @@ void playAmpollaGlub() {}
 
 void playVictoryFanfare() {}
 
+void playSchmoogleReveal() {}
+
 void playVoiceFile(String assetPath) {}
