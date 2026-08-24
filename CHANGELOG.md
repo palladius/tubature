@@ -2,6 +2,20 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.4.2 — 2026-08-24
+
+### Truly Fluid Wave Propagation & Corner Junction Fix 🌊🔧
+- **75% Tile Overlap** — reduced stagger from 280ms to 180ms (with 700ms fill), so ~4 tiles fill simultaneously creating a truly continuous sweeping river wave with zero visible pauses
+- **L-Corner Junction Fix** — filled gray gap at L/T/cross bend points with junction circles so corners render as seamlessly connected fluid channels
+- **Reduced Jitter** — tighter spatial turbulence (±15ms) for smoother natural feel
+
+## 2.4.1 — 2026-08-24
+
+### Google Brand Color Themes & Fluid Wave Propagation 🌊🎨
+- **Google 4-Color Themes** — pipe flow colors now cycle through iconic Google Blue (#4285F4), Red (#EA4335), Yellow (#FBBC04), and Green (#34A853)
+- **Fluid Sequential Wave** — water propagation now overlaps ~60% between adjacent tiles (280ms stagger, 700ms fill), so 2-3 tiles fill simultaneously creating a continuous sweeping river wave instead of stop-and-go tile-by-tile animation
+- **Conductor Track Created** — `automated_gameplay_recording_20260824` registered for video recording pipeline
+
 ## 2.4.0 — 2026-08-24
 
 ### Torrential River Flood ("Fiume in Piena") Simulation Engine 🌊🏞️⚡

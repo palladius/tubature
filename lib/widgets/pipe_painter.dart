@@ -237,6 +237,12 @@ class PipePainter extends CustomPainter {
       final firstHalf = (flowProgress * 1.8).clamp(0.0, 1.0);
       _drawTorrentialStreamSegment(canvas, size, edgeMidpoint(entry), center, pipeWidth, firstHalf, bankBias, fluidFillPaint, fluidHighlightPaint);
 
+      // Junction fill at center
+      if (firstHalf >= 0.80) {
+        final jPaint = Paint()..color = fluidFillPaint.color..style = PaintingStyle.fill;
+        canvas.drawCircle(center, pipeWidth / 2.0 + 1.0, jPaint);
+      }
+
       if (flowProgress > 0.40) {
         final secondHalf = ((flowProgress - 0.40) / 0.60).clamp(0.0, 1.0);
         for (final exit in exits) {
@@ -251,6 +257,12 @@ class PipePainter extends CustomPainter {
 
       final firstHalf = (flowProgress * 1.8).clamp(0.0, 1.0);
       _drawTorrentialStreamSegment(canvas, size, edgeMidpoint(entry), center, pipeWidth, firstHalf, bankBias, fluidFillPaint, fluidHighlightPaint);
+
+      // Junction fill at center
+      if (firstHalf >= 0.80) {
+        final jPaint = Paint()..color = fluidFillPaint.color..style = PaintingStyle.fill;
+        canvas.drawCircle(center, pipeWidth / 2.0 + 1.0, jPaint);
+      }
 
       if (flowProgress > 0.40) {
         final secondHalf = ((flowProgress - 0.40) / 0.60).clamp(0.0, 1.0);
@@ -441,9 +453,16 @@ class PipePainter extends CustomPainter {
     Paint fillPaint,
     Paint highlightPaint,
   ) {
+    // Junction fill circle at the bend point to eliminate gray gap
+    final junctionPaint = Paint()
+      ..color = fillPaint.color
+      ..style = PaintingStyle.fill;
+    final junctionRadius = pipeWidth / 2.0 + 1.0;
+
     if (progress >= 1.0) {
-      // Step 1 & 2 continuous living current
+      // Continuous living current — both legs + junction fill
       _drawTorrentialStreamSegment(canvas, size, p1, center, pipeWidth, 1.0, bankBias, fillPaint, highlightPaint);
+      canvas.drawCircle(center, junctionRadius, junctionPaint);
       _drawTorrentialStreamSegment(canvas, size, center, p2, pipeWidth, 1.0, -bankBias, fillPaint, highlightPaint);
       return;
     }
@@ -452,6 +471,13 @@ class PipePainter extends CustomPainter {
     // First half rushes to center with centrifugal bank bias
     final firstHalfProgress = (progress * 2.0).clamp(0.0, 1.0);
     _drawTorrentialStreamSegment(canvas, size, p1, center, pipeWidth, firstHalfProgress, bankBias, fillPaint, highlightPaint);
+
+    // Fill junction when first leg reaches center
+    if (firstHalfProgress >= 0.85) {
+      final junctionAlpha = ((firstHalfProgress - 0.85) / 0.15).clamp(0.0, 1.0);
+      junctionPaint.color = fillPaint.color.withValues(alpha: junctionAlpha);
+      canvas.drawCircle(center, junctionRadius, junctionPaint);
+    }
 
     // Second half surges around the bend with outer-wall centrifugal momentum
     if (progress > 0.40) {

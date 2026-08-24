@@ -67,7 +67,7 @@ class _TileWidgetState extends State<TileWidget>
     );
 
     _flowController = AnimationController(
-      duration: const Duration(milliseconds: 550),
+      duration: const Duration(milliseconds: 700),
       vsync: this,
     );
     _flowAnimation = CurvedAnimation(
@@ -128,19 +128,21 @@ class _TileWidgetState extends State<TileWidget>
     }
   }
 
-  /// Calculates sequential flood wave delays so water flows tile by tile from source to end
+  /// Fluid continuous wave propagation: tiles overlap heavily so 2-3 fill simultaneously
   void _triggerFlowAnimation() {
     final r = widget.position.row;
     final c = widget.position.col;
     final depth = widget.connectionDepth;
 
-    // Organic turbulence: subtle spatial jitter based on tile coordinates
-    final chaosJitter = ((sin(r * 3.8 + c * 2.3) * 25) +
-            (cos(r * 1.7 - c * 2.9) * 15))
+    // Organic turbulence: subtle spatial jitter for natural feel
+    final chaosJitter = ((sin(r * 3.8 + c * 2.3) * 15) +
+            (cos(r * 1.7 - c * 2.9) * 10))
         .toInt();
 
-    // Tile N starts when Tile N-1 is ~85% finished (460ms per depth step)
-    final baseDelay = depth * 460;
+    // Key insight: fill duration is 700ms, stagger is only 180ms.
+    // So tile N+1 starts when tile N is at 180/700 = 26% progress.
+    // At any moment, ~4 tiles are actively filling → truly continuous fluid wave!
+    final baseDelay = depth * 180;
     final delayMs = max(0, baseDelay + chaosJitter);
 
     // Keep dry until wave reaches this tile
@@ -149,11 +151,11 @@ class _TileWidgetState extends State<TileWidget>
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         if (widget.tile.type == TileType.deadEnd) {
-          _flowController.duration = const Duration(milliseconds: 850);
+          _flowController.duration = const Duration(milliseconds: 950);
           _flowController.forward(from: 0.0);
           AudioService.playAmpollaGlub();
         } else {
-          _flowController.duration = const Duration(milliseconds: 550);
+          _flowController.duration = const Duration(milliseconds: 700);
           _flowController.forward(from: 0.0);
           if (depth > 0) {
             AudioService.playWaterFlow(chainLength: depth);
