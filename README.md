@@ -10,9 +10,14 @@
 
 ### 🎬 Gameplay Demo
 
-https://github.com/palladius/tubature/raw/main/docs/demos/20260824-game-v2.4.2-easy-mobile.mp4
+<div align="center">
+  <video src="https://github.com/palladius/tubature/raw/main/docs/demos/20260824-game-v2.4.2-easy-mobile.mp4" width="320" controls autoplay loop muted playsinline>
+    <a href="docs/demos/20260824-game-v2.4.2-easy-mobile.mp4">▶️ Watch gameplay video</a>
+  </video>
+  <br/>
+  <em>🤖 AI solver plays an Easy 6×6 level — 62 clicks, 36/36 tiles connected! 🏆</em>
+</div>
 
-> *AI solver plays an Easy (6×6) level — 62 clicks, 36/36 tiles connected! 🏆*
 > See [`docs/demos/`](docs/demos/) for more recordings.
 
 ---
