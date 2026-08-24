@@ -13,3 +13,4 @@ Welcome to the **Conductor** configuration for **Tubature** 🐉 🧙 🚀.
 
 ### Active & New Tracks
 - [Hidden Image Reveal Mode (`hidden_image_20260823`)](file:///Users/ricc/git/tubature/conductor/tracks/hidden_image_20260823/index.md) — [Spec](file:///Users/ricc/git/tubature/conductor/tracks/hidden_image_20260823/spec.md) | [Plan](file:///Users/ricc/git/tubature/conductor/tracks/hidden_image_20260823/plan.md)
+- [Magic Cauldron Image Reveal (`magic_cauldron_reveal_20260824`)](file:///Users/ricc/git/tubature/conductor/tracks/magic_cauldron_reveal_20260824/index.md) — [Spec](file:///Users/ricc/git/tubature/conductor/tracks/magic_cauldron_reveal_20260824/spec.md) | [Plan](file:///Users/ricc/git/tubature/conductor/tracks/magic_cauldron_reveal_20260824/plan.md)
