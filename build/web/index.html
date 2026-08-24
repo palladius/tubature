@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/tubature/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="description" content="Tubature — Riccardo the Dungeon Plumber! An enchanting fantasy pipe-puzzle game with magic conduits, dragons and gems 🚰🐉💎">
+
+  <!-- Mobile viewport: 1:1 scale to prevent canvas shrinking on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #161F28;
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tubature">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <title>Tubature — The Dungeon Plumber 🚰🐉💎</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+  <script>
+    // Unconditionally clear outdated service worker caches to ensure fresh code on every update
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var name of names) {
+          if (!name.includes('2.4.0')) {
+            caches.delete(name);
+          }
+        }
+      });
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
+  <script>
+    window._tubatureAudio = {
+      ctx: null,
+      currentVoiceAudio: null,
+      init: function() {
+        if (!this.ctx) {
+          var AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      click: function() {
+        this.init();
+        if (!this.ctx) return;
+        var t = this.ctx.currentTime;
+        var osc = this.ctx.createOscillator();
+        var gain = this.ctx.createGain();
+        var freq = 600 + Math.random() * 250;
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.4, t + 0.04);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.05);
+      },
+      water: function(chain) {
+        this.init();
+        if (!this.ctx) return;
+        var t = this.ctx.currentTime;
+        var count = Math.min(Math.max(chain, 1), 6);
+        for (var i = 0; i < count; i++) {
+          var delay = i * 0.07;
+          var osc = this.ctx.createOscillator();
+          var gain = this.ctx.createGain();
+          var baseFreq = 400 + Math.random() * 200 + (i * 80);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(baseFreq, t + delay);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.6, t + delay + 0.09);
+          gain.gain.setValueAtTime(0.001, t + delay);
+          gain.gain.linearRampToValueAtTime(0.18, t + delay + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + delay);
+          osc.stop(t + delay + 0.13);
+        }
+      },
+      glub: function() {
+        this.init();
+        if (!this.ctx) return;
+        var t = this.ctx.currentTime;
+        var pitches = [260, 360, 490, 650];
+        for (var i = 0; i < pitches.length; i++) {
+          var delay = i * 0.13;
+          var osc = this.ctx.createOscillator();
+          var gain = this.ctx.createGain();
+          var freq = pitches[i];
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq * 0.85, t + delay);
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.55, t + delay + 0.09);
+          gain.gain.setValueAtTime(0.001, t + delay);
+          gain.gain.linearRampToValueAtTime(0.28, t + delay + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + delay);
+          osc.stop(t + delay + 0.16);
+        }
+      },
+      fanfare: function() {
+        this.init();
+        if (!this.ctx) return;
+        var t = this.ctx.currentTime;
+        var notes = [523.25, 659.25, 783.99, 1046.50];
+        for (var i = 0; i < notes.length; i++) {
+          var delay = i * 0.14;
+          var osc = this.ctx.createOscillator();
+          var gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(notes[i], t + delay);
+          gain.gain.setValueAtTime(0.001, t + delay);
+          gain.gain.linearRampToValueAtTime(0.25, t + delay + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + delay + (i === 3 ? 0.9 : 0.45));
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + delay);
+          osc.stop(t + delay + (i === 3 ? 1.0 : 0.5));
+        }
+      },
+      playVoice: function(path) {
+        this.init();
+        try {
+          if (this.currentVoiceAudio) {
+            this.currentVoiceAudio.pause();
+            this.currentVoiceAudio = null;
+          }
+          var baseHref = document.querySelector('base') ? document.querySelector('base').getAttribute('href') : '';
+          if (baseHref && !baseHref.endsWith('/')) baseHref += '/';
+          var clean = path.startsWith('/') ? path.substring(1) : path;
+          
+          var urls = [
+            (baseHref || '') + 'assets/' + clean,
+            (baseHref || '') + clean,
+            'assets/' + clean,
+            clean
+          ];
+          
+          var tryPlay = function(i) {
+            if (i >= urls.length) return;
+            var a = new Audio(urls[i]);
+            a.volume = 0.95;
+            window._tubatureAudio.currentVoiceAudio = a;
+            var promise = a.play();
+            if (promise !== undefined) {
+              promise.catch(function() {
+                tryPlay(i + 1);
+              });
+            }
+          };
+          tryPlay(0);
+        } catch (_) {}
+      }
+    };
+  </script>
+  <script src="flutter_bootstrap.js?v=2.4.0" async></script>
+</body>
+</html>
