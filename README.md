@@ -11,11 +11,12 @@
 ### 🎬 Gameplay Demo
 
 <div align="center">
-  <video src="https://github.com/palladius/tubature/raw/main/docs/demos/20260824-game-v2.4.2-easy-mobile.mp4" width="320" controls autoplay loop muted playsinline>
-    <a href="docs/demos/20260824-game-v2.4.2-easy-mobile.mp4">▶️ Watch gameplay video</a>
-  </video>
+  <a href="https://github.com/palladius/tubature/raw/main/docs/demos/20260824-game-v2.4.2-easy-mobile.mp4">
+    <img src="docs/demos/20260824-game-v2.4.2-easy-mobile-thumb.jpg" width="300" alt="▶️ Watch Tubature gameplay — AI solver completes Easy 6×6"/>
+  </a>
   <br/>
-  <em>🤖 AI solver plays an Easy 6×6 level — 62 clicks, 36/36 tiles connected! 🏆</em>
+  <em>🤖 AI solver plays an Easy 6×6 level — 62 clicks, 36/36 tiles connected! 🏆</em><br/>
+  <sub>👆 Click the image to watch the full video</sub>
 </div>
 
 > See [`docs/demos/`](docs/demos/) for more recordings.
