@@ -29,6 +29,9 @@ class _VictoryOverlayState extends State<VictoryOverlay>
   late Animation<double> _scaleAnimation;
   final Random _random = Random();
 
+  // Draggable card position — lets user move it to admire cauldron goodies 🧪
+  Offset _dragOffset = Offset.zero;
+
   // Random celebration text
   static const _celebrations = [
     '✨ MAGNIFICO! ✨',
@@ -81,9 +84,12 @@ class _VictoryOverlayState extends State<VictoryOverlay>
       opacity: _fadeAnimation,
       child: Stack(
         children: [
-          // Semi-transparent backdrop
-          Container(
-            color: Colors.black.withValues(alpha: 0.4),
+          // Semi-transparent backdrop — tap to reset card position
+          GestureDetector(
+            onTap: () => setState(() => _dragOffset = Offset.zero),
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.4),
+            ),
           ),
 
           // Confetti layer
@@ -100,79 +106,99 @@ class _VictoryOverlayState extends State<VictoryOverlay>
             },
           ),
 
-          // Victory card
+          // Victory card — DRAGGABLE! 🧪
           Center(
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32),
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _celebrationText,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF333333),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Solved in ${widget.moveCount} moves!',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Color(0xFF666666),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: 220,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: widget.onNextLevel,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 3,
+            child: Transform.translate(
+              offset: _dragOffset,
+              child: GestureDetector(
+                onPanUpdate: (details) {
+                  setState(() {
+                    _dragOffset += details.delta;
+                  });
+                },
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
-                        child: const Text(
-                          'Next Level 🐉',
-                          style: TextStyle(
-                            fontSize: 20,
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Drag handle indicator ⬍
+                        Container(
+                          width: 40,
+                          height: 5,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCCCCCC),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        Text(
+                          _celebrationText,
+                          style: const TextStyle(
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF333333),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Solved in ${widget.moveCount} moves!',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFF666666),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: widget.onPlayAgain,
-                      child: const Text(
-                        'Play Again 🔄',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF888888),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: 220,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: widget.onNextLevel,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4CAF50),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 3,
+                            ),
+                            child: const Text(
+                              'Next Level 🐉',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: widget.onPlayAgain,
+                          child: const Text(
+                            'Play Again 🔄',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF888888),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
