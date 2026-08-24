@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
 import '../models/position.dart';
+import '../models/cauldron_goodie.dart';
 import '../services/audio_service.dart';
+import '../services/goodies_image_service.dart';
 import '../theme/level_theme.dart';
 import 'pipe_painter.dart';
 import 'creature_painter.dart';
@@ -22,6 +24,7 @@ class TileWidget extends StatefulWidget {
   final String creatureTheme;
   final int connectionDepth;
   final Direction? inflowDirection;
+  final CauldronGoodie? goodie;
   final bool isVictoryCelebrating;
   final VoidCallback? onTap;
 
@@ -33,6 +36,7 @@ class TileWidget extends StatefulWidget {
     required this.creatureTheme,
     this.connectionDepth = 0,
     this.inflowDirection,
+    this.goodie,
     this.isVictoryCelebrating = false,
     this.onTap,
   });
@@ -151,9 +155,12 @@ class _TileWidgetState extends State<TileWidget>
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         if (widget.tile.type == TileType.deadEnd) {
-          _flowController.duration = const Duration(milliseconds: 950);
+          _flowController.duration = const Duration(milliseconds: 12000);
           _flowController.forward(from: 0.0);
           AudioService.playAmpollaGlub();
+          if (widget.goodie?.isLegendary == true) {
+            AudioService.playSchmoogleReveal();
+          }
         } else {
           _flowController.duration = const Duration(milliseconds: 700);
           _flowController.forward(from: 0.0);
@@ -234,6 +241,7 @@ class _TileWidgetState extends State<TileWidget>
                           shimmerProgress:
                               widget.tile.isConnected ? _shimmerAnimation.value : 0.0,
                           inflowDirection: widget.inflowDirection?.rotateClockwiseBy(-widget.tile.rotation),
+                          goodieImage: widget.goodie != null ? GoodiesImageService.getImage(widget.goodie!.id) : null,
                         ),
                         size: Size.infinite,
                       ),

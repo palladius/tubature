@@ -1,0 +1,12 @@
+{
+  "track_id": "magic_cauldron_reveal_20260824",
+  "type": "feature",
+  "status": "complete",
+  "created_at": "2026-08-24T09:17:00+02:00",
+  "updated_at": "2026-08-24T09:37:00+02:00",
+  "description": "Magic Cauldron Image Reveal — cartoon goodies emerge from turbulent liquid inside ampolla dead-end tiles",
+  "worktree": {
+    "branch": "feature/magic-cauldron-reveal",
+    "path": ".worktrees/magic-cauldron-reveal"
+  }
+}

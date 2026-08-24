@@ -12,6 +12,9 @@ external void _jsGlub();
 @JS('window._tubatureAudio.fanfare')
 external void _jsFanfare();
 
+@JS('window._tubatureAudio.schmoogle')
+external void _jsSchmoogle();
+
 @JS('window._tubatureAudio.playVoice')
 external void _jsPlayVoice(String path);
 
@@ -36,6 +39,12 @@ void playAmpollaGlub() {
 void playVictoryFanfare() {
   try {
     _jsFanfare();
+  } catch (_) {}
+}
+
+void playSchmoogleReveal() {
+  try {
+    _jsSchmoogle();
   } catch (_) {}
 }
 

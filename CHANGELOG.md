@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.6.1 — Magic Cauldron Image Reveal 🧪✨
+- **New Feature**: CauldronGoodie images emerge from turbulent liquid inside ampolla (dead-end) tiles
+- 9 cartoon goodies: Papino, Alessandro, Sebi, Ruby, Dragon, Unicorn, Hot Wheel, Wizard + legendary Schmoogle
+- 4-phase convergence animation: turbulent chaos → emerging form → convergence → full reveal (8-10 sec)
+- **Easter Egg**: Schmoogle 🐉🔴🔵🟡🟢 — Google-colored legendary dragon (1% chance, Hard mode only)
+- Mysterious magical sound effect when Schmoogle appears
+- Unique non-repeating goodies per level — every ampolla reveals a different surprise
+- Full TDD coverage with 90+ tests
+
 ## 2.6.0 — 2026-08-24
 
 ### ⌨️ Keyboard Navigation & Controls for Desktop/Web

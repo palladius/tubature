@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/grid.dart';
 import '../models/position.dart';
+import '../models/cauldron_goodie.dart';
 import '../theme/level_theme.dart';
 import 'tile_widget.dart';
 
@@ -15,6 +16,7 @@ class GridWidget extends StatelessWidget {
   final Set<Position> connectedTiles;
   final Map<Position, int> connectionDepths;
   final Map<Position, Direction> inflowDirections;
+  final Map<Position, CauldronGoodie> ampolleGoodies;
   final bool isVictoryCelebrating;
   final LevelTheme theme;
   final String creatureTheme;
@@ -27,6 +29,7 @@ class GridWidget extends StatelessWidget {
     required this.connectedTiles,
     this.connectionDepths = const {},
     this.inflowDirections = const {},
+    this.ampolleGoodies = const {},
     this.isVictoryCelebrating = false,
     required this.theme,
     required this.creatureTheme,
@@ -87,6 +90,7 @@ class GridWidget extends StatelessWidget {
                       final depth = connectionDepths[position] ?? 0;
                       final inflowDir = inflowDirections[position];
                       final displayTile = tile.copyWith(isConnected: isConnected);
+                      final goodie = ampolleGoodies[position];
 
                       final isFocused = focusedTile != null &&
                           focusedTile!.row == row &&
@@ -102,6 +106,7 @@ class GridWidget extends StatelessWidget {
                               position: position,
                               connectionDepth: depth,
                               inflowDirection: inflowDir,
+                              goodie: goodie,
                               isVictoryCelebrating: isVictoryCelebrating,
                               theme: theme,
                               creatureTheme: creatureTheme,

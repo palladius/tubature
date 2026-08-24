@@ -36,6 +36,12 @@ class AudioService {
     synth.playVictoryFanfare();
   }
 
+  /// Play a mystical sound for the legendary Schmoogle reveal.
+  static void playSchmoogleReveal() {
+    if (isMuted) return;
+    synth.playSchmoogleReveal();
+  }
+
   /// Play character voice reaction for puzzle completion.
   /// If [ampollaCount] == 2, plays "Mayàl, ac du bàl!" easter egg.
   static VoiceEntry playVictoryVoice({int ampollaCount = 0}) {
