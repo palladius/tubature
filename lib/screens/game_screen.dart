@@ -38,6 +38,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   final FocusNode _gameFocusNode = FocusNode();
   Position? _focusedTile;
   bool _keyboardActive = false;
+  bool _zoomKeyHeld = false; // H key held → zoom goodie preview
 
   @override
   void initState() {
@@ -91,10 +92,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return gameState.currentLevel!.theme.name;
   }
 
-  /// Handle keyboard input for tile navigation and rotation.
+  /// Handle keyboard input for tile navigation, rotation, and zoom (H key).
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    // Handle H key release (zoom off)
+    if (event is KeyUpEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.keyH) {
+        setState(() => _zoomKeyHeld = false);
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
+
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
+    }
+
+    // H key held → zoom preview on focused tile 🔍
+    if (event.logicalKey == LogicalKeyboardKey.keyH) {
+      setState(() {
+        _zoomKeyHeld = true;
+        _keyboardActive = true;
+      });
+      return KeyEventResult.handled;
     }
 
     final gameState = ref.read(gameProvider);
@@ -262,6 +281,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               theme: levelTheme,
                               creatureTheme: _getCreatureThemeString(gameState),
                               focusedTile: _keyboardActive ? _focusedTile : null,
+                              isZoomKeyHeld: _zoomKeyHeld,
                               onTileTap: (pos) {
                                 // Locked if level is complete
                                 if (!gameState.isComplete) {

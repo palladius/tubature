@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/grid.dart';
@@ -12,7 +13,13 @@ import 'tile_widget.dart';
 /// Calculates tile size from available width to ensure tiles are square
 /// and large enough for kid-friendly tapping (≥56dp). Centers the grid
 /// on screen and supports wave flow depth propagation & victory celebration pulsing.
-/// Dead-end tiles with goodies show a hover/focus zoom preview (3x).
+///
+/// Goodies zoom mechanics:
+/// - Hover on a REVEALED ampolla → 3x semi-transparent zoom preview
+/// - Hold H key → zoom on keyboard-focused tile (if revealed)
+/// - Long press on mobile → zoom popup
+/// - Ampolle become "revealed" 8 seconds after water reaches them
+/// - Once revealed, stays revealed even if pipe is broken
 class GridWidget extends StatefulWidget {
   final Grid grid;
   final Set<Position> connectedTiles;
@@ -24,6 +31,7 @@ class GridWidget extends StatefulWidget {
   final String creatureTheme;
   final void Function(Position) onTileTap;
   final Position? focusedTile;
+  final bool isZoomKeyHeld;
 
   const GridWidget({
     super.key,
@@ -37,6 +45,7 @@ class GridWidget extends StatefulWidget {
     required this.creatureTheme,
     required this.onTileTap,
     this.focusedTile,
+    this.isZoomKeyHeld = false,
   });
 
   @override
@@ -45,6 +54,62 @@ class GridWidget extends StatefulWidget {
 
 class _GridWidgetState extends State<GridWidget> {
   Position? _hoveredTile;
+  Position? _longPressedTile;
+
+  /// Ampolle that have completed their reveal animation (persistent!)
+  final Set<Position> _revealedPositions = {};
+
+  /// Track when each ampolla first got connected (for 8s delay)
+  final Map<Position, DateTime> _connectionStartTimes = {};
+
+  /// Timers for delayed reveal
+  final Map<Position, Timer> _revealTimers = {};
+
+  @override
+  void didUpdateWidget(covariant GridWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _trackNewConnections();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for already-connected tiles on first build
+    WidgetsBinding.instance.addPostFrameCallback((_) => _trackNewConnections());
+  }
+
+  @override
+  void dispose() {
+    for (final timer in _revealTimers.values) {
+      timer.cancel();
+    }
+    super.dispose();
+  }
+
+  /// When a dead-end tile with a goodie becomes connected, start
+  /// an 8-second countdown. After that, mark it as "revealed".
+  void _trackNewConnections() {
+    for (final entry in widget.ampolleGoodies.entries) {
+      final pos = entry.key;
+      if (widget.connectedTiles.contains(pos) &&
+          !_revealedPositions.contains(pos) &&
+          !_connectionStartTimes.containsKey(pos)) {
+        _connectionStartTimes[pos] = DateTime.now();
+        _revealTimers[pos] = Timer(const Duration(seconds: 8), () {
+          if (mounted) {
+            setState(() {
+              _revealedPositions.add(pos);
+            });
+          }
+          _revealTimers.remove(pos);
+        });
+      }
+    }
+  }
+
+  bool _isRevealed(Position pos) {
+    return _revealedPositions.contains(pos);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +133,17 @@ class _GridWidgetState extends State<GridWidget> {
         final gridWidth = effectiveTileSize * widget.grid.cols;
         final gridHeight = effectiveTileSize * widget.grid.rows;
 
-        // Determine which tile should show zoom (hover or keyboard focus on goodie tile)
-        final zoomTile = _hoveredTile ?? widget.focusedTile;
-        final zoomGoodie = zoomTile != null ? widget.ampolleGoodies[zoomTile] : null;
+        // Determine which tile should show zoom:
+        // Priority: long press > hover > keyboard focus (if H held)
+        Position? zoomTile = _longPressedTile ?? _hoveredTile;
+        if (zoomTile == null && widget.isZoomKeyHeld && widget.focusedTile != null) {
+          zoomTile = widget.focusedTile;
+        }
+
+        // Only zoom if the tile is revealed (or we're celebrating victory)
+        final canZoom = zoomTile != null &&
+            (_isRevealed(zoomTile) || widget.isVictoryCelebrating);
+        final zoomGoodie = canZoom ? widget.ampolleGoodies[zoomTile] : null;
         final zoomImage = zoomGoodie != null ? GoodiesImageService.getImage(zoomGoodie.id) : null;
 
         return Center(
@@ -109,6 +182,7 @@ class _GridWidgetState extends State<GridWidget> {
                             final inflowDir = widget.inflowDirections[position];
                             final displayTile = tile.copyWith(isConnected: isConnected);
                             final goodie = widget.ampolleGoodies[position];
+                            final revealed = _isRevealed(position);
 
                             final isFocused = widget.focusedTile != null &&
                                 widget.focusedTile!.row == row &&
@@ -119,7 +193,8 @@ class _GridWidgetState extends State<GridWidget> {
                               height: effectiveTileSize,
                               child: MouseRegion(
                                 onEnter: (_) {
-                                  if (goodie != null && isConnected) {
+                                  // Hover zoom: only on revealed tiles (or during victory)
+                                  if (goodie != null && (revealed || widget.isVictoryCelebrating)) {
                                     setState(() => _hoveredTile = position);
                                   }
                                 },
@@ -128,43 +203,52 @@ class _GridWidgetState extends State<GridWidget> {
                                     setState(() => _hoveredTile = null);
                                   }
                                 },
-                                child: Stack(
-                                  children: [
-                                    TileWidget(
-                                      tile: displayTile,
-                                      position: position,
-                                      connectionDepth: depth,
-                                      inflowDirection: inflowDir,
-                                      goodie: goodie,
-                                      isVictoryCelebrating: widget.isVictoryCelebrating,
-                                      theme: widget.theme,
-                                      creatureTheme: widget.creatureTheme,
-                                      onTap: () => widget.onTileTap(position),
-                                    ),
-                                    // Keyboard focus ring ⌨️
-                                    if (isFocused)
-                                      Positioned.fill(
-                                        child: IgnorePointer(
-                                          child: Container(
-                                            margin: const EdgeInsets.all(2),
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: widget.theme.flowColor,
-                                                width: 3,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: widget.theme.flowColor.withValues(alpha: 0.6),
-                                                  blurRadius: 10,
-                                                  spreadRadius: 2,
+                                child: GestureDetector(
+                                  // Long press → zoom popup (for mobile kids! 👆)
+                                  onLongPressStart: goodie != null && (revealed || widget.isVictoryCelebrating)
+                                      ? (_) => setState(() => _longPressedTile = position)
+                                      : null,
+                                  onLongPressEnd: goodie != null
+                                      ? (_) => setState(() => _longPressedTile = null)
+                                      : null,
+                                  child: Stack(
+                                    children: [
+                                      TileWidget(
+                                        tile: displayTile,
+                                        position: position,
+                                        connectionDepth: depth,
+                                        inflowDirection: inflowDir,
+                                        goodie: goodie,
+                                        isVictoryCelebrating: widget.isVictoryCelebrating,
+                                        theme: widget.theme,
+                                        creatureTheme: widget.creatureTheme,
+                                        onTap: () => widget.onTileTap(position),
+                                      ),
+                                      // Keyboard focus ring ⌨️
+                                      if (isFocused)
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: Container(
+                                              margin: const EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: widget.theme.flowColor,
+                                                  width: 3,
                                                 ),
-                                              ],
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: widget.theme.flowColor.withValues(alpha: 0.6),
+                                                    blurRadius: 10,
+                                                    spreadRadius: 2,
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
@@ -175,15 +259,15 @@ class _GridWidgetState extends State<GridWidget> {
                   ),
                 ),
 
-                // Hover/Focus zoom overlay for goodies 🔍 (only after victory!)
-                if (widget.isVictoryCelebrating && zoomTile != null && zoomImage != null)
+                // Hover/Focus/LongPress zoom overlay for goodies 🔍
+                if (zoomTile != null && zoomImage != null)
                   Positioned(
-                    // Center the 3x zoom on the hovered tile, offset by 2px grid border
+                    // Center the 3x zoom on the tile, offset by 2px grid border
                     left: 2 + zoomTile.col * effectiveTileSize - effectiveTileSize,
                     top: 2 + zoomTile.row * effectiveTileSize - effectiveTileSize,
                     child: IgnorePointer(
                       child: Opacity(
-                        opacity: 0.5,
+                        opacity: 0.55,
                         child: Container(
                           width: effectiveTileSize * 3,
                           height: effectiveTileSize * 3,
