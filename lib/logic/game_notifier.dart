@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/direction.dart';
 import '../models/grid.dart';
 import '../models/level.dart';
 import '../models/position.dart';
@@ -12,6 +13,7 @@ class GameState {
   final Grid? grid;
   final Set<Position> connectedTiles;
   final Map<Position, int> connectionDepths;
+  final Map<Position, Direction> inflowDirections;
   final int moveCount;
   final bool isComplete;
   final int levelsCompleted;
@@ -23,6 +25,7 @@ class GameState {
     this.grid,
     this.connectedTiles = const {},
     this.connectionDepths = const {},
+    this.inflowDirections = const {},
     this.moveCount = 0,
     this.isComplete = false,
     this.levelsCompleted = 0,
@@ -35,6 +38,7 @@ class GameState {
     Grid? grid,
     Set<Position>? connectedTiles,
     Map<Position, int>? connectionDepths,
+    Map<Position, Direction>? inflowDirections,
     int? moveCount,
     bool? isComplete,
     int? levelsCompleted,
@@ -46,6 +50,7 @@ class GameState {
       grid: grid ?? this.grid,
       connectedTiles: connectedTiles ?? this.connectedTiles,
       connectionDepths: connectionDepths ?? this.connectionDepths,
+      inflowDirections: inflowDirections ?? this.inflowDirections,
       moveCount: moveCount ?? this.moveCount,
       isComplete: isComplete ?? this.isComplete,
       levelsCompleted: levelsCompleted ?? this.levelsCompleted,
@@ -117,12 +122,13 @@ class GameNotifier extends Notifier<GameState> {
                 : Difficulty.hard);
 
     final level = _generator.generateLevel(difficulty, id: newLevelNum);
-    final depths = _calculateConnectionDepths(level.grid);
+    final flowInfo = _calculateFlowInfo(level.grid);
     state = GameState(
       currentLevel: level,
       grid: level.grid,
-      connectedTiles: depths.keys.toSet(),
-      connectionDepths: depths,
+      connectedTiles: flowInfo.depths.keys.toSet(),
+      connectionDepths: flowInfo.depths,
+      inflowDirections: flowInfo.inflowDirections,
       moveCount: 0,
       isComplete: false,
       levelsCompleted: newCompleted,
@@ -134,11 +140,12 @@ class GameNotifier extends Notifier<GameState> {
   void resetLevel() {
     if (state.currentLevel != null) {
       final level = state.currentLevel!;
-      final depths = _calculateConnectionDepths(level.grid);
+      final flowInfo = _calculateFlowInfo(level.grid);
       state = state.copyWith(
         grid: level.grid,
-        connectedTiles: depths.keys.toSet(),
-        connectionDepths: depths,
+        connectedTiles: flowInfo.depths.keys.toSet(),
+        connectionDepths: flowInfo.depths,
+        inflowDirections: flowInfo.inflowDirections,
         moveCount: 0,
         isComplete: false,
       );
@@ -146,12 +153,13 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void _loadLevel(Level level, {int levelNumber = 1, Difficulty? chosenDifficulty}) {
-    final depths = _calculateConnectionDepths(level.grid);
+    final flowInfo = _calculateFlowInfo(level.grid);
     state = GameState(
       currentLevel: level,
       grid: level.grid,
-      connectedTiles: depths.keys.toSet(),
-      connectionDepths: depths,
+      connectedTiles: flowInfo.depths.keys.toSet(),
+      connectionDepths: flowInfo.depths,
+      inflowDirections: flowInfo.inflowDirections,
       moveCount: 0,
       isComplete: false,
       levelsCompleted: state.levelsCompleted,
@@ -167,19 +175,20 @@ class GameNotifier extends Notifier<GameState> {
     if (tile == null || tile.isFixed) return;
 
     final newGrid = state.grid!.withRotatedTile(pos);
-    final depths = _calculateConnectionDepths(newGrid);
+    final flowInfo = _calculateFlowInfo(newGrid);
     final isComplete = WinChecker.checkWin(newGrid);
 
     state = state.copyWith(
       grid: newGrid,
-      connectedTiles: depths.keys.toSet(),
-      connectionDepths: depths,
+      connectedTiles: flowInfo.depths.keys.toSet(),
+      connectionDepths: flowInfo.depths,
+      inflowDirections: flowInfo.inflowDirections,
       moveCount: state.moveCount + 1,
       isComplete: isComplete,
     );
   }
 
-  Map<Position, int> _calculateConnectionDepths(Grid grid) {
+  FlowInfo _calculateFlowInfo(Grid grid) {
     Position? sourcePos;
     for (int r = 0; r < grid.rows; r++) {
       for (int c = 0; c < grid.cols; c++) {
@@ -191,8 +200,8 @@ class GameNotifier extends Notifier<GameState> {
       if (sourcePos != null) break;
     }
     
-    if (sourcePos == null) return {};
-    return PathFinder.findConnectionDepths(grid, sourcePos);
+    if (sourcePos == null) return const FlowInfo(depths: {}, inflowDirections: {});
+    return PathFinder.findFlowInfo(grid, sourcePos);
   }
 }
 

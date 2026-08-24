@@ -168,6 +168,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               grid: gameState.grid!,
                               connectedTiles: gameState.connectedTiles,
                               connectionDepths: gameState.connectionDepths,
+                              inflowDirections: gameState.inflowDirections,
                               isVictoryCelebrating: gameState.isComplete,
                               theme: levelTheme,
                               creatureTheme: _getCreatureThemeString(gameState),

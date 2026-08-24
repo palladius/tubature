@@ -26,6 +26,7 @@ class PipePainter extends CustomPainter {
   final double flowProgress;
   final double pulseProgress;
   final double shimmerProgress;
+  final Direction? inflowDirection;
 
   const PipePainter({
     required this.tile,
@@ -33,6 +34,7 @@ class PipePainter extends CustomPainter {
     this.flowProgress = 1.0,
     this.pulseProgress = 0.0,
     this.shimmerProgress = 0.0,
+    this.inflowDirection,
   });
 
   @override
@@ -209,23 +211,52 @@ class PipePainter extends CustomPainter {
       _drawTorrentialStreamSegment(canvas, size, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
     } else if (tile.type == TileType.line) {
       final dirs = openings.toList();
-      final p1 = edgeMidpoint(dirs[0]);
-      final p2 = edgeMidpoint(dirs[1]);
+      final entry = (inflowDirection != null && openings.contains(inflowDirection))
+          ? inflowDirection!
+          : dirs[0];
+      final exit = dirs.firstWhere((d) => d != entry, orElse: () => dirs.last);
+      final p1 = edgeMidpoint(entry);
+      final p2 = edgeMidpoint(exit);
       _drawTorrentialStreamSegment(canvas, size, p1, p2, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
     } else if (tile.type == TileType.corner) {
       final dirs = openings.toList();
-      final p1 = edgeMidpoint(dirs[0]);
-      final p2 = edgeMidpoint(dirs[1]);
+      final entry = (inflowDirection != null && openings.contains(inflowDirection))
+          ? inflowDirection!
+          : dirs[0];
+      final exit = dirs.firstWhere((d) => d != entry, orElse: () => dirs.last);
+      final p1 = edgeMidpoint(entry);
+      final p2 = edgeMidpoint(exit);
       _drawTorrentialCornerSegment(canvas, size, p1, center, p2, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
     } else if (tile.type == TileType.tee) {
-      for (final dir in openings) {
-        final edge = edgeMidpoint(dir);
-        _drawTorrentialStreamSegment(canvas, size, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+      final dirs = openings.toList();
+      final entry = (inflowDirection != null && openings.contains(inflowDirection))
+          ? inflowDirection!
+          : dirs[0];
+      final exits = dirs.where((d) => d != entry).toList();
+
+      final firstHalf = (flowProgress * 1.8).clamp(0.0, 1.0);
+      _drawTorrentialStreamSegment(canvas, size, edgeMidpoint(entry), center, pipeWidth, firstHalf, bankBias, fluidFillPaint, fluidHighlightPaint);
+
+      if (flowProgress > 0.40) {
+        final secondHalf = ((flowProgress - 0.40) / 0.60).clamp(0.0, 1.0);
+        for (final exit in exits) {
+          _drawTorrentialStreamSegment(canvas, size, center, edgeMidpoint(exit), pipeWidth, secondHalf, -bankBias, fluidFillPaint, fluidHighlightPaint);
+        }
       }
     } else if (tile.type == TileType.cross) {
-      for (final dir in Direction.values) {
-        final edge = edgeMidpoint(dir);
-        _drawTorrentialStreamSegment(canvas, size, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+      final entry = (inflowDirection != null && openings.contains(inflowDirection))
+          ? inflowDirection!
+          : Direction.north;
+      final exits = Direction.values.where((d) => d != entry).toList();
+
+      final firstHalf = (flowProgress * 1.8).clamp(0.0, 1.0);
+      _drawTorrentialStreamSegment(canvas, size, edgeMidpoint(entry), center, pipeWidth, firstHalf, bankBias, fluidFillPaint, fluidHighlightPaint);
+
+      if (flowProgress > 0.40) {
+        final secondHalf = ((flowProgress - 0.40) / 0.60).clamp(0.0, 1.0);
+        for (final exit in exits) {
+          _drawTorrentialStreamSegment(canvas, size, center, edgeMidpoint(exit), pipeWidth, secondHalf, -bankBias, fluidFillPaint, fluidHighlightPaint);
+        }
       }
     } else if (tile.type == TileType.deadEnd) {
       final dir = openings.first;

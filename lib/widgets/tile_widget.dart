@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../models/direction.dart';
 import '../models/tile.dart';
 import '../models/position.dart';
 import '../services/audio_service.dart';
@@ -20,6 +21,7 @@ class TileWidget extends StatefulWidget {
   final LevelTheme theme;
   final String creatureTheme;
   final int connectionDepth;
+  final Direction? inflowDirection;
   final bool isVictoryCelebrating;
   final VoidCallback? onTap;
 
@@ -30,6 +32,7 @@ class TileWidget extends StatefulWidget {
     required this.theme,
     required this.creatureTheme,
     this.connectionDepth = 0,
+    this.inflowDirection,
     this.isVictoryCelebrating = false,
     this.onTap,
   });
@@ -210,24 +213,25 @@ class _TileWidgetState extends State<TileWidget>
               child: Stack(
                 children: [
                   // Pipe layer with rotation and dynamic fluid simulation
-                  AnimatedRotation(
-                    turns: rotationTurns,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                    child: CustomPaint(
-                      painter: PipePainter(
-                        tile: widget.tile.copyWith(rotation: 0),
-                        theme: widget.theme,
-                        flowProgress:
-                            widget.tile.isConnected ? _flowAnimation.value : 0.0,
-                        pulseProgress:
-                            widget.isVictoryCelebrating ? _pulseAnimation.value : 0.0,
-                        shimmerProgress:
-                            widget.tile.isConnected ? _shimmerAnimation.value : 0.0,
+                    AnimatedRotation(
+                      turns: rotationTurns,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOut,
+                      child: CustomPaint(
+                        painter: PipePainter(
+                          tile: widget.tile.copyWith(rotation: 0),
+                          theme: widget.theme,
+                          flowProgress:
+                              widget.tile.isConnected ? _flowAnimation.value : 0.0,
+                          pulseProgress:
+                              widget.isVictoryCelebrating ? _pulseAnimation.value : 0.0,
+                          shimmerProgress:
+                              widget.tile.isConnected ? _shimmerAnimation.value : 0.0,
+                          inflowDirection: widget.inflowDirection?.rotateClockwiseBy(-widget.tile.rotation),
+                        ),
+                        size: Size.infinite,
                       ),
-                      size: Size.infinite,
                     ),
-                  ),
                   // Creature overlay for source only
                   if (widget.tile.type == TileType.source)
                     Positioned.fill(

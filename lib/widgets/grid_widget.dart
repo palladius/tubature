@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/direction.dart';
 import '../models/grid.dart';
 import '../models/position.dart';
 import '../theme/level_theme.dart';
@@ -13,6 +14,7 @@ class GridWidget extends StatelessWidget {
   final Grid grid;
   final Set<Position> connectedTiles;
   final Map<Position, int> connectionDepths;
+  final Map<Position, Direction> inflowDirections;
   final bool isVictoryCelebrating;
   final LevelTheme theme;
   final String creatureTheme;
@@ -23,6 +25,7 @@ class GridWidget extends StatelessWidget {
     required this.grid,
     required this.connectedTiles,
     this.connectionDepths = const {},
+    this.inflowDirections = const {},
     this.isVictoryCelebrating = false,
     required this.theme,
     required this.creatureTheme,
@@ -80,6 +83,7 @@ class GridWidget extends StatelessWidget {
                       // Mark tile as connected based on path finder results
                       final isConnected = connectedTiles.contains(position);
                       final depth = connectionDepths[position] ?? 0;
+                      final inflowDir = inflowDirections[position];
                       final displayTile = tile.copyWith(isConnected: isConnected);
 
                       return SizedBox(
@@ -89,6 +93,7 @@ class GridWidget extends StatelessWidget {
                           tile: displayTile,
                           position: position,
                           connectionDepth: depth,
+                          inflowDirection: inflowDir,
                           isVictoryCelebrating: isVictoryCelebrating,
                           theme: theme,
                           creatureTheme: creatureTheme,
