@@ -2,6 +2,12 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.4.4 — 2026-08-24
+
+### Magic Cauldron Reveal - Phase 4
+- Added CauldronRevealPainter utility to render images converging inside ampolla bulbs.
+- Integrated Goodie image rendering into PipePainter's Torrential River Flood animation.
+
 ## 2.4.3 — 2026-08-24
 
 ### Magic Cauldron Reveal - Phase 2 & 3

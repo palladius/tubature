@@ -1,8 +1,10 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
 import '../theme/level_theme.dart';
+import 'cauldron_reveal_painter.dart';
 
 /// CustomPainter that renders a single pipe tile with realistic Torrential River Flood ("Fiume in Piena") physics.
 ///
@@ -27,6 +29,7 @@ class PipePainter extends CustomPainter {
   final double pulseProgress;
   final double shimmerProgress;
   final Direction? inflowDirection;
+  final ui.Image? goodieImage;
 
   const PipePainter({
     required this.tile,
@@ -35,6 +38,7 @@ class PipePainter extends CustomPainter {
     this.pulseProgress = 0.0,
     this.shimmerProgress = 0.0,
     this.inflowDirection,
+    this.goodieImage,
   });
 
   @override
@@ -562,6 +566,18 @@ class PipePainter extends CustomPainter {
           );
         }
       }
+
+      // Magic Cauldron Reveal: render goodie image emerging from turbulence
+      if (goodieImage != null) {
+        CauldronRevealPainter.paintGoodieInBulb(
+          canvas,
+          goodieImage!,
+          bulbCenter,
+          bulbRadius,
+          progress,
+          shimmerProgress,
+        );
+      }
     }
   }
 
@@ -719,6 +735,7 @@ class PipePainter extends CustomPainter {
         oldDelegate.theme != theme ||
         oldDelegate.flowProgress != flowProgress ||
         oldDelegate.pulseProgress != pulseProgress ||
-        oldDelegate.shimmerProgress != shimmerProgress;
+        oldDelegate.shimmerProgress != shimmerProgress ||
+        oldDelegate.goodieImage != goodieImage;
   }
 }
