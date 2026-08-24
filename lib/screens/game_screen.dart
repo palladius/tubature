@@ -448,64 +448,77 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   Widget _buildBottomBar(GameState gameState, LevelTheme theme) {
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Hint button
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: SizedBox(
+        height: 36,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Hint button
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: IconButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✨ Hints coming soon!'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.auto_fix_high),
-              iconSize: 28,
-              color: theme.flowColor,
-              tooltip: 'Hint',
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Reset button
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                child: IconButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✨ Hints coming soon!'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.auto_fix_high),
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  color: theme.flowColor,
+                  tooltip: 'Hint',
                 ),
-              ],
+              ),
             ),
-            child: IconButton(
-              onPressed: () {
-                AudioService.playFailureVoice();
-                ref.read(gameProvider.notifier).resetLevel();
-              },
-              icon: const Icon(Icons.refresh_rounded),
-              iconSize: 28,
-              color: const Color(0xFF888888),
-              tooltip: 'Reset',
+            const SizedBox(width: 12),
+            // Reset button
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    AudioService.playFailureVoice();
+                    ref.read(gameProvider.notifier).resetLevel();
+                  },
+                  icon: const Icon(Icons.refresh_rounded),
+                  iconSize: 20,
+                  padding: EdgeInsets.zero,
+                  color: const Color(0xFF888888),
+                  tooltip: 'Reset',
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
