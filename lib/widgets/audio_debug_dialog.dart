@@ -209,69 +209,82 @@ class AudioDebugDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: accentColor.withValues(alpha: 0.35)),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: accentColor.withValues(alpha: 0.2),
-          radius: 20,
-          child: Icon(
-            voice.isEasterEgg
-                ? Icons.egg_rounded
-                : (voice.isGood ? Icons.thumb_up_rounded : Icons.thumb_down_rounded),
-            color: accentColor,
-            size: 20,
-          ),
-        ),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                '« ${voice.displayName} »',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            if (voice.isEasterEgg)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  '2 AMPOLLE',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFFFD700),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => AudioService.playVoice(voice),
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: accentColor.withValues(alpha: 0.2),
+                  radius: 20,
+                  child: Icon(
+                    voice.isEasterEgg
+                        ? Icons.egg_rounded
+                        : (voice.isGood ? Icons.thumb_up_rounded : Icons.thumb_down_rounded),
+                    color: accentColor,
+                    size: 20,
                   ),
                 ),
-              ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text(
-            '${voice.meaningIt} • [${voice.id}]',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.white.withValues(alpha: 0.65),
-              fontStyle: FontStyle.italic,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '« ${voice.displayName} »',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          if (voice.isEasterEgg)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                '2 AMPOLLE',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFFFD700),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${voice.meaningIt} • [${voice.id}]',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.play_circle_fill_rounded, color: accentColor, size: 36),
+                  onPressed: () => AudioService.playVoice(voice),
+                  tooltip: 'Play voice',
+                ),
+              ],
             ),
           ),
-        ),
-        trailing: IconButton(
-          icon: Icon(Icons.play_circle_fill_rounded, color: accentColor, size: 34),
-          onPressed: () {
-            AudioService.onVoiceStarted?.call(voice);
-            if (!AudioService.isMuted) {
-              AudioService.playVictoryVoice(ampollaCount: voice.requiredAmpollaCount ?? 0);
-            }
-          },
-          tooltip: 'Play voice',
         ),
       ),
     );

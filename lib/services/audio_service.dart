@@ -51,6 +51,11 @@ class AudioService {
     return entry;
   }
 
+  /// Play a specific character voice line directly.
+  static void playVoice(VoiceEntry entry) {
+    _playVoice(entry);
+  }
+
   static void _playVoice(VoiceEntry entry) {
     onVoiceStarted?.call(entry);
     if (!isMuted) {

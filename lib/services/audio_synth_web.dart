@@ -111,17 +111,29 @@ void _ensureInitialized() {
               this.currentVoiceAudio = null;
             }
             var baseHref = document.querySelector('base') ? document.querySelector('base').getAttribute('href') : '';
-            var fullPath = path;
-            if (!fullPath.startsWith('assets/assets/')) {
-              fullPath = 'assets/' + (fullPath.startsWith('/') ? fullPath.substring(1) : fullPath);
-            }
-            if (baseHref && baseHref !== '/' && !fullPath.startsWith('http')) {
-              fullPath = baseHref + (baseHref.endsWith('/') ? '' : '/') + fullPath;
-            }
-            var audio = new Audio(fullPath);
-            audio.volume = 0.95;
-            this.currentVoiceAudio = audio;
-            audio.play().catch(function(_) {});
+            if (baseHref && !baseHref.endsWith('/')) baseHref += '/';
+            var clean = path.startsWith('/') ? path.substring(1) : path;
+            
+            var urls = [
+              (baseHref || '') + 'assets/' + clean,
+              (baseHref || '') + clean,
+              'assets/' + clean,
+              clean
+            ];
+            
+            var tryPlay = function(i) {
+              if (i >= urls.length) return;
+              var a = new Audio(urls[i]);
+              a.volume = 0.95;
+              window._tubatureAudio.currentVoiceAudio = a;
+              var promise = a.play();
+              if (promise !== undefined) {
+                promise.catch(function() {
+                  tryPlay(i + 1);
+                });
+              }
+            };
+            tryPlay(0);
           } catch (_) {}
         }
       };
