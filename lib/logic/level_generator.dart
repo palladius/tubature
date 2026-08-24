@@ -46,6 +46,7 @@ class LevelGenerator {
           difficulty: difficulty,
           grid: shuffledGrid,
           theme: theme,
+          solvedGrid: grid,
         );
       }
       // If still solved after shuffle, try again
@@ -272,6 +273,7 @@ class LevelGenerator {
             difficulty: Difficulty.easy,
             grid: shuffledGrid,
             theme: CreatureTheme.dragon_gems,
+            solvedGrid: grid,
           );
         }
       }

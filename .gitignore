@@ -12,3 +12,4 @@ build/
 coverage/
 .gemini/
 out/
+__pycache__

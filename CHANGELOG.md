@@ -2,6 +2,17 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.5.0 — 2026-08-24
+
+### AI Gameplay Solver & Automated Demo Recording 🤖🎬
+- **Deterministic O(n) Solver** — exposes `solvedRotation` cheat code via JS bridge (`window._tubatureGrid`), enabling a Python Selenium script to solve any grid with exact click counts
+- **`solvedGrid` in Level model** — level generator now stores the pre-shuffle solved grid alongside the shuffled one
+- **Automated Recording Pipeline** — `tool/record_gameplay.py` records gameplay videos with human-like clicking, progress bars, and victory celebration capture
+- **Service Worker Cache Bypass** — Chrome headless uses `--incognito` + CDP `Network.setBypassServiceWorker` to always load fresh builds
+- **Even-Dimension ffmpeg Fix** — `scale=trunc(iw/2)*2:trunc(ih/2)*2` filter for x264 compatibility with odd viewport heights (915px)
+- **README Demo Video** — embedded gameplay recording in README for instant wow-factor
+- **`just capture-video`** — one-command video recording with difficulty/device/speed params
+
 ## 2.4.2 — 2026-08-24
 
 ### Truly Fluid Wave Propagation & Corner Junction Fix 🌊🔧
