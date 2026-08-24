@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/level.dart';
 import '../version.dart';
+import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
 
 /// Home screen — Epic D&D Dungeon Plumber theme starring Riccardo, Ale & Seby.
@@ -450,14 +451,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildVersionFooter() {
     return Center(
-      child: Text(
-        'v$appVersion • The Dungeon Plumbers',
-        style: TextStyle(
-          fontSize: 11,
-          color: Colors.white.withValues(alpha: 0.45),
-          letterSpacing: 1,
-          fontWeight: FontWeight.w500,
-        ),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          Text(
+            'v$appVersion • The Dungeon Plumbers',
+            style: TextStyle(
+              fontSize: 10.5,
+              color: Colors.white.withValues(alpha: 0.45),
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => AudioDebugDialog.show(context),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF38BDF8).withValues(alpha: 0.20),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.5)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.campaign_rounded, size: 11, color: Color(0xFF38BDF8)),
+                    SizedBox(width: 3),
+                    Text(
+                      'SOUNDS 🧪',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF38BDF8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

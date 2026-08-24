@@ -27,4 +27,5 @@ flutter:
     - assets/voices/
     - assets/voices/good/
     - assets/voices/bad/
+    - assets/voices/inbox/
     - assets/sounds/

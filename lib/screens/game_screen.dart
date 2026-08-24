@@ -7,6 +7,7 @@ import '../models/tile.dart';
 import '../models/level.dart';
 import '../services/audio_service.dart';
 import '../theme/level_theme.dart';
+import '../widgets/audio_debug_dialog.dart';
 import '../widgets/grid_widget.dart';
 import '../widgets/talking_avatar_widget.dart';
 import 'victory_overlay.dart';
@@ -327,6 +328,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
           const SizedBox(width: 4),
+          // Audio debug soundboard button
+          IconButton(
+            onPressed: () => AudioDebugDialog.show(context),
+            icon: const Icon(Icons.campaign_rounded, color: Color(0xFF38BDF8), size: 22),
+            tooltip: 'Audio Soundboard 🧪',
+          ),
           // Audio mute toggle
           IconButton(
             onPressed: () {
