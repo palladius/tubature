@@ -65,17 +65,29 @@ class _GridWidgetState extends State<GridWidget> {
   /// Timers for delayed reveal
   final Map<Position, Timer> _revealTimers = {};
 
+  /// Track grid identity to detect level changes
+  int? _lastGridRows;
+  int? _lastGridCols;
+
   @override
   void didUpdateWidget(covariant GridWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Clear all reveal state when grid changes (new level)
+    if (widget.grid.rows != _lastGridRows ||
+        widget.grid.cols != _lastGridCols ||
+        widget.ampolleGoodies.length != oldWidget.ampolleGoodies.length) {
+      _resetRevealState();
+      _lastGridRows = widget.grid.rows;
+      _lastGridCols = widget.grid.cols;
+    }
     _trackNewConnections();
   }
 
   @override
   void initState() {
     super.initState();
-    // Check for already-connected tiles on first build
-    WidgetsBinding.instance.addPostFrameCallback((_) => _trackNewConnections());
+    _lastGridRows = widget.grid.rows;
+    _lastGridCols = widget.grid.cols;
   }
 
   @override
@@ -86,17 +98,31 @@ class _GridWidgetState extends State<GridWidget> {
     super.dispose();
   }
 
+  void _resetRevealState() {
+    _revealedPositions.clear();
+    _connectionStartTimes.clear();
+    for (final timer in _revealTimers.values) {
+      timer.cancel();
+    }
+    _revealTimers.clear();
+    _hoveredTile = null;
+    _longPressedTile = null;
+  }
+
   /// When a dead-end tile with a goodie becomes connected, start
   /// an 8-second countdown. After that, mark it as "revealed".
+  /// ONLY starts timer if the tile is genuinely connected right now.
   void _trackNewConnections() {
     for (final entry in widget.ampolleGoodies.entries) {
       final pos = entry.key;
+      // Must be actually connected AND not already tracked
       if (widget.connectedTiles.contains(pos) &&
           !_revealedPositions.contains(pos) &&
           !_connectionStartTimes.containsKey(pos)) {
         _connectionStartTimes[pos] = DateTime.now();
         _revealTimers[pos] = Timer(const Duration(seconds: 8), () {
-          if (mounted) {
+          // Double-check tile is still connected when timer fires
+          if (mounted && widget.connectedTiles.contains(pos)) {
             setState(() {
               _revealedPositions.add(pos);
             });
