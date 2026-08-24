@@ -50,7 +50,17 @@ class CauldronRevealPainter {
     final turbulence = turbulenceIntensity(flowProgress);
     final imageRadius = bulbRadius * 0.85; // slightly smaller than bulb
     
-    canvas.save();
+    // Use saveLayer to composite ALL copies as a single group with global opacity.
+    // This prevents dark blobs when drawing multiple overlapping copies of
+    // images with opaque backgrounds.
+    final layerBounds = Rect.fromCircle(
+      center: bulbCenter,
+      radius: imageRadius + bulbRadius * 0.3, // extra margin for offsets
+    );
+    canvas.saveLayer(
+      layerBounds,
+      Paint()..color = Color.fromRGBO(255, 255, 255, opacity),
+    );
     
     // Circular clip to bulb
     canvas.clipPath(
@@ -66,18 +76,21 @@ class CauldronRevealPainter {
       ..filterQuality = FilterQuality.medium;
     
     if (turbulence > 0.1) {
-      // Draw multiple offset copies with low alpha for blur/turbulence effect
-      final copies = (turbulence * 6).ceil().clamp(1, 8);
-      final copyAlpha = (opacity / copies).clamp(0.02, 0.3);
+      // Draw multiple offset copies for blur/turbulence effect
+      // Since we're inside a saveLayer with global opacity, draw each copy
+      // at full alpha — the layer handles the transparency
+      final copies = (turbulence * 4).ceil().clamp(1, 5);
       
       for (int i = 0; i < copies; i++) {
         final angle = (shimmerProgress * 2 * pi) + (i * 2 * pi / copies);
-        final offsetDist = turbulence * imageRadius * 0.25;
+        final offsetDist = turbulence * imageRadius * 0.20;
         final offset = Offset(
           cos(angle) * offsetDist,
           sin(angle) * offsetDist,
         );
         
+        // Each copy at reduced alpha within the layer (not global)
+        final copyAlpha = (1.0 / copies).clamp(0.2, 0.6);
         canvas.drawImageRect(
           image,
           src,
@@ -86,16 +99,18 @@ class CauldronRevealPainter {
         );
       }
     } else {
-      // Clean render with full opacity
+      // Clean render — single image at full alpha within the layer
       canvas.drawImageRect(
         image,
         src,
         dst,
-        paint..color = Color.fromRGBO(255, 255, 255, opacity),
+        paint..color = const Color.fromRGBO(255, 255, 255, 1.0),
       );
     }
     
-    // Phase 4 golden shimmer glow
+    canvas.restore(); // restore saveLayer — applies global opacity
+    
+    // Phase 4 golden shimmer glow (outside the layer so it's always visible)
     if (flowProgress >= 0.95) {
       final glowPulse = (sin(shimmerProgress * 4 * pi) * 0.3 + 0.7).clamp(0.0, 1.0);
       canvas.drawCircle(
@@ -107,7 +122,5 @@ class CauldronRevealPainter {
           ..strokeWidth = 3.0,
       );
     }
-    
-    canvas.restore();
   }
 }
