@@ -4,6 +4,9 @@ import '../models/grid.dart';
 import '../models/level.dart';
 import '../models/position.dart';
 import '../models/tile.dart';
+import '../models/cauldron_goodie.dart';
+import '../services/goodies_image_service.dart';
+import 'goodies_assigner.dart';
 import 'level_generator.dart';
 import 'path_finder.dart';
 import 'win_checker.dart';
@@ -14,6 +17,7 @@ class GameState {
   final Set<Position> connectedTiles;
   final Map<Position, int> connectionDepths;
   final Map<Position, Direction> inflowDirections;
+  final Map<Position, CauldronGoodie> ampolleGoodies;
   final int moveCount;
   final bool isComplete;
   final int levelsCompleted;
@@ -26,6 +30,7 @@ class GameState {
     this.connectedTiles = const {},
     this.connectionDepths = const {},
     this.inflowDirections = const {},
+    this.ampolleGoodies = const {},
     this.moveCount = 0,
     this.isComplete = false,
     this.levelsCompleted = 0,
@@ -39,6 +44,7 @@ class GameState {
     Set<Position>? connectedTiles,
     Map<Position, int>? connectionDepths,
     Map<Position, Direction>? inflowDirections,
+    Map<Position, CauldronGoodie>? ampolleGoodies,
     int? moveCount,
     bool? isComplete,
     int? levelsCompleted,
@@ -51,6 +57,7 @@ class GameState {
       connectedTiles: connectedTiles ?? this.connectedTiles,
       connectionDepths: connectionDepths ?? this.connectionDepths,
       inflowDirections: inflowDirections ?? this.inflowDirections,
+      ampolleGoodies: ampolleGoodies ?? this.ampolleGoodies,
       moveCount: moveCount ?? this.moveCount,
       isComplete: isComplete ?? this.isComplete,
       levelsCompleted: levelsCompleted ?? this.levelsCompleted,
@@ -154,12 +161,31 @@ class GameNotifier extends Notifier<GameState> {
 
   void _loadLevel(Level level, {int levelNumber = 1, Difficulty? chosenDifficulty}) {
     final flowInfo = _calculateFlowInfo(level.grid);
+    
+    // Assign goodies to dead ends
+    final deadEndPositions = <Position>[];
+    for (int r = 0; r < level.grid.rows; r++) {
+      for (int c = 0; c < level.grid.cols; c++) {
+        if (level.grid.tiles[r][c].type == TileType.deadEnd) {
+          deadEndPositions.add(Position(r, c));
+        }
+      }
+    }
+    
+    final diff = chosenDifficulty ?? state.progressiveDifficulty;
+    final assignedGoodies = GoodiesAssigner.assignGoodies(deadEndPositions.length, diff);
+    final ampolleGoodies = Map.fromIterables(deadEndPositions, assignedGoodies);
+    
+    // Preload images async (fire and forget)
+    GoodiesImageService.preloadImages(assignedGoodies);
+
     state = GameState(
       currentLevel: level,
       grid: level.grid,
       connectedTiles: flowInfo.depths.keys.toSet(),
       connectionDepths: flowInfo.depths,
       inflowDirections: flowInfo.inflowDirections,
+      ampolleGoodies: ampolleGoodies,
       moveCount: 0,
       isComplete: false,
       levelsCompleted: state.levelsCompleted,

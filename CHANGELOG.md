@@ -2,6 +2,18 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.4.5 — 2026-08-24
+
+### Magic Cauldron Reveal - Phase 5
+- Integrated goodies assignment logic into the main game flow (GameState and GameNotifier).
+- Wired ampolle Goodies data through GridWidget and TileWidget.
+- Connected GoodiesImageService cache into PipePainter so that loaded goodies render beautifully inside the dead-end bulbs during the flood animation.
+
+## 2.4.5 — 2026-08-24
+
+### Magic Cauldron Reveal - Phase 6
+- Added Schmoogle legendary reveal mystical sound effect.
+
 ## 2.4.4 — 2026-08-24
 
 ### Magic Cauldron Reveal - Phase 4
