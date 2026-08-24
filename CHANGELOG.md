@@ -2,6 +2,17 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.6.0 — 2026-08-24
+
+### ⌨️ Keyboard Navigation & Controls for Desktop/Web
+- **Arrow keys + WASD** navigation — move focus cursor between tiles on the grid
+- **Space** rotates focused tile clockwise, **Shift+Space** rotates counter-clockwise
+- **R** resets level, **Escape** goes back to home screen
+- **Glowing focus ring** — theme-colored border with blur glow around focused tile
+- **Toroidal wrapping** — Pac-Man style: right edge wraps to left of same row, etc.
+- **Auto-hide on touch** — focus ring disappears when touching/clicking (mobile-friendly)
+- **GH Issue**: [#1](https://github.com/palladius/tubature/issues/1)
+
 ## 2.5.0 — 2026-08-24
 
 ### AI Gameplay Solver & Automated Demo Recording 🤖🎬

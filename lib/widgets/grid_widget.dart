@@ -19,6 +19,7 @@ class GridWidget extends StatelessWidget {
   final LevelTheme theme;
   final String creatureTheme;
   final void Function(Position) onTileTap;
+  final Position? focusedTile;
 
   const GridWidget({
     super.key,
@@ -30,6 +31,7 @@ class GridWidget extends StatelessWidget {
     required this.theme,
     required this.creatureTheme,
     required this.onTileTap,
+    this.focusedTile,
   });
 
   @override
@@ -86,18 +88,49 @@ class GridWidget extends StatelessWidget {
                       final inflowDir = inflowDirections[position];
                       final displayTile = tile.copyWith(isConnected: isConnected);
 
+                      final isFocused = focusedTile != null &&
+                          focusedTile!.row == row &&
+                          focusedTile!.col == col;
+
                       return SizedBox(
                         width: effectiveTileSize,
                         height: effectiveTileSize,
-                        child: TileWidget(
-                          tile: displayTile,
-                          position: position,
-                          connectionDepth: depth,
-                          inflowDirection: inflowDir,
-                          isVictoryCelebrating: isVictoryCelebrating,
-                          theme: theme,
-                          creatureTheme: creatureTheme,
-                          onTap: () => onTileTap(position),
+                        child: Stack(
+                          children: [
+                            TileWidget(
+                              tile: displayTile,
+                              position: position,
+                              connectionDepth: depth,
+                              inflowDirection: inflowDir,
+                              isVictoryCelebrating: isVictoryCelebrating,
+                              theme: theme,
+                              creatureTheme: creatureTheme,
+                              onTap: () => onTileTap(position),
+                            ),
+                            // Keyboard focus ring ⌨️
+                            if (isFocused)
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: Container(
+                                    margin: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: theme.flowColor,
+                                        width: 3,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: theme.flowColor.withValues(alpha: 0.6),
+                                          blurRadius: 10,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       );
                     }),

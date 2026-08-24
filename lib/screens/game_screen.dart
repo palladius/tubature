@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
+import '../models/position.dart';
 import '../models/tile.dart';
 import '../models/level.dart';
 import '../services/audio_service.dart';
@@ -33,6 +34,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showVictoryOverlay = false;
   Timer? _victoryTimer;
 
+  // Keyboard navigation state
+  final FocusNode _gameFocusNode = FocusNode();
+  Position? _focusedTile;
+  bool _keyboardActive = false;
+
   @override
   void initState() {
     super.initState();
@@ -49,9 +55,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   void dispose() {
-    // Restore free orientation rotation when leaving the game screen
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _victoryTimer?.cancel();
+    _gameFocusNode.dispose();
     super.dispose();
   }
 
@@ -83,6 +89,79 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   String _getCreatureThemeString(GameState gameState) {
     if (gameState.currentLevel == null) return 'dragon_gems';
     return gameState.currentLevel!.theme.name;
+  }
+
+  /// Handle keyboard input for tile navigation and rotation.
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    final gameState = ref.read(gameProvider);
+    final grid = gameState.grid;
+    if (grid == null || gameState.isComplete) return KeyEventResult.ignored;
+
+    final key = event.logicalKey;
+
+    // Navigation: arrows + WASD
+    int dr = 0, dc = 0;
+    if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
+      dr = -1;
+    } else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+      dr = 1;
+    } else if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
+      dc = -1;
+    } else if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.keyD) {
+      dc = 1;
+    }
+
+    if (dr != 0 || dc != 0) {
+      setState(() {
+        _keyboardActive = true;
+        final cur = _focusedTile ?? const Position(0, 0);
+        // Toroidal wrapping — Pac-Man style 🟡
+        final newRow = (cur.row + dr) % grid.rows;
+        final newCol = (cur.col + dc) % grid.cols;
+        _focusedTile = Position(newRow, newCol);
+      });
+      return KeyEventResult.handled;
+    }
+
+    // Rotation: Space (CW), Shift+Space (CCW)
+    if (key == LogicalKeyboardKey.space || key == LogicalKeyboardKey.enter) {
+      final pos = _focusedTile ?? const Position(0, 0);
+      if (!_keyboardActive) {
+        setState(() {
+          _keyboardActive = true;
+          _focusedTile = pos;
+        });
+        return KeyEventResult.handled;
+      }
+      final notifier = ref.read(gameProvider.notifier);
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        // Counter-clockwise = 3 clockwise rotations
+        notifier.rotateTile(pos);
+        notifier.rotateTile(pos);
+        notifier.rotateTile(pos);
+      } else {
+        notifier.rotateTile(pos);
+      }
+      return KeyEventResult.handled;
+    }
+
+    // R = reset
+    if (key == LogicalKeyboardKey.keyR) {
+      ref.read(gameProvider.notifier).resetLevel();
+      return KeyEventResult.handled;
+    }
+
+    // Escape = go back
+    if (key == LogicalKeyboardKey.escape) {
+      Navigator.of(context).pop();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   String _getLevelTitle(GameState gameState) {
@@ -139,8 +218,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final gameState = ref.watch(gameProvider);
     final levelTheme = _getTheme(gameState);
 
-    return Scaffold(
-      body: Container(
+    return Focus(
+      focusNode: _gameFocusNode,
+      autofocus: true,
+      onKeyEvent: _handleKeyEvent,
+      child: Scaffold(
+      body: GestureDetector(
+        // Hide keyboard focus on touch/pointer
+        onTapDown: (_) {
+          if (_keyboardActive) setState(() => _keyboardActive = false);
+        },
+        child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -172,6 +260,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               isVictoryCelebrating: gameState.isComplete,
                               theme: levelTheme,
                               creatureTheme: _getCreatureThemeString(gameState),
+                              focusedTile: _keyboardActive ? _focusedTile : null,
                               onTileTap: (pos) {
                                 // Locked if level is complete
                                 if (!gameState.isComplete) {
@@ -251,8 +340,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ],
           ),
         ),
-      ),
-    );
+      ), // Container
+      ), // GestureDetector
+      ), // Scaffold
+    ); // Focus
   }
 
   Widget _buildTopBar(GameState gameState, LevelTheme theme) {
