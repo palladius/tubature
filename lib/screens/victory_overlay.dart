@@ -1,18 +1,23 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../models/cauldron_goodie.dart';
+import '../services/goodies_image_service.dart';
 
 /// Victory overlay shown when the player completes a level.
 ///
 /// Features confetti animation, multilingual celebration text,
-/// move count, and next level / play again buttons.
+/// move count, revealed goodies gallery, and next level / play again buttons.
 class VictoryOverlay extends StatefulWidget {
   final int moveCount;
+  final List<CauldronGoodie> revealedGoodies;
   final VoidCallback onNextLevel;
   final VoidCallback onPlayAgain;
 
   const VictoryOverlay({
     super.key,
     required this.moveCount,
+    this.revealedGoodies = const [],
     required this.onNextLevel,
     required this.onPlayAgain,
   });
@@ -162,7 +167,63 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                             color: Color(0xFF666666),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        // Goodies gallery 🧪
+                        if (widget.revealedGoodies.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          const Text(
+                            '🧪 Discovered:',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF999999),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            alignment: WrapAlignment.center,
+                            children: widget.revealedGoodies.map((goodie) {
+                              final ui.Image? img = GoodiesImageService.getImage(goodie.id);
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: goodie.isLegendary
+                                            ? const Color(0xFFFFD700)
+                                            : const Color(0xFFDDDDDD),
+                                        width: goodie.isLegendary ? 2 : 1,
+                                      ),
+                                      boxShadow: goodie.isLegendary
+                                          ? [
+                                              BoxShadow(
+                                                color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                                                blurRadius: 8,
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: ClipOval(
+                                      child: img != null
+                                          ? RawImage(image: img, fit: BoxFit.cover)
+                                          : Center(child: Text(goodie.emoji, style: const TextStyle(fontSize: 20))),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    goodie.emoji,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
                         SizedBox(
                           width: 220,
                           height: 56,

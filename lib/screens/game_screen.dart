@@ -335,6 +335,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               if (gameState.isComplete && _showVictoryOverlay)
                 VictoryOverlay(
                   moveCount: gameState.moveCount,
+                  revealedGoodies: gameState.ampolleGoodies.values.toList(),
                   onNextLevel: _handleNextLevel,
                   onPlayAgain: _handlePlayAgain,
                 ),

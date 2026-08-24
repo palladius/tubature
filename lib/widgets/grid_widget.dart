@@ -119,7 +119,7 @@ class _GridWidgetState extends State<GridWidget> {
                               height: effectiveTileSize,
                               child: MouseRegion(
                                 onEnter: (_) {
-                                  if (goodie != null) {
+                                  if (goodie != null && isConnected) {
                                     setState(() => _hoveredTile = position);
                                   }
                                 },
@@ -175,16 +175,15 @@ class _GridWidgetState extends State<GridWidget> {
                   ),
                 ),
 
-                // Hover/Focus zoom overlay for goodies 🔍
-                if (zoomTile != null && zoomImage != null)
+                // Hover/Focus zoom overlay for goodies 🔍 (only after victory!)
+                if (widget.isVictoryCelebrating && zoomTile != null && zoomImage != null)
                   Positioned(
                     // Center the 3x zoom on the hovered tile, offset by 2px grid border
                     left: 2 + zoomTile.col * effectiveTileSize - effectiveTileSize,
                     top: 2 + zoomTile.row * effectiveTileSize - effectiveTileSize,
                     child: IgnorePointer(
-                      child: AnimatedOpacity(
-                        opacity: 1.0,
-                        duration: const Duration(milliseconds: 200),
+                      child: Opacity(
+                        opacity: 0.5,
                         child: Container(
                           width: effectiveTileSize * 3,
                           height: effectiveTileSize * 3,
@@ -192,9 +191,9 @@ class _GridWidgetState extends State<GridWidget> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: widget.theme.flowColor.withValues(alpha: 0.4),
-                                blurRadius: 16,
-                                spreadRadius: 2,
+                                color: widget.theme.flowColor.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                spreadRadius: 1,
                               ),
                             ],
                           ),
