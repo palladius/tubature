@@ -1,6 +1,7 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "generator": "Hermes Agent (Ermete Bottazzi)",
+  "description": "Crystal-clear Ferrarese and Italian voice lines mastered with EBU R128 loudness and consonant presence boost",
   "folders": {
     "good": "assets/voices/good/",
     "bad": "assets/voices/bad/"
@@ -15,16 +16,15 @@
       ],
       "category": "victory",
       "display_name": "A scòr ch'l'è un piaśér!",
-      "meaning_it": "Scorre che è un piacere / una meraviglia! (L'acqua defluisce perfettamente)",
+      "meaning_it": "Scorre che è una meraviglia! (L'acqua defluisce perfettamente)",
       "engine": "edge-tts",
       "voice": "it-IT-DiegoNeural",
       "gender": "male",
-      "tts_prompt": "A scòr clé un piasér!",
+      "tts_prompt": "A scòr ch'l'è un piasér!",
       "tts_rate": "+0%",
       "post_processing": {
-        "pitch_shift_semitones": -4,
-        "ffmpeg_filter": "asetrate=38098,aresample=48000,atempo=1.260",
-        "description": "Tuned -4 semitones down for a deep, burly Romagnolo trucker persona (Ermete Bottazzi)"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Loud, crystal-clear Romagnolo victory line with crisp vocal consonants"
       }
     },
     {
@@ -35,17 +35,16 @@
         "good/a-scor-cle-un-piaser-low.ogg"
       ],
       "category": "victory",
-      "display_name": "A scòr ch'l'è un piaśér! (Ottava Bassa)",
-      "meaning_it": "Scorre che è un piacere! (Versione baritonale / orco delle caverne)",
+      "display_name": "A scòr ch'l'è un piaśér! (Enfatico)",
+      "meaning_it": "Scorre che è un piacere!",
       "engine": "edge-tts",
-      "voice": "it-IT-DiegoNeural",
+      "voice": "it-IT-GiuseppeMultilingualNeural",
       "gender": "male",
-      "tts_prompt": "A scòr clé un piasér!",
-      "tts_rate": "+0%",
+      "tts_prompt": "A scòr ch'l'è un piasér!",
+      "tts_rate": "-5%",
       "post_processing": {
-        "pitch_shift_semitones": -12,
-        "ffmpeg_filter": "asetrate=24000,aresample=48000,atempo=2.0",
-        "description": "Full 1-octave downshift (-12 semitones, 50% pitch)"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Expressive alternative voice"
       }
     },
     {
@@ -57,16 +56,15 @@
       ],
       "category": "victory",
       "display_name": "Mo và che tubatùra!",
-      "meaning_it": "Ma guarda che canalizzazione / impianto idraulico a regola d'arte!",
+      "meaning_it": "Ma guarda che canalizzazione a regola d'arte!",
       "engine": "edge-tts",
       "voice": "it-IT-DiegoNeural",
       "gender": "male",
       "tts_prompt": "Mo và che tubatùra!",
-      "tts_rate": "+0%",
+      "tts_rate": "+5%",
       "post_processing": {
-        "pitch_shift_semitones": -4,
-        "ffmpeg_filter": "asetrate=38098,aresample=48000,atempo=1.260",
-        "description": "Tuned -4 semitones down for a deep, burly Romagnolo trucker persona (Ermete Bottazzi)"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Lively, energetic pipe master celebration"
       }
     },
     {
@@ -79,16 +77,15 @@
       "category": "easter_egg",
       "required_ampolla_count": 2,
       "display_name": "Mayàl, ac du bàl!",
-      "meaning_it": "Maiale, che due palle! (Esclamazione tipica ferrarese / trigger con esattamente 2 ampolle)",
+      "meaning_it": "Maiale, che due palle! (Esclamazione tipica ferrarese / trigger con 2 ampolle)",
       "engine": "edge-tts",
       "voice": "it-IT-DiegoNeural",
       "gender": "male",
-      "tts_prompt": "Mayàl... ack du bàl!",
-      "tts_rate": "-15%",
+      "tts_prompt": "Mayàl... ac du bàl!",
+      "tts_rate": "-5%",
       "post_processing": {
-        "pitch_shift_semitones": -5,
-        "ffmpeg_filter": "asetrate=17979,aresample=24000,atempo=1.15",
-        "description": "Deep baritone tuning (-5 semitones) with relaxed natural pacing"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Crisp Ferrarese easter egg delivery with clear spacing"
       }
     },
     {
@@ -100,16 +97,15 @@
       ],
       "category": "failure",
       "display_name": "Ac giurnadàza!",
-      "meaning_it": "Che giornataccia! / Ma che giornata faticosa!",
+      "meaning_it": "Che giornataccia faticosa!",
       "engine": "edge-tts",
       "voice": "it-IT-DiegoNeural",
       "gender": "male",
-      "tts_prompt": "Ack giurnadàza!",
+      "tts_prompt": "Ac giurnadàza!",
       "tts_rate": "+0%",
       "post_processing": {
-        "pitch_shift_semitones": -4,
-        "ffmpeg_filter": "asetrate=38098,aresample=48000,atempo=1.260",
-        "description": "Tuned -4 semitones down for a deep, burly Romagnolo trucker persona"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Clear frustrated plumber reaction"
       }
     },
     {
@@ -121,15 +117,15 @@
       ],
       "category": "failure",
       "display_name": "Non capisci proprio un tubo!",
-      "meaning_it": "Non capisci proprio niente / Tubo rotto o combinazione sbagliata!",
+      "meaning_it": "Non capisci proprio niente!",
       "engine": "edge-tts",
       "voice": "it-IT-ElsaNeural",
       "gender": "female",
       "tts_prompt": "Non capisci proprio un tubo!",
-      "tts_rate": "+25%",
+      "tts_rate": "+10%",
       "post_processing": {
-        "pitch_shift_semitones": 0,
-        "description": "Speedup +25% for a snappy, witty arcade delivery"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Snappy, punchy female arcade delivery"
       }
     },
     {
@@ -141,15 +137,15 @@
       ],
       "category": "failure",
       "display_name": "Non capisci un tubo!",
-      "meaning_it": "Versione breve e tagliente per il Game Over",
+      "meaning_it": "Non capisci un tubo!",
       "engine": "edge-tts",
-      "voice": "it-IT-ElsaNeural",
-      "gender": "female",
+      "voice": "it-IT-DiegoNeural",
+      "gender": "male",
       "tts_prompt": "Non capisci un tubo!",
-      "tts_rate": "+20%",
+      "tts_rate": "+10%",
       "post_processing": {
-        "pitch_shift_semitones": 0,
-        "description": "Speedup +20% for a snappy arcade delivery"
+        "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
+        "description": "Crisp male delivery"
       }
     }
   ]

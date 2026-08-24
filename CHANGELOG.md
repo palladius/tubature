@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.3.4 — 2026-08-24
+
+### Crystal-Clear Audio Mastering & Consonant Clarity 🎙️🔊✨
+- **Cleaned Vocal Formants** — removed murky -12/-5 semitones down-pitching that rendered voice lines muffled and unintelligible
+- **Broadcast Loudness Normalization (EBU R128)** — boosted speech volume to `volume=2.2` with high-pass filtering (80Hz) to cut sub-bass rumble and `treble=g=4` to bring out clear consonant presence
+- **Tuned Dialect Phonation** — all Romagnolo, Ferrarese and arcade voice lines are now 100% crystal-clear and intelligible
+- **Synced Asset Catalog** — updated `voices.json` and `lib/models/voice_entry.dart` across all good/bad voice lines
+
 ## 2.3.3 — 2026-08-23
 
 ### Ferrarese Plumber Voice Reactions & Animated Lip-Sync 🎭🎙️👃

@@ -45,8 +45,8 @@ class VoiceCatalog {
       folder: 'good',
       path: 'assets/voices/good/a-scor-cle-un-piaser-low.mp3',
       category: 'victory',
-      displayName: "A scòr ch'l'è un piaśér! (Basso)",
-      meaningIt: "Scorre che è un piacere! (Voce cavernosa)",
+      displayName: "A scòr ch'l'è un piaśér!",
+      meaningIt: "Scorre che è un piacere!",
     ),
     VoiceEntry(
       id: 'mo-va-che-tubatura',
