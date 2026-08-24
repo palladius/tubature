@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.4.0 — 2026-08-24
+
+### Torrential River Flood ("Fiume in Piena") Simulation Engine 🌊🏞️⚡
+- **Asymmetric Flash Flood Wave** — water bursts into dry pipes like a dam break, surging along the left/right banks at differing speeds with turbulent parabolic tongue inertia
+- **Foaming Crest & Spray Splashes** — thick white frothing wave head with dynamic spray beads and splashing water droplets jumping ahead of the flood
+- **Centrifugal Corner Sloshing** — water rushes against the outer pipe wall with natural inertia before wrapping around corner and tee bends
+- **Continuous 60 FPS Living River Current** — connected pipes maintain multi-layered flowing sinusoidal streamlines, traveling sunlight caustics, and drifting micro-bubbles
+- **Conductor Track Completed** — verified and marked `water_flow_animation_20260823` Phase 5 complete in Conductor registry
+
 ## 2.3.4 — 2026-08-24
 
 ### Crystal-Clear Audio Mastering & Consonant Clarity 🎙️🔊✨

@@ -64,17 +64,17 @@ class _TileWidgetState extends State<TileWidget>
     );
 
     _flowController = AnimationController(
-      duration: const Duration(milliseconds: 280),
+      duration: const Duration(milliseconds: 1100),
       vsync: this,
     );
     _flowAnimation = CurvedAnimation(
       parent: _flowController,
-      curve: Curves.easeOutBack,
+      curve: Curves.easeInOutCubic,
     );
 
-    // Continuous subtle liquid shimmer
+    // Continuous dynamic living river current & shimmer (60 FPS)
     _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 2400),
+      duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
     _shimmerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -111,6 +111,8 @@ class _TileWidgetState extends State<TileWidget>
         _shimmerController.stop();
         _flowController.reset();
       }
+    } else if (widget.tile.isConnected && widget.connectionDepth != oldWidget.connectionDepth) {
+      _triggerFlowAnimation();
     }
 
     if (widget.isVictoryCelebrating != oldWidget.isVictoryCelebrating) {
@@ -129,22 +131,22 @@ class _TileWidgetState extends State<TileWidget>
     final c = widget.position.col;
     final depth = widget.connectionDepth;
 
-    // Organic turbulence: pseudo-random spatial jitter based on tile coordinates
-    final chaosJitter = ((sin(r * 3.8 + c * 2.3) * 35) +
-            (cos(r * 1.7 - c * 2.9) * 20))
+    // Organic turbulence: spatial jitter based on tile coordinates
+    final chaosJitter = ((sin(r * 3.8 + c * 2.3) * 30) +
+            (cos(r * 1.7 - c * 2.9) * 18))
         .toInt();
 
-    final baseDelay = depth * 85;
-    final delayMs = max(0, min(baseDelay + chaosJitter, 1500));
+    final baseDelay = depth * 110;
+    final delayMs = max(0, min(baseDelay + chaosJitter, 2000));
 
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         if (widget.tile.type == TileType.deadEnd) {
-          _flowController.duration = const Duration(milliseconds: 1400);
+          _flowController.duration = const Duration(milliseconds: 1500);
           _flowController.forward(from: 0.0);
           AudioService.playAmpollaGlub();
         } else {
-          _flowController.duration = const Duration(milliseconds: 760);
+          _flowController.duration = const Duration(milliseconds: 1100);
           _flowController.forward(from: 0.0);
           if (depth > 0) {
             AudioService.playWaterFlow(chainLength: depth);

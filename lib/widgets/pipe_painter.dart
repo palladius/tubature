@@ -4,14 +4,22 @@ import '../models/direction.dart';
 import '../models/tile.dart';
 import '../theme/level_theme.dart';
 
-/// CustomPainter that renders a single pipe tile with realistic liquid river inundation.
+/// CustomPainter that renders a single pipe tile with realistic Torrential River Flood ("Fiume in Piena") physics.
 ///
 /// Features:
-/// - Asymmetric river inundation: water floods along the left and right banks at different speeds
-/// - Slanted parabolic meniscus wave front rushing forward through dry pipes
-/// - Natural fluid turbulence, vortex curls around corners, and moving caustics
-/// - 2x enlarged crystal flask bulb with swirling liquid volume and glub bubbles
-/// - Continuous caustics shimmer and ambient micro-bubbles
+/// 1. Asymmetric Flash Flood Inundation (0.0 -> 1.0):
+///    - Riverbanks surge at different velocities with turbulent noise
+///    - Parabolic water tongue rushing forward through dry pipes
+///    - Foaming white wave crest & splashing water droplets jumping ahead
+///    - Centrifugal wall sloshing around corners and tee branches
+///
+/// 2. Continuous Living River Current (Connected & 1.0):
+///    - Multi-layered animated sinusoidal streamlines flowing at water current speed
+///    - Traveling specular caustics and glistening sunlight ripples
+///    - Drifting micro-bubbles and vortex eddies
+///
+/// 3. Dynamic Crystal Ampolla Bulb:
+///    - Neck breach splash -> rising turbulent liquid volume -> swirling core & glub bubbles
 class PipePainter extends CustomPainter {
   final Tile tile;
   final LevelTheme theme;
@@ -39,12 +47,12 @@ class PipePainter extends CustomPainter {
 
     // Pipe thickness scales with tile size
     final basePipeWidth = size.width * 0.22;
-    final pipeWidth = basePipeWidth + (pulseProgress * 2.0);
+    final pipeWidth = basePipeWidth + (pulseProgress * 2.5);
 
     final bool connected = tile.isConnected;
 
-    // Liquid Shimmer Modulation
-    final double shimmerMod = connected ? sin(shimmerProgress * 2 * pi) * 0.15 : 0.0;
+    // Continuous Liquid Shimmer Modulation (60 FPS living river)
+    final double shimmerMod = connected ? sin(shimmerProgress * 2 * pi) * 0.18 : 0.0;
 
     // Base Disconnected Paints (Gray Pipe)
     final baseOutlinePaint = Paint()
@@ -64,21 +72,14 @@ class PipePainter extends CustomPainter {
     final baseHighlightPaint = Paint()
       ..color = const Color(0xFFE0E0E0)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = pipeWidth * 0.45
+      ..strokeWidth = pipeWidth * 0.42
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // Active Liquid Paints (Purple / Theme Flow Color)
+    // Active Liquid Paints (Theme Flow Color / Living Purple)
     final fluidFillPaint = Paint()
       ..color = theme.flowColor
       ..style = PaintingStyle.fill;
-
-    final fluidStrokePaint = Paint()
-      ..color = theme.flowColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = pipeWidth
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
 
     final fluidOutlinePaint = Paint()
       ..color = theme.flowColorDark
@@ -89,10 +90,10 @@ class PipePainter extends CustomPainter {
 
     final fluidHighlightPaint = Paint()
       ..color = pulseProgress > 0.0
-          ? Color.lerp(theme.flowColorLight, Colors.white, pulseProgress * 0.7)!
-          : Color.lerp(theme.flowColorLight, Colors.white, (0.25 + shimmerMod).clamp(0.0, 1.0))!
+          ? Color.lerp(theme.flowColorLight, Colors.white, pulseProgress * 0.8)!
+          : Color.lerp(theme.flowColorLight, Colors.white, (0.28 + shimmerMod).clamp(0.0, 1.0))!
       ..style = PaintingStyle.stroke
-      ..strokeWidth = pipeWidth * (0.45 + (shimmerMod * 0.1) + (pulseProgress * 0.15))
+      ..strokeWidth = pipeWidth * (0.42 + (shimmerMod * 0.12) + (pulseProgress * 0.15))
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
@@ -112,17 +113,17 @@ class PipePainter extends CustomPainter {
       }
     }
 
-    // 1. ALWAYS DRAW BASE PIPE STRUCTURE (Gray dry pipe)
+    // 1. ALWAYS DRAW BASE PIPE CASING (Gray dry pipe channel)
     _drawBasePipe(
       canvas, size, center, openings, pipeWidth,
       baseOutlinePaint, baseFillPaint, baseHighlightPaint, edgeMidpoint,
     );
 
-    // 2. DRAW NATURAL RIVER INUNDATION LAYER (Asymmetric flow progress)
+    // 2. DRAW TORRENTIAL RIVER FLOOD & LIVING CURRENT
     if (connected && flowProgress > 0.0) {
-      _drawLiquidRiverFlow(
+      _drawTorrentialRiver(
         canvas, size, center, openings, pipeWidth,
-        fluidOutlinePaint, fluidStrokePaint, fluidFillPaint, fluidHighlightPaint,
+        fluidOutlinePaint, fluidFillPaint, fluidHighlightPaint,
         edgeMidpoint,
       );
     }
@@ -187,63 +188,57 @@ class PipePainter extends CustomPainter {
     }
   }
 
-  /// 2. Draws the organic liquid river stream filling the pipe with asymmetric bank speed
-  void _drawLiquidRiverFlow(
+  /// 2. Draws the Torrential River Flood ("Fiume in Piena") with continuous current streamlines
+  void _drawTorrentialRiver(
     Canvas canvas,
     Size size,
     Offset center,
     Set<Direction> openings,
     double pipeWidth,
     Paint fluidOutlinePaint,
-    Paint fluidStrokePaint,
     Paint fluidFillPaint,
     Paint fluidHighlightPaint,
     Offset Function(Direction) edgeMidpoint,
   ) {
-    // Unique deterministic eddy / bank bias for this tile
-    final bankBias = (sin(center.dx * 5.3 + center.dy * 7.7) > 0) ? 1.0 : -1.0;
+    // Unique deterministic spatial turbulence bias for this tile
+    final bankBias = (sin(center.dx * 6.7 + center.dy * 4.3) > 0) ? 1.0 : -1.0;
 
     if (tile.type == TileType.source) {
       final dir = openings.first;
       final edge = edgeMidpoint(dir);
-      _drawRiverStreamSegment(canvas, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+      _drawTorrentialStreamSegment(canvas, size, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
     } else if (tile.type == TileType.line) {
       final dirs = openings.toList();
       final p1 = edgeMidpoint(dirs[0]);
       final p2 = edgeMidpoint(dirs[1]);
-      _drawRiverStreamSegment(canvas, p1, p2, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+      _drawTorrentialStreamSegment(canvas, size, p1, p2, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
     } else if (tile.type == TileType.corner) {
       final dirs = openings.toList();
       final p1 = edgeMidpoint(dirs[0]);
       final p2 = edgeMidpoint(dirs[1]);
-      _drawRiverCornerSegment(canvas, p1, center, p2, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+      _drawTorrentialCornerSegment(canvas, size, p1, center, p2, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
     } else if (tile.type == TileType.tee) {
       for (final dir in openings) {
         final edge = edgeMidpoint(dir);
-        _drawRiverStreamSegment(canvas, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+        _drawTorrentialStreamSegment(canvas, size, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
       }
     } else if (tile.type == TileType.cross) {
       for (final dir in Direction.values) {
         final edge = edgeMidpoint(dir);
-        _drawRiverStreamSegment(canvas, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
+        _drawTorrentialStreamSegment(canvas, size, center, edge, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint);
       }
     } else if (tile.type == TileType.deadEnd) {
       final dir = openings.first;
-      _drawRiverDeadEnd(canvas, size, center, dir, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint, edgeMidpoint);
-    }
-
-    // Ambient micro-bubbles along the flooded river
-    if (flowProgress >= 0.8) {
-      for (final dir in openings) {
-        final edge = edgeMidpoint(dir);
-        _drawLiquidBubbles(canvas, center, edge, size.width, shimmerProgress);
-      }
+      _drawTorrentialDeadEnd(canvas, size, center, dir, pipeWidth, flowProgress, bankBias, fluidFillPaint, fluidHighlightPaint, edgeMidpoint);
     }
   }
 
-  /// Renders a straight river segment with asymmetric left vs right bank velocity
-  void _drawRiverStreamSegment(
+  /// Renders a straight pipe river segment:
+  /// - During Inundation (progress < 1.0): Asymmetric left vs right bank surge + foam crest + splash droplets
+  /// - Full Stream (progress >= 1.0): Continuous multi-layered traveling streamlines, caustics, and water ripples
+  void _drawTorrentialStreamSegment(
     Canvas canvas,
+    Size size,
     Offset from,
     Offset to,
     double pipeWidth,
@@ -252,27 +247,81 @@ class PipePainter extends CustomPainter {
     Paint fillPaint,
     Paint highlightPaint,
   ) {
-    if (progress >= 1.0) {
-      // 100% full: draw clean solid stream
-      canvas.drawLine(from, to, fillPaint..style = PaintingStyle.stroke..strokeWidth = pipeWidth);
-      canvas.drawLine(from, to, highlightPaint);
-      fillPaint.style = PaintingStyle.fill;
-      return;
-    }
-
     final dirVector = (to - from);
     final length = dirVector.distance;
     if (length == 0) return;
     final u = dirVector / length; // unit direction
     final normal = Offset(-u.dy, u.dx); // perpendicular normal (left bank)
-
     final halfW = pipeWidth / 2.0;
 
-    // Asymmetric bank progress:
-    // Left bank vs Right bank differ by up to 38% during inundation!
-    final skew = 0.38 * bankBias * sin(progress * pi);
-    final leftFrac = ((progress * 1.30) - 0.15 + skew).clamp(0.0, 1.0);
-    final rightFrac = ((progress * 1.30) - 0.15 - skew).clamp(0.0, 1.0);
+    if (progress >= 1.0) {
+      // ==========================================
+      // LIVING RUSHING RIVER (CONTINUOUS 60 FPS)
+      // ==========================================
+      // 1. Solid base flow body
+      fillPaint.style = PaintingStyle.stroke;
+      fillPaint.strokeWidth = pipeWidth;
+      canvas.drawLine(from, to, fillPaint);
+
+      // 2. Continuous Traveling Streamlines (sinusoidal river ripples)
+      final streamPaint = Paint()
+        ..color = Color.lerp(theme.flowColorLight, Colors.white, 0.40)!
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.2
+        ..strokeCap = StrokeCap.round;
+
+      final phase = shimmerProgress * 2 * pi;
+      final pathCenter = Path();
+      final pathLeft = Path();
+      final pathRight = Path();
+
+      const sampleCount = 12;
+      for (int i = 0; i <= sampleCount; i++) {
+        final t = i / sampleCount;
+        final along = t * length;
+
+        // Traveling sine waves in direction of flow
+        final waveCenter = sin((t * 4 * pi) - (phase * 2.0)) * (halfW * 0.28);
+        final waveLeft = sin((t * 3.5 * pi) - (phase * 1.7) + 1.2) * (halfW * 0.20);
+        final waveRight = cos((t * 3.8 * pi) - (phase * 1.9) - 0.8) * (halfW * 0.20);
+
+        final pCenter = from + (u * along) + (normal * waveCenter);
+        final pLeft = from + (u * along) + (normal * (halfW * 0.52 + waveLeft));
+        final pRight = from + (u * along) - (normal * (halfW * 0.52 - waveRight));
+
+        if (i == 0) {
+          pathCenter.moveTo(pCenter.dx, pCenter.dy);
+          pathLeft.moveTo(pLeft.dx, pLeft.dy);
+          pathRight.moveTo(pRight.dx, pRight.dy);
+        } else {
+          pathCenter.lineTo(pCenter.dx, pCenter.dy);
+          pathLeft.lineTo(pLeft.dx, pLeft.dy);
+          pathRight.lineTo(pRight.dx, pRight.dy);
+        }
+      }
+
+      // Draw Center Main Current Streamline
+      canvas.drawPath(pathCenter, streamPaint);
+
+      // Draw Side Secondary Streamlines (subtler)
+      streamPaint.strokeWidth = 1.4;
+      streamPaint.color = Colors.white.withValues(alpha: 0.45);
+      canvas.drawPath(pathLeft, streamPaint);
+      canvas.drawPath(pathRight, streamPaint);
+
+      // 3. Traveling Sun Caustic Glints & Micro-Bubbles along the stream
+      _drawTravelingCausticRipples(canvas, from, to, u, length, halfW, shimmerProgress);
+      return;
+    }
+
+    // ==========================================
+    // INUNDATION FLASH FLOOD WAVE (0.0 -> 1.0)
+    // ==========================================
+    // Asymmetric bank speed:
+    // Left bank vs Right bank differ dramatically during flash flood inundation!
+    final bankDelta = 0.44 * bankBias * sin(progress * pi);
+    final leftFrac = ((progress * 1.35) - 0.12 + bankDelta).clamp(0.0, 1.0);
+    final rightFrac = ((progress * 1.35) - 0.12 - bankDelta).clamp(0.0, 1.0);
 
     if (leftFrac <= 0.0 && rightFrac <= 0.0) return;
 
@@ -282,10 +331,11 @@ class PipePainter extends CustomPainter {
     final pLeftFront = pLeftStart + u * (length * leftFrac);
     final pRightFront = pRightStart + u * (length * rightFrac);
 
-    // Meniscus tongue bulging forward in center
-    final centerFrac = ((leftFrac + rightFrac) / 2.0 + 0.08).clamp(0.0, 1.0);
+    // Parabolic water tongue bulging forward with dynamic inertia
+    final centerFrac = ((leftFrac + rightFrac) / 2.0 + (0.12 * sin(progress * pi))).clamp(0.0, 1.0);
     final pMeniscusTip = from + u * (length * centerFrac);
 
+    // Liquid Torrent Body Path
     final riverPath = Path()
       ..moveTo(pLeftStart.dx, pLeftStart.dy)
       ..lineTo(pLeftFront.dx, pLeftFront.dy)
@@ -299,11 +349,11 @@ class PipePainter extends CustomPainter {
     fillPaint.style = PaintingStyle.fill;
     canvas.drawPath(riverPath, fillPaint);
 
-    // Specular liquid foam / crest highlight along the asymmetric wave front
+    // 1. Foaming Froth Wave Crest (White foaming head of the river in flood)
     final waveCrestPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.80)
+      ..color = Colors.white.withValues(alpha: 0.92)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
+      ..strokeWidth = 3.2
       ..strokeCap = StrokeCap.round;
 
     final crestPath = Path()
@@ -314,16 +364,43 @@ class PipePainter extends CustomPainter {
       );
     canvas.drawPath(crestPath, waveCrestPaint);
 
-    // Inner highlight along flooded center
-    if (centerFrac > 0.1) {
-      final pHighlightEnd = from + u * (length * centerFrac * 0.85);
+    // 2. Frothing Foam Beads along the wave crest
+    final foamPaint = Paint()..color = Colors.white.withValues(alpha: 0.85)..style = PaintingStyle.fill;
+    for (double t = 0.1; t <= 0.9; t += 0.2) {
+      final pFoam = Offset.lerp(
+        Offset.lerp(pLeftFront, pMeniscusTip, t)!,
+        Offset.lerp(pMeniscusTip, pRightFront, t)!,
+        t,
+      )!;
+      final beadRadius = 1.8 + (sin((progress + t) * pi * 4) * 0.8).abs();
+      canvas.drawCircle(pFoam, beadRadius, foamPaint);
+    }
+
+    // 3. Splashing Water Spray Droplets jumping ahead of the flood head
+    final sprayPaint = Paint()..color = theme.flowColorLight.withValues(alpha: 0.90)..style = PaintingStyle.fill;
+    final splashCount = 4;
+    for (int s = 0; s < splashCount; s++) {
+      final sprayFrac = centerFrac + (0.04 * (s + 1));
+      if (sprayFrac < 1.0) {
+        final sprayLateral = (sin(s * 2.3 + progress * 8.0) * (halfW * 0.60));
+        final pSpray = from + (u * (length * sprayFrac)) + (normal * sprayLateral);
+        final sprayRadius = (halfW * 0.14) * (1.0 - (s * 0.18));
+        canvas.drawCircle(pSpray, sprayRadius.clamp(1.5, 4.0), sprayPaint);
+        canvas.drawCircle(pSpray, (sprayRadius * 0.5).clamp(1.0, 2.0), Paint()..color = Colors.white);
+      }
+    }
+
+    // 4. Inner current highlight behind the wave
+    if (centerFrac > 0.12) {
+      final pHighlightEnd = from + u * (length * centerFrac * 0.82);
       canvas.drawLine(from, pHighlightEnd, highlightPaint);
     }
   }
 
-  /// Renders a corner river turn with centrifugal liquid bias around the bend
-  void _drawRiverCornerSegment(
+  /// Renders a corner river turn with centrifugal liquid sloshing around the bend
+  void _drawTorrentialCornerSegment(
     Canvas canvas,
+    Size size,
     Offset p1,
     Offset center,
     Offset p2,
@@ -334,29 +411,26 @@ class PipePainter extends CustomPainter {
     Paint highlightPaint,
   ) {
     if (progress >= 1.0) {
-      final cornerPath = Path()
-        ..moveTo(p1.dx, p1.dy)
-        ..lineTo(center.dx, center.dy)
-        ..lineTo(p2.dx, p2.dy);
-      canvas.drawPath(cornerPath, fillPaint..style = PaintingStyle.stroke..strokeWidth = pipeWidth);
-      canvas.drawPath(cornerPath, highlightPaint);
-      fillPaint.style = PaintingStyle.fill;
+      // Step 1 & 2 continuous living current
+      _drawTorrentialStreamSegment(canvas, size, p1, center, pipeWidth, 1.0, bankBias, fillPaint, highlightPaint);
+      _drawTorrentialStreamSegment(canvas, size, center, p2, pipeWidth, 1.0, -bankBias, fillPaint, highlightPaint);
       return;
     }
 
-    // Step 1: Inundate from p1 to center
+    // Inundation Phase:
+    // First half rushes to center with centrifugal bank bias
     final firstHalfProgress = (progress * 2.0).clamp(0.0, 1.0);
-    _drawRiverStreamSegment(canvas, p1, center, pipeWidth, firstHalfProgress, bankBias, fillPaint, highlightPaint);
+    _drawTorrentialStreamSegment(canvas, size, p1, center, pipeWidth, firstHalfProgress, bankBias, fillPaint, highlightPaint);
 
-    // Step 2: Inundate from center to p2 with centrifugal bank shift
-    if (progress > 0.45) {
-      final secondHalfProgress = ((progress - 0.45) / 0.55).clamp(0.0, 1.0);
-      _drawRiverStreamSegment(canvas, center, p2, pipeWidth, secondHalfProgress, -bankBias, fillPaint, highlightPaint);
+    // Second half surges around the bend with outer-wall centrifugal momentum
+    if (progress > 0.40) {
+      final secondHalfProgress = ((progress - 0.40) / 0.60).clamp(0.0, 1.0);
+      _drawTorrentialStreamSegment(canvas, size, center, p2, pipeWidth, secondHalfProgress, -bankBias, fillPaint, highlightPaint);
     }
   }
 
   /// Renders an ampolla dead-end with fluid rushing into neck and filling glass flask
-  void _drawRiverDeadEnd(
+  void _drawTorrentialDeadEnd(
     Canvas canvas,
     Size size,
     Offset center,
@@ -376,50 +450,93 @@ class PipePainter extends CustomPainter {
     final bulbCenter = center - dirVector * (pipeWidth * 0.10);
     final bulbRadius = pipeWidth * 1.55;
 
-    // 1. Inundate the neck stem first (progress 0.0 -> 0.4)
+    // 1. Inundate the neck stem first (progress 0.0 -> 0.45)
     final stemProgress = (progress / 0.45).clamp(0.0, 1.0);
-    _drawRiverStreamSegment(canvas, edge, bulbCenter, pipeWidth, stemProgress, bankBias, fillPaint, highlightPaint);
+    _drawTorrentialStreamSegment(canvas, size, edge, bulbCenter, pipeWidth, stemProgress, bankBias, fillPaint, highlightPaint);
 
-    // 2. Fill the glass bulb flask (progress 0.35 -> 1.0)
-    if (progress > 0.35) {
-      final bulbFillFrac = ((progress - 0.35) / 0.65).clamp(0.0, 1.0);
+    // 2. Fill the glass bulb flask with turbulent swirling liquid
+    if (progress > 0.30) {
+      final bulbFillFrac = ((progress - 0.30) / 0.70).clamp(0.0, 1.0);
       final fluidFillRadius = (bulbRadius - 1.0) * bulbFillFrac;
-      final liquidPulse = sin(shimmerProgress * 2 * pi) * 2.0;
+      final liquidPulse = sin(shimmerProgress * 2 * pi) * 2.5;
 
       if (fluidFillRadius > 0.5) {
         fillPaint.style = PaintingStyle.fill;
         canvas.drawCircle(bulbCenter, fluidFillRadius, fillPaint);
 
-        // Swirling bright fluid core
+        // Swirling bright fluid core with luminous vortex
         canvas.drawCircle(
           bulbCenter,
-          ((fluidFillRadius * 0.72) + liquidPulse).clamp(0.0, bulbRadius),
+          ((fluidFillRadius * 0.75) + liquidPulse).clamp(0.0, bulbRadius),
           Paint()
             ..color = Color.lerp(
               theme.flowColor,
               theme.flowColorLight,
-              (0.40 + (sin(shimmerProgress * 2 * pi) * 0.25)).clamp(0.0, 1.0),
+              (0.45 + (sin(shimmerProgress * 2 * pi) * 0.28)).clamp(0.0, 1.0),
             )!
             ..style = PaintingStyle.fill,
         );
 
-        // Rising glub bubbles in ampolla
-        final bubbleCount = (bulbFillFrac * 4).toInt() + 1;
+        // Dynamic swirling foam ring in the ampolla
+        final foamRadius = (fluidFillRadius * 0.88).clamp(1.0, bulbRadius);
+        canvas.drawCircle(
+          bulbCenter,
+          foamRadius,
+          Paint()
+            ..color = Colors.white.withValues(alpha: (0.35 * bulbFillFrac))
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.8,
+        );
+
+        // Rising carbonated "glub glub" bubbles inside the ampolla
+        final bubbleCount = (bulbFillFrac * 5).toInt() + 1;
         for (int b = 0; b < bubbleCount; b++) {
-          final bPhase = (shimmerProgress + (b * 0.25)) % 1.0;
+          final bPhase = (shimmerProgress + (b * 0.22)) % 1.0;
           final bOffset = Offset(
-            sin((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.50),
-            cos((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.50) - (bPhase * 4.0),
+            sin((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.55),
+            cos((bPhase + b) * 2 * pi) * (fluidFillRadius * 0.55) - (bPhase * 5.0),
           );
           canvas.drawCircle(
             bulbCenter + bOffset,
-            (fluidFillRadius * 0.16).clamp(1.8, 6.0),
+            (fluidFillRadius * 0.16).clamp(1.8, 6.5),
             Paint()
-              ..color = Colors.white.withValues(alpha: 0.85)
+              ..color = Colors.white.withValues(alpha: 0.90)
               ..style = PaintingStyle.fill,
           );
         }
       }
+    }
+  }
+
+  /// Draws traveling caustic sunlight ripples and micro-bubbles along full connected river pipes
+  void _drawTravelingCausticRipples(
+    Canvas canvas,
+    Offset from,
+    Offset to,
+    Offset u,
+    double length,
+    double halfW,
+    double shimmerPhase,
+  ) {
+    final glintPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.75)
+      ..style = PaintingStyle.fill;
+
+    // 2 traveling caustic glints moving downstream
+    for (int g = 0; g < 2; g++) {
+      final glintFrac = (shimmerPhase + (g * 0.50)) % 1.0;
+      final pGlint = from + (u * (length * glintFrac));
+      final glintWidth = (halfW * 0.45) * (1.0 + (sin((shimmerPhase + g) * pi * 2) * 0.25));
+      final glintHeight = 2.2;
+
+      canvas.save();
+      canvas.translate(pGlint.dx, pGlint.dy);
+      canvas.rotate(atan2(u.dy, u.dx));
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: glintWidth * 2.0, height: glintHeight),
+        glintPaint,
+      );
+      canvas.restore();
     }
   }
 
@@ -515,20 +632,6 @@ class PipePainter extends CustomPainter {
         canvas.drawLine(center, edgeMidpoint(dir), fillPaint);
         canvas.drawLine(center, edgeMidpoint(dir), highlightPaint);
       }
-    }
-  }
-
-  void _drawLiquidBubbles(Canvas canvas, Offset from, Offset to, double tileSize, double phase) {
-    final bubblePaint = Paint()..color = Colors.white.withValues(alpha: 0.65)..style = PaintingStyle.fill;
-    final glowPaint = Paint()..color = theme.flowColorLight.withValues(alpha: 0.40)..style = PaintingStyle.fill;
-
-    for (int i = 0; i < 2; i++) {
-      final offsetFrac = (phase + (i * 0.45)) % 1.0;
-      final bubblePos = Offset.lerp(from, to, offsetFrac)!;
-      final bubbleRadius = (tileSize * 0.035) * (1.0 + (sin((phase + i) * pi * 2) * 0.3));
-
-      canvas.drawCircle(bubblePos, bubbleRadius + 1.5, glowPaint);
-      canvas.drawCircle(bubblePos, bubbleRadius, bubblePaint);
     }
   }
 

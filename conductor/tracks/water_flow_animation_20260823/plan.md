@@ -24,9 +24,9 @@
 - [x] Task: Phase Verification & Checkpoint — audio playback verification on Web and Mobile
 
 ## Phase 5: Organic Liquid Fluid Simulation (Chaos Jitter, Flow Shimmer & Meniscus)
-- [ ] Task: Replace deterministic BFS delays with turbulent fluid chaos jitter in `TileWidget`
-- [ ] Task: Implement animated flowing liquid shimmer & moving caustic highlights in `PipePainter`
-- [ ] Task: Add fluid surge meniscus (pressure front) and dynamic micro-bubbles inside connected pipes
-- [ ] Task: Add slosh/bounce easing on fluid arrival
-- [ ] Task: Phase Verification & Checkpoint — visual inspection on Web & Mobile
+- [x] Task: Replace deterministic BFS delays with turbulent fluid chaos jitter in `TileWidget`
+- [x] Task: Implement animated flowing liquid shimmer & moving caustic highlights in `PipePainter`
+- [x] Task: Add fluid surge meniscus (pressure front) and dynamic micro-bubbles inside connected pipes
+- [x] Task: Add slosh/bounce easing on fluid arrival
+- [x] Task: Phase Verification & Checkpoint — visual inspection on Web & Mobile
 
