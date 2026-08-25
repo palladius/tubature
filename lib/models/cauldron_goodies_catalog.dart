@@ -11,7 +11,7 @@ class CauldronGoodiesCatalog {
   static const List<CauldronGoodie> common = [
     CauldronGoodie(
       id: 'ruby',
-      assetPath: 'assets/goodies/ruby.png',
+      assetPath: 'assets/goodies/ruby2.png',
       displayName: 'Ruby',
       emoji: '💎',
       rarity: GoodieRarity.common,
