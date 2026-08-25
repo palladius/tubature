@@ -70,6 +70,12 @@ just serve
 
 ---
 
+## 🙏 Thanks
+
+- **[Alessandro Verlato](https://github.com/madAle)** ([Fancy Pixel](https://fancypixel.it/), Portomaggiore 🇮🇹) — for recording 12 authentic ferrarese dialect voice clips ("piaser!", "mo' va che tubatura!", "do bal!", "giurnadaza!"). Issue [#4](https://github.com/palladius/tubature/issues/4).
+
+---
+
 ## 📜 Version & Changelog
 
-Current version: **v2.2.0** — see [CHANGELOG.md](CHANGELOG.md) for full history.
+Current version: **v2.7.1** — see [CHANGELOG.md](CHANGELOG.md) for full history.
