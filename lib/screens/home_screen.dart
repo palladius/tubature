@@ -3,13 +3,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/cauldron_goodie.dart';
-import '../models/cauldron_goodies_catalog.dart';
 import '../models/level.dart';
-import '../services/goodies_image_service.dart';
 import '../version.dart';
 import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
+import 'goodies_catalog_screen.dart';
 
 /// Home screen — Epic D&D Dungeon Plumber theme starring Riccardo, Ale & Seby.
 ///
@@ -557,65 +555,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showGoodiesCatalogDebug(BuildContext context) {
-    final allGoodies = CauldronGoodiesCatalog.all;
-    final totalWeight = allGoodies.fold<int>(0, (s, g) => s + g.rarity.weight);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('🏅 Goodies Catalog'),
-        content: SizedBox(
-          width: 360,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Total weight: $totalWeight • ${allGoodies.length} goodies',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                const SizedBox(height: 8),
-                ...allGoodies.map((g) {
-                  final pct = (g.rarity.weight / totalWeight * 100).toStringAsFixed(1);
-                  final img = GoodiesImageService.getImage(g.id);
-                  final rarityColor = switch (g.rarity) {
-                    GoodieRarity.common => Colors.grey,
-                    GoodieRarity.uncommon => Colors.green,
-                    GoodieRarity.rare => Colors.blue,
-                    GoodieRarity.legendary => const Color(0xFFFFD700),
-                  };
-                  return ListTile(
-                    dense: true,
-                    leading: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: ClipOval(
-                        child: img != null
-                            ? RawImage(image: img, fit: BoxFit.cover)
-                            : Text(g.emoji, style: const TextStyle(fontSize: 24)),
-                      ),
-                    ),
-                    title: Text(g.displayName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    subtitle: Text(
-                      '${g.rarity.name.toUpperCase()} • w:${g.rarity.weight} • $pct%',
-                      style: TextStyle(fontSize: 11, color: rarityColor, fontWeight: FontWeight.bold),
-                    ),
-                    trailing: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: rarityColor),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Close'),
-          ),
-        ],
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const GoodiesCatalogScreen(),
       ),
     );
   }
