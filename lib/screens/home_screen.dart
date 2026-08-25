@@ -1,8 +1,12 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/cauldron_goodie.dart';
+import '../models/cauldron_goodies_catalog.dart';
 import '../models/level.dart';
+import '../services/goodies_image_service.dart';
 import '../version.dart';
 import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
@@ -466,35 +470,150 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => AudioDebugDialog.show(context),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF38BDF8).withValues(alpha: 0.20),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.5)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.campaign_rounded, size: 11, color: Color(0xFF38BDF8)),
-                    SizedBox(width: 3),
-                    Text(
-                      'SOUNDS 🧪',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF38BDF8),
+          // 🐞 DEBUG panel (LOCALHOST ONLY) — disappears elegantly on GitHub deploy
+          if (_isLocalhost())
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showDebugPanel(context),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withValues(alpha: 0.20),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.purple.withValues(alpha: 0.5)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.bug_report, size: 11, color: Colors.purple),
+                      SizedBox(width: 3),
+                      Text(
+                        'DEBUG 🐞',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.purple,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  bool _isLocalhost() {
+    if (!kIsWeb) return false;
+    final host = Uri.base.host;
+    return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+  }
+
+  void _showDebugPanel(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('🐞 Debug Panel'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'localhost only — hidden in production',
+              style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.campaign_rounded, color: Color(0xFF38BDF8)),
+              title: const Text('🔊 Sound Board'),
+              subtitle: const Text('Test all game sounds', style: TextStyle(fontSize: 11)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                AudioDebugDialog.show(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.collections_bookmark, color: Colors.purple),
+              title: const Text('🏅 Goodies Catalog'),
+              subtitle: const Text('All goodies with rarity & probability', style: TextStyle(fontSize: 11)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _showGoodiesCatalogDebug(context);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGoodiesCatalogDebug(BuildContext context) {
+    final allGoodies = CauldronGoodiesCatalog.all;
+    final totalWeight = allGoodies.fold<int>(0, (s, g) => s + g.rarity.weight);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('🏅 Goodies Catalog'),
+        content: SizedBox(
+          width: 360,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Total weight: $totalWeight • ${allGoodies.length} goodies',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 8),
+                ...allGoodies.map((g) {
+                  final pct = (g.rarity.weight / totalWeight * 100).toStringAsFixed(1);
+                  final img = GoodiesImageService.getImage(g.id);
+                  final rarityColor = switch (g.rarity) {
+                    GoodieRarity.common => Colors.grey,
+                    GoodieRarity.uncommon => Colors.green,
+                    GoodieRarity.rare => Colors.blue,
+                    GoodieRarity.legendary => const Color(0xFFFFD700),
+                  };
+                  return ListTile(
+                    dense: true,
+                    leading: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: ClipOval(
+                        child: img != null
+                            ? RawImage(image: img, fit: BoxFit.cover)
+                            : Text(g.emoji, style: const TextStyle(fontSize: 24)),
+                      ),
+                    ),
+                    title: Text(g.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: Text(
+                      '${g.rarity.name.toUpperCase()} • w:${g.rarity.weight} • $pct%',
+                      style: TextStyle(fontSize: 11, color: rarityColor, fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: rarityColor),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
           ),
         ],
       ),
