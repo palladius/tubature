@@ -2,6 +2,31 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.7.1 — 2026-08-25
+
+### Ruby Brilliant Cut & Cache Fixes 💎
+- **New Art**: Ruby gemstone in brilliant cut style with 4 Google-colored gems inside (red, blue, yellow, green)
+- **New Goodie**: Ruby Mosaico (RARE) — the Ravenna Byzantine mosaic pentagonal ruby, recycled as a rare collectible ♦️
+- **Cache Bust**: Renamed ruby asset to `ruby2.png` to force service worker refresh
+- **Prod Cleanup**: Audio Soundboard debug button now hidden in production (localhost only) 🔇
+- **Infra**: Removed GitLab remote — GitHub is now the sole `origin`
+- **Justfile**: Updated `just deploy` to use `origin` instead of `github`
+
+## 2.7.0 — 2026-08-25
+
+### Rarity System, Debug Gallery & New Goodies 🏅🍕🖼️
+- **Rarity System**: MTG-inspired 4-tier rarity: Common (w:10), Uncommon (w:5), Rare (w:2), Legendary (w:1)
+- **Weighted Random**: `GoodiesAssigner` uses weighted selection with duplicate avoidance; Legendary only on Hard mode
+- **New Goodies**: Pizza Cotto&Funghi 🍕 (Common), Antigravity 🅰️ (Rare, Byzantine mosaic of AGY logo)
+- **Full-Page Goodies Gallery**: Debug catalog now opens as a proper full-page route with 3-column grid, circular images, rarity labels, and click-to-fullscreen — replaces the old ugly popup dialog
+- **Image Preloading Fix**: `GoodiesImageService.preloadImages()` called before showing catalog — no more emoji fallback!
+- **Debug Panel**: Single 🐞 DEBUG button on home screen (localhost only), opens hub with links to Sound Board and Goodies Catalog
+- **Replay Hover Fix**: `didUpdateWidget()` now detects `isVictoryCelebrating` true→false transition and calls `_resetAll()`
+- **Badge Timing**: 3s delay before badge appears in sidebar (after 6s reveal = 9s total), badges stay until level change
+- **Victory Goodies Clickable**: Tap any goodie circle on victory overlay for fullscreen preview with rarity glow
+- **Catalog Integrity Tests**: 8 new tests — unique IDs, valid asset paths, rarity tiers, isLegendary derivation, min catalog size
+- **12 Goodies Total**: 5 Common, 4 Uncommon, 2 Rare, 1 Legendary
+
 ## 2.6.1 — Magic Cauldron Image Reveal 🧪✨
 - **New Feature**: CauldronGoodie images emerge from turbulent liquid inside ampolla (dead-end) tiles
 - 9 cartoon goodies: Papino, Alessandro, Sebi, Ruby, Dragon, Unicorn, Hot Wheel, Wizard + legendary Schmoogle
