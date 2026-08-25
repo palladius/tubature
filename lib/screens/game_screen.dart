@@ -541,12 +541,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
-          // Audio debug soundboard button
-          IconButton(
-            onPressed: () => AudioDebugDialog.show(context),
-            icon: const Icon(Icons.campaign_rounded, color: Color(0xFF38BDF8), size: 22),
-            tooltip: 'Audio Soundboard 🧪',
-          ),
+          // Audio debug soundboard button (LOCALHOST ONLY)
+          if (_isLocalhost())
+            IconButton(
+              onPressed: () => AudioDebugDialog.show(context),
+              icon: const Icon(Icons.campaign_rounded, color: Color(0xFF38BDF8), size: 22),
+              tooltip: 'Audio Soundboard 🧪',
+            ),
           // Audio mute toggle
           IconButton(
             onPressed: () {
