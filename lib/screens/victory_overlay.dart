@@ -83,6 +83,76 @@ class _VictoryOverlayState extends State<VictoryOverlay>
     super.dispose();
   }
 
+  /// Show a goodie at full size in a dismissable overlay 🖼️
+  void _showGoodieFullscreen(BuildContext context, CauldronGoodie goodie, ui.Image? img) {
+    if (img == null) return;
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) => GestureDetector(
+        onTap: () => Navigator.of(ctx).pop(),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: goodie.isLegendary
+                        ? const Color(0xFFFFD700)
+                        : Colors.white70,
+                    width: goodie.isLegendary ? 4 : 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (goodie.isLegendary
+                              ? const Color(0xFFFFD700)
+                              : Colors.white)
+                          .withValues(alpha: 0.4),
+                      blurRadius: 24,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: RawImage(image: img, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                goodie.displayName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (goodie.isLegendary)
+                const Text(
+                  '⭐ LEGENDARY ⭐',
+                  style: TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              const Text(
+                'Tap to close',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
@@ -184,7 +254,9 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                             alignment: WrapAlignment.center,
                             children: widget.revealedGoodies.map((goodie) {
                               final ui.Image? img = GoodiesImageService.getImage(goodie.id);
-                              return Container(
+                              return GestureDetector(
+                                onTap: () => _showGoodieFullscreen(context, goodie, img),
+                                child: Container(
                                     width: 48,
                                     height: 48,
                                     decoration: BoxDecoration(
@@ -209,6 +281,7 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                                           ? RawImage(image: img, fit: BoxFit.cover)
                                           : Center(child: Text(goodie.emoji, style: const TextStyle(fontSize: 20))),
                                     ),
+                                ),
                               );
                             }).toList(),
                           ),

@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
+import '../models/cauldron_goodie.dart';
 import '../models/position.dart';
 import '../models/tile.dart';
 import '../models/level.dart';
+import '../services/goodies_image_service.dart';
 import '../services/audio_service.dart';
 import '../theme/level_theme.dart';
 import '../widgets/audio_debug_dialog.dart';
@@ -40,6 +43,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _keyboardActive = false;
   bool _zoomKeyHeld = false; // H key held → zoom goodie preview
 
+  // Revealed goodies badges 🏅 (shown at full opacity for 15s)
+  final List<CauldronGoodie> _activeBadges = [];
+  final Map<String, Timer> _badgeTimers = {}; // keyed by goodie.id
+  static const int _maxBadges = 4;
+
   @override
   void initState() {
     super.initState();
@@ -59,7 +67,32 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _victoryTimer?.cancel();
     _gameFocusNode.dispose();
+    for (final t in _badgeTimers.values) {
+      t.cancel();
+    }
     super.dispose();
+  }
+
+  /// Called when a goodie finishes its reveal animation — show badge 🏅
+  void _onGoodieRevealed(CauldronGoodie goodie, Position pos) {
+    if (_activeBadges.any((g) => g.id == goodie.id)) return; // already shown
+
+    setState(() {
+      // Keep max badges: remove oldest if full
+      if (_activeBadges.length >= _maxBadges) {
+        final removed = _activeBadges.removeAt(0);
+        _badgeTimers[removed.id]?.cancel();
+        _badgeTimers.remove(removed.id);
+      }
+      _activeBadges.add(goodie);
+    });
+
+    _badgeTimers[goodie.id] = Timer(const Duration(seconds: 15), () {
+      if (mounted) {
+        setState(() => _activeBadges.removeWhere((g) => g.id == goodie.id));
+        _badgeTimers.remove(goodie.id);
+      }
+    });
   }
 
   void _startGame() {
@@ -282,6 +315,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               creatureTheme: _getCreatureThemeString(gameState),
                               focusedTile: _keyboardActive ? _focusedTile : null,
                               isZoomKeyHeld: _zoomKeyHeld,
+                              onGoodieRevealed: _onGoodieRevealed,
                               onTileTap: (pos) {
                                 // Locked if level is complete
                                 if (!gameState.isComplete) {
@@ -300,6 +334,52 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   _buildBottomBar(gameState, levelTheme),
                 ],
               ),
+
+              // 🏅 Revealed goodies badges — full opacity, right side
+              if (_activeBadges.isNotEmpty)
+                Positioned(
+                  right: 8,
+                  top: 56,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _activeBadges.map((goodie) {
+                      final ui.Image? img = GoodiesImageService.getImage(goodie.id);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: goodie.isLegendary
+                                  ? const Color(0xFFFFD700)
+                                  : levelTheme.flowColor,
+                              width: goodie.isLegendary ? 3 : 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (goodie.isLegendary
+                                        ? const Color(0xFFFFD700)
+                                        : levelTheme.flowColor)
+                                    .withValues(alpha: 0.5),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: img != null
+                                ? RawImage(image: img, fit: BoxFit.cover)
+                                : Center(
+                                    child: Text(goodie.emoji,
+                                        style: const TextStyle(fontSize: 28))),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
 
               // Floating Admiration Banner during the 3-second celebration window
               if (gameState.isComplete && !_showVictoryOverlay)

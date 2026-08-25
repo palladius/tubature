@@ -25,6 +25,7 @@ class GridWidget extends StatefulWidget {
   final void Function(Position) onTileTap;
   final Position? focusedTile;
   final bool isZoomKeyHeld;
+  final void Function(CauldronGoodie goodie, Position pos)? onGoodieRevealed;
 
   const GridWidget({
     super.key,
@@ -39,6 +40,7 @@ class GridWidget extends StatefulWidget {
     required this.onTileTap,
     this.focusedTile,
     this.isZoomKeyHeld = false,
+    this.onGoodieRevealed,
   });
 
   @override
@@ -106,6 +108,11 @@ class _GridWidgetState extends State<GridWidget> {
         _pendingTimers[pos] = Timer(const Duration(seconds: 6), () {
           if (mounted) {
             setState(() => _revealed.add(pos));
+            // Notify parent to show badge 🏅
+            final goodie = widget.ampolleGoodies[pos];
+            if (goodie != null) {
+              widget.onGoodieRevealed?.call(goodie, pos);
+            }
           }
           _pendingTimers.remove(pos);
         });
@@ -270,7 +277,7 @@ class _GridWidgetState extends State<GridWidget> {
                     top: 2 + zoomTile.row * effectiveTileSize - effectiveTileSize,
                     child: IgnorePointer(
                       child: Opacity(
-                        opacity: 0.55,
+                        opacity: 0.27,
                         child: Container(
                           width: effectiveTileSize * 3,
                           height: effectiveTileSize * 3,
