@@ -68,7 +68,7 @@ deploy:
     rm -rf .dart_tool .idea
     git add -A
     git commit -m 'deploy: update GitHub Pages'
-    git push github gh-pages
+    git push origin gh-pages
     git checkout main
     git stash pop --quiet 2>/dev/null || true
     rm -rf /tmp/tubature_deploy
