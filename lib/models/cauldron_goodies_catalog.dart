@@ -87,6 +87,13 @@ class CauldronGoodiesCatalog {
       emoji: '🅰️',
       rarity: GoodieRarity.rare,
     ),
+    CauldronGoodie(
+      id: 'ruby_mosaic',
+      assetPath: 'assets/goodies/ruby_mosaic.png',
+      displayName: 'Ruby Mosaico',
+      emoji: '♦️',
+      rarity: GoodieRarity.rare,
+    ),
   ];
 
   // ─── LEGENDARY (weight 1) ───
