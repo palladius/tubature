@@ -225,6 +225,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _handleNextLevel() {
     _victoryTimer?.cancel();
+    _clearBadges();
     setState(() => _showVictoryOverlay = false);
     final notifier = ref.read(gameProvider.notifier);
     if (widget.tutorialLevel != null) {
@@ -239,8 +240,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _handlePlayAgain() {
     _victoryTimer?.cancel();
+    _clearBadges();
     setState(() => _showVictoryOverlay = false);
     ref.read(gameProvider.notifier).resetLevel();
+  }
+
+  void _clearBadges() {
+    for (final t in _badgeTimers.values) {
+      t.cancel();
+    }
+    _badgeTimers.clear();
+    _activeBadges.clear();
   }
 
   @override
