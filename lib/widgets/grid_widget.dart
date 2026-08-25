@@ -103,7 +103,7 @@ class _GridWidgetState extends State<GridWidget> {
           !_timerStarted.contains(pos) &&
           !_revealed.contains(pos)) {
         _timerStarted.add(pos);
-        _pendingTimers[pos] = Timer(const Duration(seconds: 8), () {
+        _pendingTimers[pos] = Timer(const Duration(seconds: 6), () {
           if (mounted) {
             setState(() => _revealed.add(pos));
           }

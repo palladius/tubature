@@ -144,19 +144,10 @@ class GameNotifier extends Notifier<GameState> {
                 : Difficulty.hard);
 
     final level = _generator.generateLevel(difficulty, id: newLevelNum);
-    final flowInfo = _calculateFlowInfo(level.grid);
-    state = GameState(
-      currentLevel: level,
-      grid: level.grid,
-      connectedTiles: flowInfo.depths.keys.toSet(),
-      connectionDepths: flowInfo.depths,
-      inflowDirections: flowInfo.inflowDirections,
-      moveCount: 0,
-      isComplete: false,
-      levelsCompleted: newCompleted,
-      currentLevelNumber: newLevelNum,
-      chosenDifficulty: state.chosenDifficulty,
-    );
+    // Use _loadLevel to properly assign goodies + preload images
+    _loadLevel(level, levelNumber: newLevelNum, chosenDifficulty: state.chosenDifficulty);
+    // Preserve levelsCompleted (which _loadLevel doesn't set)
+    state = state.copyWith(levelsCompleted: newCompleted);
   }
 
   void resetLevel() {
