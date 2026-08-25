@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
 import '../models/cauldron_goodie.dart';
+import '../models/cauldron_goodies_catalog.dart';
 import '../models/position.dart';
 import '../models/tile.dart';
 import '../models/level.dart';
@@ -46,7 +48,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   // Revealed goodies badges 🏅 (shown at full opacity for 15s)
   final List<CauldronGoodie> _activeBadges = [];
   final Map<String, Timer> _badgeTimers = {}; // keyed by goodie.id
-  static const int _maxBadges = 4;
 
   @override
   void initState() {
@@ -77,22 +78,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _onGoodieRevealed(CauldronGoodie goodie, Position pos) {
     if (_activeBadges.any((g) => g.id == goodie.id)) return; // already shown
 
-    setState(() {
-      // Keep max badges: remove oldest if full
-      if (_activeBadges.length >= _maxBadges) {
-        final removed = _activeBadges.removeAt(0);
-        _badgeTimers[removed.id]?.cancel();
-        _badgeTimers.remove(removed.id);
-      }
-      _activeBadges.add(goodie);
-    });
-
-    _badgeTimers[goodie.id] = Timer(const Duration(seconds: 15), () {
+    // Delay badge appearance by 3s so the ampolla animation (8.5s total)
+    // finishes before the badge shows. The reveal timer fires at 6s,
+    // so badge appears at 6s + 3s = 9s — just after the full reveal.
+    // BUG FIX (2026-08-25): badge was spoiling the surprise by appearing
+    // before the ampolla image was fully visible.
+    _badgeTimers[goodie.id] = Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        setState(() => _activeBadges.removeWhere((g) => g.id == goodie.id));
-        _badgeTimers.remove(goodie.id);
+        setState(() {
+          _activeBadges.add(goodie);
+        });
       }
+      _badgeTimers.remove(goodie.id);
     });
+    // Badges are PERMANENT — stay visible until level change or replay.
+    // _clearBadges() handles cleanup.
   }
 
   void _startGame() {
@@ -532,6 +532,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
           const SizedBox(width: 4),
+          // 🐞 DEBUG: Show all goodies catalog (LOCALHOST ONLY)
+          if (_isLocalhost())
+            IconButton(
+              onPressed: () => _showGoodiesCatalogDebug(context),
+              icon: const Icon(Icons.collections_bookmark, color: Colors.purple, size: 20),
+              tooltip: '🐞 Goodies Catalog (Debug)',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
           // Audio debug soundboard button
           IconButton(
             onPressed: () => AudioDebugDialog.show(context),
@@ -551,6 +560,81 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               size: 22,
             ),
             tooltip: AudioService.isMuted ? 'Unmute Sound' : 'Mute Sound',
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Only true on localhost — debug features hidden in production.
+  bool _isLocalhost() {
+    if (!kIsWeb) return false;
+    final host = Uri.base.host;
+    return host == 'localhost' || host == '127.0.0.1' || host == '::1';
+  }
+
+  /// Debug dialog showing all goodies with rarity and probability.
+  void _showGoodiesCatalogDebug(BuildContext context) {
+    final allGoodies = CauldronGoodiesCatalog.all;
+    final totalWeight = allGoodies.fold<int>(0, (s, g) => s + g.rarity.weight);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('🐞 Goodies Catalog'),
+        content: SizedBox(
+          width: 360,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Total weight: $totalWeight',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 8),
+                ...allGoodies.map((g) {
+                  final pct = (g.rarity.weight / totalWeight * 100).toStringAsFixed(1);
+                  final img = GoodiesImageService.getImage(g.id);
+                  final rarityColor = switch (g.rarity) {
+                    GoodieRarity.common => Colors.grey,
+                    GoodieRarity.uncommon => Colors.green,
+                    GoodieRarity.rare => Colors.blue,
+                    GoodieRarity.legendary => const Color(0xFFFFD700),
+                  };
+                  return ListTile(
+                    dense: true,
+                    leading: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: ClipOval(
+                        child: img != null
+                            ? RawImage(image: img, fit: BoxFit.cover)
+                            : Text(g.emoji, style: const TextStyle(fontSize: 24)),
+                      ),
+                    ),
+                    title: Text(g.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: Text(
+                      '${g.rarity.name.toUpperCase()} • w:${g.rarity.weight} • $pct%',
+                      style: TextStyle(fontSize: 11, color: rarityColor, fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: rarityColor,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
           ),
         ],
       ),

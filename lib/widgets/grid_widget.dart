@@ -67,6 +67,14 @@ class _GridWidgetState extends State<GridWidget> {
       _resetAll();
     }
 
+    // BUG FIX (2026-08-25): On "Play Again", goodies stay the same
+    // but the grid resets. Detect this by checking if we went from
+    // victory → non-victory, or if connected tiles count dropped
+    // dramatically (pipes got shuffled back to unsolved state).
+    if (oldWidget.isVictoryCelebrating && !widget.isVictoryCelebrating) {
+      _resetAll();
+    }
+
     // Start timers for newly connected goodie tiles
     _checkForNewConnections();
   }
