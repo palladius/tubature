@@ -147,6 +147,140 @@
         "mastering": "highpass=f=80,volume=2.2,treble=g=4,loudnorm",
         "description": "Crisp male delivery"
       }
+    },
+    {
+      "id": "ale-piaser-1",
+      "folder": "good",
+      "filenames": ["good/piaser_1.mp3", "good/piaser_1.ogg"],
+      "category": "victory",
+      "display_name": "Piaśér! (Ale v1)",
+      "meaning_it": "Piacere! Che soddisfazione!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-piaser-2",
+      "folder": "good",
+      "filenames": ["good/piaser_2.mp3", "good/piaser_2.ogg"],
+      "category": "victory",
+      "display_name": "Piaśér! (Ale v2)",
+      "meaning_it": "Piacere! Che soddisfazione!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-piaser-3",
+      "folder": "good",
+      "filenames": ["good/piaser_3.mp3", "good/piaser_3.ogg"],
+      "category": "victory",
+      "display_name": "Piaśér! (Ale v3)",
+      "meaning_it": "Piacere! Che soddisfazione!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-piaser-4",
+      "folder": "good",
+      "filenames": ["good/piaser_4.mp3", "good/piaser_4.ogg"],
+      "category": "victory",
+      "display_name": "Piaśér! (Ale v4)",
+      "meaning_it": "Piacere! Che soddisfazione!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-tubatura-1",
+      "folder": "good",
+      "filenames": ["good/tubatura_1.mp3", "good/tubatura_1.ogg"],
+      "category": "victory",
+      "display_name": "Mo' và che tubatùra! (Ale v1)",
+      "meaning_it": "Ma guarda che canalizzazione a regola d'arte!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-tubatura-2",
+      "folder": "good",
+      "filenames": ["good/tubatura_2.mp3", "good/tubatura_2.ogg"],
+      "category": "victory",
+      "display_name": "Mo' và che tubatùra! (Ale v2)",
+      "meaning_it": "Ma guarda che canalizzazione a regola d'arte!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-tubatura-3",
+      "folder": "good",
+      "filenames": ["good/tubatura_3.mp3", "good/tubatura_3.ogg"],
+      "category": "victory",
+      "display_name": "Mo' và che tubatùra! (Ale v3)",
+      "meaning_it": "Ma guarda che canalizzazione a regola d'arte!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-tubatura-4",
+      "folder": "good",
+      "filenames": ["good/tubatura_4.mp3", "good/tubatura_4.ogg"],
+      "category": "victory",
+      "display_name": "Mo' và che tubatùra! (Ale v4)",
+      "meaning_it": "Ma guarda che canalizzazione a regola d'arte!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-do-bal-1",
+      "folder": "good",
+      "filenames": ["good/do_bal_1.mp3", "good/do_bal_1.ogg"],
+      "category": "easter_egg",
+      "required_ampolla_count": 2,
+      "display_name": "Do bàl! (Ale v1)",
+      "meaning_it": "Due palle! Esclamazione ferrarese di stupore",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-do-bal-2",
+      "folder": "good",
+      "filenames": ["good/do_bal_2.mp3", "good/do_bal_2.ogg"],
+      "category": "easter_egg",
+      "required_ampolla_count": 2,
+      "display_name": "Do bàl! (Ale v2)",
+      "meaning_it": "Due palle! Esclamazione ferrarese di stupore",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-giurnadaza-1",
+      "folder": "bad",
+      "filenames": ["bad/giurnadaza_1.mp3", "bad/giurnadaza_1.ogg"],
+      "category": "failure",
+      "display_name": "Ac giurnadàza! (Ale v1)",
+      "meaning_it": "Che giornataccia!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
+    },
+    {
+      "id": "ale-giurnadaza-2",
+      "folder": "bad",
+      "filenames": ["bad/giurnadaza_2.mp3", "bad/giurnadaza_2.ogg"],
+      "category": "failure",
+      "display_name": "Ac giurnadàza! (Ale v2)",
+      "meaning_it": "Che giornataccia!",
+      "engine": "human",
+      "voice": "Alessandro Verlato — Fancy Pixel (Portomaggiore)",
+      "gender": "male"
     }
   ]
 }
