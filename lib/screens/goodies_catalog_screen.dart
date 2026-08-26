@@ -134,12 +134,8 @@ class _GoodiesCatalogScreenState extends State<GoodiesCatalogScreen> {
     );
   }
 
-  Color _rarityColor(GoodieRarity rarity) => switch (rarity) {
-        GoodieRarity.common => Colors.grey.shade600,
-        GoodieRarity.uncommon => Colors.green.shade700,
-        GoodieRarity.rare => Colors.blue.shade700,
-        GoodieRarity.legendary => const Color(0xFFFFD700),
-      };
+  /// MTG-style rarity colors: Black (common), Silver (uncommon), Gold (rare), Bronze (mythic)
+  Color _rarityColor(GoodieRarity rarity) => rarity.color;
 
   void _showFullscreen(
       BuildContext context, CauldronGoodie goodie, ui.Image? img) {

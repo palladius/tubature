@@ -354,36 +354,44 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: _activeBadges.map((goodie) {
                       final ui.Image? img = GoodiesImageService.getImage(goodie.id);
+                      final badgeColor = goodie.isLegendary
+                          ? goodie.rarity.color
+                          : levelTheme.flowColor;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: goodie.isLegendary
-                                  ? const Color(0xFFFFD700)
-                                  : levelTheme.flowColor,
-                              width: goodie.isLegendary ? 3 : 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (goodie.isLegendary
-                                        ? const Color(0xFFFFD700)
-                                        : levelTheme.flowColor)
-                                    .withValues(alpha: 0.5),
-                                blurRadius: 12,
-                                spreadRadius: 2,
+                        child: MouseRegion(
+                          onEnter: goodie.hasAudio
+                              ? (_) => AudioService.playAssetFile(goodie.audioPath!)
+                              : null,
+                          child: GestureDetector(
+                            onTap: goodie.hasAudio
+                                ? () => AudioService.playAssetFile(goodie.audioPath!)
+                                : null,
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: badgeColor,
+                                  width: goodie.isLegendary ? 3 : 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: badgeColor.withValues(alpha: 0.5),
+                                    blurRadius: 12,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: img != null
-                                ? RawImage(image: img, fit: BoxFit.cover)
-                                : Center(
-                                    child: Text(goodie.emoji,
-                                        style: const TextStyle(fontSize: 28))),
+                              child: ClipOval(
+                                child: img != null
+                                    ? RawImage(image: img, fit: BoxFit.cover)
+                                    : Center(
+                                        child: Text(goodie.emoji,
+                                            style: const TextStyle(fontSize: 28))),
+                              ),
+                            ),
                           ),
                         ),
                       );
@@ -595,12 +603,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ...allGoodies.map((g) {
                   final pct = (g.rarity.weight / totalWeight * 100).toStringAsFixed(1);
                   final img = GoodiesImageService.getImage(g.id);
-                  final rarityColor = switch (g.rarity) {
-                    GoodieRarity.common => Colors.grey,
-                    GoodieRarity.uncommon => Colors.green,
-                    GoodieRarity.rare => Colors.blue,
-                    GoodieRarity.legendary => const Color(0xFFFFD700),
-                  };
+                  final rarityColor = g.rarity.color;
                   return ListTile(
                     dense: true,
                     leading: SizedBox(
@@ -615,7 +618,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     title: Text(g.displayName,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     subtitle: Text(
-                      '${g.rarity.name.toUpperCase()} • w:${g.rarity.weight} • $pct%',
+                      '${g.rarity.label} • w:${g.rarity.weight} • $pct%',
                       style: TextStyle(fontSize: 11, color: rarityColor, fontWeight: FontWeight.bold),
                     ),
                     trailing: Container(

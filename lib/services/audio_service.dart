@@ -73,4 +73,10 @@ class AudioService {
   static void toggleMute() {
     isMuted = !isMuted;
   }
+
+  /// Play an audio file directly from an asset path (e.g. goodie hover sound).
+  static void playAssetFile(String assetPath) {
+    if (isMuted) return;
+    synth.playVoiceFile(assetPath);
+  }
 }

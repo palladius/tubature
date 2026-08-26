@@ -44,6 +44,21 @@ class CauldronGoodiesCatalog {
       emoji: '🍕',
       rarity: GoodieRarity.common,
     ),
+    CauldronGoodie(
+      id: 'puffin',
+      assetPath: 'assets/goodies/puffin.png',
+      displayName: 'Puffin Mosaico',
+      emoji: '🐧',
+      rarity: GoodieRarity.common,
+    ),
+    CauldronGoodie(
+      id: 'maialino',
+      assetPath: 'assets/goodies/maialino.png',
+      displayName: 'Mayàl!',
+      emoji: '🐷',
+      rarity: GoodieRarity.common,
+      audioPath: 'assets/sounds/good-quality/maial_basso_5st_fast_b.mp3',
+    ),
   ];
 
   // ─── UNCOMMON (weight 5) ───
@@ -93,6 +108,14 @@ class CauldronGoodiesCatalog {
       displayName: 'Ruby Mosaico',
       emoji: '♦️',
       rarity: GoodieRarity.rare,
+    ),
+    CauldronGoodie(
+      id: 'motorino',
+      assetPath: 'assets/goodies/motorino.png',
+      displayName: 'Motorino nel Canale',
+      emoji: '🛵',
+      rarity: GoodieRarity.rare,
+      // audioPath: TODO — Ale will record a custom clip for this!
     ),
   ];
 
