@@ -103,13 +103,6 @@ class CauldronGoodiesCatalog {
       rarity: GoodieRarity.rare,
     ),
     CauldronGoodie(
-      id: 'ruby_mosaic',
-      assetPath: 'assets/goodies/ruby_mosaic.png',
-      displayName: 'Ruby Mosaico',
-      emoji: '♦️',
-      rarity: GoodieRarity.rare,
-    ),
-    CauldronGoodie(
       id: 'motorino',
       assetPath: 'assets/goodies/motorino.png',
       displayName: 'Motorino nel Canale',
