@@ -2,7 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
-## 2.7.1 — 2026-08-25
+## 2.7.2 — 2026-08-26
+
+### Ferrarese Voices & Image Fix 🎵🖼️
+- **Bug Fix**: All goodie images were JPEG files masquerading as `.png` — some mobile browsers rejected them, showing emoji fallback instead of images. Converted all to real PNG with `sips`.
+- **New Test**: `goodies_images_test.dart` — 5 tests verifying file existence, non-empty, valid PNG header (magic bytes `89 50 4E 47`), unique IDs, unique paths. Will catch this class of bug forever.
+- **12 Ferrarese Voice Clips**: by [Alessandro Verlato](https://github.com/madAle) (Fancy Pixel, Portomaggiore 🇮🇹) — "Piaśér!", "Mo' và che tubatùra!", "Do bàl!", "Ac giurnadàza!" — trimmed, converted to mp3/ogg, wired into VoiceCatalog and soundboard.
+- **23 Total Voices**: 7 TTS + 12 human (Ale) + 4 existing = 23 voice lines in soundboard.
+- **Infra**: Removed GitLab remote, GitHub is sole `origin`.
+
 
 ### Ruby Brilliant Cut & Cache Fixes 💎
 - **New Art**: Ruby gemstone in brilliant cut style with 4 Google-colored gems inside (red, blue, yellow, green)

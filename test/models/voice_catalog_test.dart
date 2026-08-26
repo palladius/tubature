@@ -18,11 +18,12 @@ void main() {
       }
     });
 
-    test('pickVictoryVoice with exactly 2 ampolle triggers Mayal easter egg', () {
+    test('pickVictoryVoice with exactly 2 ampolle triggers easter egg', () {
+      // WHY: With Ale's "Do bàl!" clips, easter eggs are no longer only "Mayàl"
       final voice = VoiceCatalog.pickVictoryVoice(ampollaCount: 2);
-      expect(voice.displayName.startsWith('Mayàl'), isTrue);
       expect(voice.folder, equals('good'));
       expect(voice.category, equals('easter_egg'));
+      expect(voice.requiredAmpollaCount, equals(2));
     });
 
     test('pickVictoryVoice with 0, 1, or 3 ampolle picks regular victory voice', () {
