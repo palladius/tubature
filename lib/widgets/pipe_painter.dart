@@ -30,6 +30,7 @@ class PipePainter extends CustomPainter {
   final double shimmerProgress;
   final Direction? inflowDirection;
   final ui.Image? goodieImage;
+  final List<ui.Image?>? crossImages;
 
   const PipePainter({
     required this.tile,
@@ -39,6 +40,7 @@ class PipePainter extends CustomPainter {
     this.shimmerProgress = 0.0,
     this.inflowDirection,
     this.goodieImage,
+    this.crossImages,
   });
 
   @override
@@ -137,6 +139,11 @@ class PipePainter extends CustomPainter {
     // Source creature marker
     if (tile.type == TileType.source) {
       _drawSourceMarker(canvas, size, center, connected);
+    }
+
+    // ✚ Google-colored symbols on the rare cross tile (NW/NE/SW/SE quadrants)
+    if (tile.type == TileType.cross) {
+      _drawCrossGoogleSymbols(canvas, size, center, pipeWidth);
     }
 
     canvas.restore();
@@ -729,6 +736,52 @@ class PipePainter extends CustomPainter {
     );
   }
 
+  /// ✚ Draws the 4 Google-colored icons in the corner quadrants of a cross tile.
+  /// NW=ruby (red), NE=sun (yellow), SW=droplet (blue), SE=basil (green).
+  void _drawCrossGoogleSymbols(Canvas canvas, Size size, Offset center, double pipeWidth) {
+    if (crossImages == null || crossImages!.length < 4) return;
+
+    // Icon size = ~35% of quadrant space
+    final quadrantSize = (size.width / 2 - pipeWidth / 2);
+    final iconSize = quadrantSize * 0.65;
+    if (iconSize < 4) return; // Too small to render
+
+    // Quadrant centers: offset from tile center by half the space between pipe edge and tile edge
+    final offset = (pipeWidth / 2 + quadrantSize / 2);
+    final positions = [
+      Offset(center.dx - offset, center.dy - offset), // NW
+      Offset(center.dx + offset, center.dy - offset), // NE
+      Offset(center.dx - offset, center.dy + offset), // SW
+      Offset(center.dx + offset, center.dy + offset), // SE
+    ];
+
+    // Google brand colors for subtle glow behind each icon
+    final glowColors = [
+      const Color(0x30EA4335), // Red glow
+      const Color(0x30FBBC04), // Yellow glow
+      const Color(0x304285F4), // Blue glow
+      const Color(0x3034A853), // Green glow
+    ];
+
+    for (int i = 0; i < 4; i++) {
+      final img = crossImages![i];
+      if (img == null) continue;
+
+      final pos = positions[i];
+
+      // Subtle colored glow circle behind icon
+      final glowPaint = Paint()
+        ..color = glowColors[i]
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      canvas.drawCircle(pos, iconSize * 0.45, glowPaint);
+
+      // Draw the icon image centered in the quadrant
+      final srcRect = Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble());
+      final dstRect = Rect.fromCenter(center: pos, width: iconSize, height: iconSize);
+      canvas.drawImageRect(img, srcRect, dstRect, Paint()..filterQuality = FilterQuality.high);
+    }
+  }
+
   @override
   bool shouldRepaint(covariant PipePainter oldDelegate) {
     return oldDelegate.tile != tile ||
@@ -736,6 +789,7 @@ class PipePainter extends CustomPainter {
         oldDelegate.flowProgress != flowProgress ||
         oldDelegate.pulseProgress != pulseProgress ||
         oldDelegate.shimmerProgress != shimmerProgress ||
-        oldDelegate.goodieImage != goodieImage;
+        oldDelegate.goodieImage != goodieImage ||
+        oldDelegate.crossImages != crossImages;
   }
 }

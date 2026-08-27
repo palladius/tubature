@@ -6,6 +6,7 @@ import '../models/position.dart';
 import '../models/cauldron_goodie.dart';
 import '../services/audio_service.dart';
 import '../services/goodies_image_service.dart';
+import '../services/cross_image_service.dart';
 import '../theme/level_theme.dart';
 import 'pipe_painter.dart';
 import 'creature_painter.dart';
@@ -242,6 +243,7 @@ class _TileWidgetState extends State<TileWidget>
                               widget.tile.isConnected ? _shimmerAnimation.value : 0.0,
                           inflowDirection: widget.inflowDirection?.rotateClockwiseBy(-widget.tile.rotation),
                           goodieImage: widget.goodie != null ? GoodiesImageService.getImage(widget.goodie!.id) : null,
+                          crossImages: widget.tile.type == TileType.cross ? CrossImageService.allImages : null,
                         ),
                         size: Size.infinite,
                       ),

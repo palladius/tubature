@@ -25,6 +25,7 @@ flutter:
   assets:
     - assets/images/
     - assets/goodies/
+    - assets/cross/
     - assets/voices/
     - assets/voices/good/
     - assets/voices/bad/

@@ -9,6 +9,7 @@ import '../models/level.dart';
 import '../models/position.dart';
 import '../models/tile.dart';
 import '../services/audio_service.dart';
+import '../services/cross_image_service.dart';
 import '../models/cauldron_goodie.dart';
 import '../services/goodies_image_service.dart';
 import 'goodies_assigner.dart';
@@ -185,6 +186,7 @@ class GameNotifier extends Notifier<GameState> {
     
     // Preload images async (fire and forget)
     GoodiesImageService.preloadImages(assignedGoodies);
+    CrossImageService.preload();
 
     state = GameState(
       currentLevel: level,
