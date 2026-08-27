@@ -12,3 +12,5 @@ void playVictoryFanfare() {}
 void playSchmoogleReveal() {}
 
 void playVoiceFile(String assetPath) {}
+
+void playPipeCrack() {}

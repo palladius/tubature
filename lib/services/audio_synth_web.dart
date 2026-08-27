@@ -18,6 +18,9 @@ external void _jsSchmoogle();
 @JS('window._tubatureAudio.playVoice')
 external void _jsPlayVoice(String path);
 
+@JS('window._tubatureAudio.crack')
+external void _jsCrack();
+
 void playTileClick() {
   try {
     _jsClick();
@@ -51,5 +54,11 @@ void playSchmoogleReveal() {
 void playVoiceFile(String assetPath) {
   try {
     _jsPlayVoice(assetPath);
+  } catch (_) {}
+}
+
+void playPipeCrack() {
+  try {
+    _jsCrack();
   } catch (_) {}
 }

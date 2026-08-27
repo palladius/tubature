@@ -8,6 +8,7 @@ import '../models/grid.dart';
 import '../models/level.dart';
 import '../models/position.dart';
 import '../models/tile.dart';
+import '../services/audio_service.dart';
 import '../models/cauldron_goodie.dart';
 import '../services/goodies_image_service.dart';
 import 'goodies_assigner.dart';
@@ -207,9 +208,19 @@ class GameNotifier extends Notifier<GameState> {
     final tile = state.grid!.tileAt(pos);
     if (tile == null || tile.isFixed) return;
 
+    // 💥 Connectivity delta: count connected tiles BEFORE rotation
+    final connectedBefore = state.connectedTiles.length;
+
     final newGrid = state.grid!.withRotatedTile(pos);
     final flowInfo = _calculateFlowInfo(newGrid);
     final isComplete = WinChecker.checkWin(newGrid);
+
+    // 💥 Count connected tiles AFTER rotation → compute Δ
+    final connectedAfter = flowInfo.depths.keys.length;
+    final delta = connectedBefore - connectedAfter;
+    if (delta > 0) {
+      AudioService.playBreakSound(delta: delta);
+    }
 
     state = state.copyWith(
       grid: newGrid,

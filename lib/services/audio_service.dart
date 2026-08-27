@@ -79,4 +79,26 @@ class AudioService {
     if (isMuted) return;
     synth.playVoiceFile(assetPath);
   }
+
+  /// Play a procedural pipe crack sound (glass shatter).
+  static void playPipeCrack() {
+    if (isMuted) return;
+    synth.playPipeCrack();
+  }
+
+  /// Play tiered break sound based on connectivity delta.
+  /// Δ = number of tiles that lost water connection after a rotation.
+  /// - Δ 1–2: procedural glass crack
+  /// - Δ 3–9: "Aldamàr!" voice clip (moderate break)
+  /// - Δ ≥ 10: "Mayyàl!" voice clip (catastrophic break)
+  static void playBreakSound({required int delta}) {
+    if (isMuted || delta <= 0) return;
+    if (delta < 3) {
+      synth.playPipeCrack();
+    } else if (delta < 10) {
+      synth.playVoiceFile('assets/voices/bad/tmp-aldamar.mp3');
+    } else {
+      synth.playVoiceFile('assets/voices/good/tmp-majjal.mp3');
+    }
+  }
 }

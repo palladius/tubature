@@ -233,6 +233,39 @@
           };
           tryPlay(0);
         } catch (_) {}
+      },
+      crack: function() {
+        this.init();
+        if (!this.ctx) return;
+        var t = this.ctx.currentTime;
+        // White noise burst (glass shatter)
+        var bufSize = this.ctx.sampleRate * 0.08;
+        var buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+        var data = buf.getChannelData(0);
+        for (var i = 0; i < bufSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 3);
+        }
+        var noise = this.ctx.createBufferSource();
+        noise.buffer = buf;
+        var noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.35, t);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        // High-freq snap oscillator
+        var osc = this.ctx.createOscillator();
+        var oscGain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1800 + Math.random() * 600, t);
+        osc.frequency.exponentialRampToValueAtTime(200, t + 0.06);
+        oscGain.gain.setValueAtTime(0.2, t);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+        noise.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        osc.connect(oscGain);
+        oscGain.connect(this.ctx.destination);
+        noise.start(t);
+        noise.stop(t + 0.09);
+        osc.start(t);
+        osc.stop(t + 0.07);
       }
     };
   </script>
