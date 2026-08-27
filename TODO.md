@@ -22,16 +22,3 @@ Quando il giocatore clicca/ruota una casella e **diminuisce la connettività del
   $$\Delta = \text{connectedTilesBefore.length} - \text{connectedTilesAfter.length}$$
 - Se $\Delta > 0$, invocare `AudioService.playBreakSound(delta)` passando il valore appropriato.
 
----
-
-## 🚀 Visione / Meta-Idea Globale (Da Spostare / Cross-Repo)
-
-### 2. 📋 Semantic Multi-Repo TODO Aggregator (Obsidian-Style Tasks across `~/git/*/TODO.md`)
-- [ ] **Standard Standardizzato:** Tutti i repo in `~/git/*/TODO.md` usano la sintassi universale Markdown / Obsidian task (`- [ ] Task aperto`, `- [x] Task completato`, opzionale data `📅 YYYY-MM-DD` o tag `#urgenza`).
-- [ ] **Cross-Repo Greppability:**
-  - Pattern ultra-veloce su filesystem: `grep -rn "^- \[ \] " ~/git/*/TODO.md`
-- [ ] **CLI Scanner Veloce (in Go o Rust):**
-  - Utility (es. `git-todos` o integrato in `ob-pbt`) che fa il parsing concorrente istantaneo di tutti i `~/git/*/TODO.md`.
-  - Output di riepilogo per repo: numero di TODO aperti, completati, ordinamento cronologico per data di scadenza / priorità.
-- [ ] **Integrazione Obsidian Dataview / Vault:**
-  - Possibilità per gli strumenti del vault (`ob-pbt`, dashboard) di avere una vista unificata e aggregata di tutto il debito tecnico sparso nei repository Git.
