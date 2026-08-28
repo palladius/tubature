@@ -23,11 +23,13 @@ import 'victory_overlay.dart';
 class GameScreen extends ConsumerStatefulWidget {
   final Difficulty? difficulty;
   final int? tutorialLevel;
+  final bool crossTest;
 
   const GameScreen({
     super.key,
     this.difficulty,
     this.tutorialLevel,
+    this.crossTest = false,
   });
 
   @override
@@ -97,7 +99,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _startGame() {
     final notifier = ref.read(gameProvider.notifier);
-    if (widget.tutorialLevel != null) {
+    if (widget.crossTest) {
+      notifier.startCrossTestLevel();
+    } else if (widget.tutorialLevel != null) {
       _currentTutorialLevel = widget.tutorialLevel!;
       notifier.startTutorial(_currentTutorialLevel);
     } else if (widget.difficulty != null) {

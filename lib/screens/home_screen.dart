@@ -8,7 +8,6 @@ import '../version.dart';
 import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
 import 'goodies_catalog_screen.dart';
-import '../logic/game_notifier.dart';
 
 /// Home screen — Epic D&D Dungeon Plumber theme starring Riccardo, Ale & Seby.
 ///
@@ -549,8 +548,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               subtitle: const Text('4×4 grid with guaranteed cross tile', style: TextStyle(fontSize: 11)),
               onTap: () {
                 Navigator.of(ctx).pop();
-                ref.read(gameProvider.notifier).startCrossTestLevel();
-                Navigator.of(context).pushReplacementNamed('/game');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const GameScreen(crossTest: true),
+                  ),
+                );
               },
             ),
           ],
