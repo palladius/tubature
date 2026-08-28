@@ -133,6 +133,50 @@ class GameNotifier extends Notifier<GameState> {
     _loadLevel(level, levelNumber: levelNumber, chosenDifficulty: null);
   }
 
+  /// 🐞 Debug: Start a tiny level with a guaranteed cross tile for testing.
+  void startCrossTestLevel() {
+    // 4×4 grid with a cross tile at (2,2)
+    // Source on top edge at (0,1) pointing south
+    final tiles = <List<Tile>>[
+      // Row 0: empty, SOURCE(S), tee, corner
+      [
+        const Tile(type: TileType.corner, rotation: 0),
+        const Tile(type: TileType.source, baseDirection: Direction.south, isFixed: true),
+        const Tile(type: TileType.tee, rotation: 0),
+        const Tile(type: TileType.deadEnd, rotation: 270),
+      ],
+      // Row 1: deadEnd, line, tee, corner
+      [
+        const Tile(type: TileType.deadEnd, rotation: 90),
+        const Tile(type: TileType.line, rotation: 0),
+        const Tile(type: TileType.tee, rotation: 90),
+        const Tile(type: TileType.deadEnd, rotation: 270),
+      ],
+      // Row 2: corner, tee, CROSS, tee
+      [
+        const Tile(type: TileType.deadEnd, rotation: 90),
+        const Tile(type: TileType.tee, rotation: 270),
+        const Tile(type: TileType.cross, rotation: 0),
+        const Tile(type: TileType.deadEnd, rotation: 270),
+      ],
+      // Row 3: deadEnd, corner, tee, corner
+      [
+        const Tile(type: TileType.deadEnd, rotation: 90),
+        const Tile(type: TileType.corner, rotation: 90),
+        const Tile(type: TileType.tee, rotation: 180),
+        const Tile(type: TileType.deadEnd, rotation: 0),
+      ],
+    ];
+    final grid = Grid(4, 4, tiles);
+    final level = Level(
+      id: 999999,
+      difficulty: Difficulty.easy,
+      grid: grid,
+      theme: CreatureTheme.dragon_gems,
+    );
+    _loadLevel(level, levelNumber: 999, chosenDifficulty: Difficulty.easy);
+  }
+
   /// Move to the next level with progressive or fixed difficulty.
   void nextLevel() {
     final newCompleted = state.levelsCompleted + 1;
