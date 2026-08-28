@@ -89,8 +89,9 @@ All notable changes to FlowConnect (Tubature) are documented here.
 - **New Test**: `goodies_images_test.dart` — 5 tests verifying file existence, non-empty, valid PNG header (magic bytes `89 50 4E 47`), unique IDs, unique paths. Will catch this class of bug forever.
 - **12 Ferrarese Voice Clips**: by [Alessandro Verlato](https://github.com/madAle) (Fancy Pixel, Portomaggiore 🇮🇹) — "Piaśér!", "Mo' và che tubatùra!", "Do bàl!", "Ac giurnadàza!" — trimmed, converted to mp3/ogg, wired into VoiceCatalog and soundboard.
 - **23 Total Voices**: 7 TTS + 12 human (Ale) + 4 existing = 23 voice lines in soundboard.
-- **Infra**: Removed GitLab remote, GitHub is sole `origin`.
-
+- **Origin Story & Article**: Added comprehensive blog post draft under `docs/articles/ARTICLE.md` in Riccardo Carlesso's authentic writing style (`riccardo-writing-style`), detailing the family origin story, spanning-tree logic, zero-asset Web Audio synthesis, and static SPA deployment to GitHub Pages.
+- **Rich Media Embeds & Storagify**: Embedded gameplay video, design mockups, and fantasy theme artwork, synced to Google Cloud Storage via `storagify`.
+- **CTA**: Promotes using Google Antigravity for cross-platform Flutter game creation.
 
 ### Ruby Brilliant Cut & Cache Fixes 💎
 - **New Art**: Ruby gemstone in brilliant cut style with 4 Google-colored gems inside (red, blue, yellow, green)

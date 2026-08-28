@@ -1,0 +1,11 @@
+{
+  "generator": "storagify v0.3.1",
+  "synced_at": "2026-08-28T09:53:08Z",
+  "hostname": "derek",
+  "bucket": "palladius-genai-storagify",
+  "gcs_uri": "gs://palladius-genai-storagify/derek/HOME/git/tubature/docs/articles/",
+  "public_url": "https://storage.googleapis.com/palladius-genai-storagify/derek/HOME/git/tubature/docs/articles/333b61527b7e1262-index.html",
+  "prefix": "derek/HOME/git/tubature/docs/articles",
+  "folder_salt": "333b61527b7e1262",
+  "repository": "https://gitlab.com/palladius/storagify"
+}
