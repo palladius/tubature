@@ -8,7 +8,7 @@ class VoiceEntry extends Equatable {
   final String category; // 'victory', 'easter_egg', 'failure'
   final String displayName; // Dialect line: "Mayàl, ac du bàl!"
   final String meaningIt; // Italian translation: "Maiale, che due palle!"
-  final int? requiredAmpollaCount; // e.g. 2 for mayal-ac-du-bal
+  final int? requiredAmpollaCount; // e.g. 2 for majjal-ac-du-bal
 
   const VoiceEntry({
     required this.id,
