@@ -349,21 +349,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ],
               ),
 
-              // 🏅 Revealed goodies badges — full opacity, right side
+              // 🏅 Revealed goodies badges — full opacity, adapt to available space
               if (_activeBadges.isNotEmpty)
                 Positioned(
                   right: 8,
                   top: 56,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: _activeBadges.map((goodie) {
-                      final ui.Image? img = GoodiesImageService.getImage(goodie.id);
-                      final badgeColor = goodie.isLegendary
-                          ? goodie.rarity.color
-                          : levelTheme.flowColor;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: MouseRegion(
+                  bottom: 60,
+                  child: SizedBox(
+                    width: 80,
+                    child: Wrap(
+                      direction: Axis.vertical,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _activeBadges.map((goodie) {
+                        final ui.Image? img = GoodiesImageService.getImage(goodie.id);
+                        final badgeColor = goodie.isLegendary
+                            ? goodie.rarity.color
+                            : levelTheme.flowColor;
+                        return MouseRegion(
                           onEnter: goodie.hasAudio
                               ? (_) => AudioService.playAssetFile(goodie.audioPath!)
                               : null,
@@ -372,8 +375,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                 ? () => AudioService.playAssetFile(goodie.audioPath!)
                                 : null,
                             child: Container(
-                              width: 72,
-                              height: 72,
+                              width: 56,
+                              height: 56,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
@@ -393,13 +396,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                     ? RawImage(image: img, fit: BoxFit.cover)
                                     : Center(
                                         child: Text(goodie.emoji,
-                                            style: const TextStyle(fontSize: 28))),
+                                            style: const TextStyle(fontSize: 22))),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
 
