@@ -25,7 +25,7 @@ An interactive, animated cartoon character ("Ermete the Ferrarese Plumber" from 
 ### 1. Voice Trigger System & Catalog
 - **Event 1: Level Completed / Victory**:
   - If board has **EXACTLY TWO ampolla dead-ends** (`deadEndCount == 2`):
-    - **Trigger Easter Egg Line**: `mayal-ac-du-bal` (*"Mayàl, ac du bàl!"* 🥚🥚)
+    - **Trigger Easter Egg Line**: `majjal-ac-du-bal` (*"Mayàl, ac du bàl!"* 🥚🥚)
   - Otherwise, randomly select from the positive victory pool:
     - `a-scor-cle-un-piaser` (*"A scòr ch'l'è un piaśér!"*)
     - `a-scor-cle-un-piaser-low` (*"A scòr ch'l'è un piaśér!"* - Ottava Bassa)

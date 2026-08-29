@@ -68,11 +68,11 @@
       }
     },
     {
-      "id": "mayal-ac-du-bal",
+      "id": "majjal-ac-du-bal",
       "folder": "good",
       "filenames": [
-        "good/mayal-ac-du-bal.mp3",
-        "good/mayal-ac-du-bal.ogg"
+        "good/majjal-ac-du-bal.mp3",
+        "good/majjal-ac-du-bal.ogg"
       ],
       "category": "easter_egg",
       "required_ampolla_count": 2,

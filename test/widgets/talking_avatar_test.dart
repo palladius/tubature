@@ -25,9 +25,9 @@ void main() {
 
       // Trigger victory voice event
       const testVoice = VoiceEntry(
-        id: 'mayal-ac-du-bal',
+        id: 'majjal-ac-du-bal',
         folder: 'good',
-        path: 'assets/voices/good/mayal-ac-du-bal.mp3',
+        path: 'assets/voices/good/majjal-ac-du-bal.mp3',
         category: 'easter_egg',
         displayName: 'Mayàl, ac du bàl!',
         meaningIt: 'Maiale, che due palle!',

@@ -79,7 +79,7 @@ class _TalkingAvatarWidgetState extends State<TalkingAvatarWidget> with TickerPr
     _mouthController.repeat(reverse: true);
 
     // Estimate voice duration based on line (~2.2s - 3.2s)
-    final durationMs = voice.id == 'mayal-ac-du-bal' ? 2800 : 2400;
+    final durationMs = voice.id == 'majjal-ac-du-bal' ? 2800 : 2400;
 
     // Stop mouth flapping when speech finishes
     _speechTimer = Timer(Duration(milliseconds: durationMs), () {
