@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/level.dart';
 import '../version.dart';
+import '../widgets/animated_background.dart';
 import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
 import 'goodies_catalog_screen.dart';
@@ -43,22 +44,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Background Artwork (Wide or Portrait)
-          Image.asset(
-            isLandscape
-                ? 'assets/images/home_background_wide.jpg'
-                : 'assets/images/home_background.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF1E2D2F), Color(0xFF0F171A)],
-                ),
-              ),
-            ),
-          ),
+          // 1. Animated Background Artwork (Wide or Portrait with dynamic Veo video transition)
+          AnimatedBackground(isLandscape: isLandscape),
 
           // 2. Ambient contrast gradient
           Container(

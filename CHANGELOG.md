@@ -2,6 +2,21 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.9.1 — 2026-08-29
+
+### Magical Helper Critters Home Animation (V2) 🐉🔧✨
+- **Seby's Magical Helper Swarm**: Upgraded default animated home screen to Version 2 where Papino, Alessandro, and Sebastiano stay unique, while a team of 10 adorable magical creatures, baby dragons, and gnomes pop out with mini-wrenches to playfully fix the plumbing!
+- **Version 1 Preserved**: Preserved Version 1 animation as `assets/videos/home_background_wide_v1.mp4`.
+
+## 2.9.0 — 2026-08-29
+
+### Veo-Powered Living Painting Home Screen 🎬🪄
+- **Living Painting Effect**: When launching the game, players see the static high-resolution background for 2.5s before smoothly fading into a vivid looping animation (*"puff, si comincia ad animare!"*).
+- **Veo Character Animation**: Generated custom cinematic character animations with Google Veo (`models/veo-3.1-generate-preview`), bringing Papino Riccardo, Alessandro, Sebastiano, and the green dragon companion to life while keeping the stone dungeon background rock-solid.
+- **Orientation Support**: Full Landscape (16:9) and Portrait (9:16) video assets generated (`home_background_wide.mp4` and `home_background_portrait.mp4`) with smooth transitions and graceful fallback.
+- **Cross-Platform Bridge**: Refactored JS interop bridge (`js_bridge_stub.dart` / `js_bridge_web.dart`) to ensure 100% unit and widget test compatibility on VM and Web.
+- **Generation Tooling**: Added `tool/generate_home_animation_veo.py` with CLI parameters for automated asset generation.
+
 ## 2.8.3 — 2026-08-29
 
 ### New Goodies & Characters Collection 🧆🚊👦👦🦒🦏🐘🐊♒

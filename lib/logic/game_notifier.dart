@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/direction.dart';
@@ -103,7 +102,11 @@ class GameNotifier extends Notifier<GameState> {
   @override
   GameState build() {
     if (kIsWeb) {
+<<<<<<< HEAD
       js_bridge.setJsTubatureReady(true);
+=======
+      setTubatureReady(true);
+>>>>>>> 34ac0cf (feat: living painting animated home screen with Veo video background)
     }
     return const GameState();
   }
