@@ -2,6 +2,17 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.0 — 2026-08-29
+
+### 📸 Polaroid End-Game Celebration Mosaic (Picasa Scatter Deck) 🃏✨
+- **Large Screen-Filling Polaroids**: Polaroid cards occupy ~75–80% of the screen with clear, massive goodie artwork.
+- **Picasa-Style Overlapping Pile**: Cards stack organically in a central deck with subtle $\pm 16^\circ$ tilt and realistic drop shadow layering.
+- **Deliberate Cascade Pacing**: Exactly 1 Polaroid drops every 2.0 seconds with smooth physics.
+- **Flippable Deck**: Tapping the top card cycles it to the back to inspect all unlocked goodies.
+- **Deliberate Progression**: Prevents accidental Spacebar skips on victory; requires clicking **"Prossimo Livello ➡️"**.
+- **Victory Integration**: Added direct "Mosaico Polaroid ✨" launch button to `VictoryOverlay`.
+- **Cross-Platform Bridge**: Fixed JS interop bindings with cross-platform conditional import bridge.
+
 ## 2.10.0 — 2026-08-29
 
 ### Glassmorphic About Screen & Bilingual Story Modal 📜🌐✨
@@ -56,6 +67,7 @@ All notable changes to FlowConnect (Tubature) are documented here.
 - **Goodie Framing**: All goodies unified into circular brass/pipe porthole badges for ampolla dead-ends.
 
 ## 2.7.2 — 2026-08-26
+>>>>>>> origin/main
 
 ### Ferrarese Voices & Image Fix 🎵🖼️
 - **Bug Fix**: All goodie images were JPEG files masquerading as `.png` — some mobile browsers rejected them, showing emoji fallback instead of images. Converted all to real PNG with `sips`.

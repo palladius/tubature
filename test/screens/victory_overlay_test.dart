@@ -161,5 +161,19 @@ void main() {
       // CustomPaint is used for confetti
       expect(find.byType(CustomPaint), findsWidgets);
     });
+
+    testWidgets('displays Mosaico Polaroid button and opens mosaic overlay on tap',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestOverlay());
+      await tester.pump(const Duration(milliseconds: 600));
+
+      final mosaicBtn = find.textContaining('Mosaico Polaroid');
+      expect(mosaicBtn, findsOneWidget);
+
+      await tester.tap(mosaicBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('✨ MAGNIFICO! ✨'), findsWidgets);
+    });
   });
 }

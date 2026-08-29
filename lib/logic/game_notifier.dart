@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/cauldron_goodie.dart';
 import '../models/direction.dart';
 import '../models/grid.dart';
 import '../models/level.dart';
@@ -8,7 +9,6 @@ import '../models/position.dart';
 import '../models/tile.dart';
 import '../services/audio_service.dart';
 import '../services/cross_image_service.dart';
-import '../models/cauldron_goodie.dart';
 import '../services/goodies_image_service.dart';
 import 'goodies_assigner.dart';
 import 'js_bridge_stub.dart'
