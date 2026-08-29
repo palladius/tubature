@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.9.2 — 2026-08-29
+
+### Background Video Audio & Unmute Indicator 🔊🎶
+- **Video Audio Enabled**: Enabled audio track for Veo animated background videos (`volume: 1.0`).
+- **Autoplay Restriction Handling**: Added graceful fallback to muted playback if browser policies block unmuted autoplay on load.
+- **Audio Control Indicator**: Added subtle `Sound On` / `Muted (Tap to unmute)` floating button at the top-left to toggle sound anytime.
+
 ## 2.9.1 — 2026-08-29
 
 ### Magical Helper Critters Home Animation (V2) 🐉🔧✨

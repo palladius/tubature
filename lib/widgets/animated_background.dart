@@ -87,7 +87,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
       }
 
       await controller.setLooping(true);
-      await controller.setVolume(0.0); // Mute video so game audio shines
+      await controller.setVolume(1.0); // Enable video audio track
 
       controller.addListener(() {
         if (mounted) setState(() {});
@@ -98,9 +98,18 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
       });
 
       // Schedule the animated entrance after initial delay
-      _delayTimer = Timer(widget.initialDelay, () {
+      _delayTimer = Timer(widget.initialDelay, () async {
         if (!mounted || !_isVideoReady || _controller == null) return;
-        _controller!.play();
+        try {
+          await _controller!.play();
+        } catch (e) {
+          // If browser blocks unmuted autoplay, mute and play, then unmute on user interaction
+          if (kDebugMode) {
+            print('Autoplay with sound restricted, falling back to muted: $e');
+          }
+          await _controller?.setVolume(0.0);
+          await _controller?.play();
+        }
         _fadeController.forward();
       });
     } catch (e) {
@@ -120,6 +129,8 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
   @override
   Widget build(BuildContext context) {
+    final isMuted = _controller?.value.volume == 0.0;
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -153,6 +164,57 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                       ? _controller!.value.size.height
                       : 1080,
                   child: VideoPlayer(_controller!),
+                ),
+              ),
+            ),
+          ),
+
+        // 3. Audio Toggle Indicator (Top-Left corner)
+        if (_controller != null && _isVideoReady)
+          Positioned(
+            top: 16,
+            left: 16,
+            child: SafeArea(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    if (_controller == null) return;
+                    final newVolume = isMuted ? 1.0 : 0.0;
+                    _controller!.setVolume(newVolume);
+                    setState(() {});
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                          size: 16,
+                          color: isMuted ? Colors.white70 : const Color(0xFFFFD54F),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          isMuted ? 'Muted (Tap to unmute)' : 'Sound On',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isMuted ? Colors.white70 : const Color(0xFFFFD54F),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
