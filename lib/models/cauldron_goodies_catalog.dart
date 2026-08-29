@@ -59,6 +59,34 @@ class CauldronGoodiesCatalog {
       rarity: GoodieRarity.common,
       audioPath: 'assets/sounds/good-quality/maial_basso_5st_fast_b.mp3',
     ),
+    CauldronGoodie(
+      id: 'e-le-fante',
+      assetPath: 'assets/goodies/e-le-fante.png',
+      displayName: 'E-Le-Fante',
+      emoji: '🐘',
+      rarity: GoodieRarity.common,
+    ),
+    CauldronGoodie(
+      id: 'coccodrillo',
+      assetPath: 'assets/goodies/coccodrillo.png',
+      displayName: 'Coccodrillo Chill',
+      emoji: '🐊',
+      rarity: GoodieRarity.common,
+    ),
+    CauldronGoodie(
+      id: 'giraffa',
+      assetPath: 'assets/goodies/giraffa.png',
+      displayName: 'Giraffa Boxer',
+      emoji: '🦒',
+      rarity: GoodieRarity.common,
+    ),
+    CauldronGoodie(
+      id: 'rinoceronte',
+      assetPath: 'assets/goodies/rinoceronte.png',
+      displayName: 'Rinoceronte Cucciolo',
+      emoji: '🦏',
+      rarity: GoodieRarity.common,
+    ),
   ];
 
   // ─── UNCOMMON (weight 5) ───
@@ -75,6 +103,13 @@ class CauldronGoodiesCatalog {
       assetPath: 'assets/goodies/sebi.png',
       displayName: 'Sebi',
       emoji: '👦',
+      rarity: GoodieRarity.uncommon,
+    ),
+    CauldronGoodie(
+      id: 'salama',
+      assetPath: 'assets/goodies/salama.png',
+      displayName: 'Salama da Sugo',
+      emoji: '🧆',
       rarity: GoodieRarity.uncommon,
     ),
     CauldronGoodie(
@@ -95,6 +130,27 @@ class CauldronGoodiesCatalog {
 
   // ─── RARE (weight 2) ───
   static const List<CauldronGoodie> rare = [
+    CauldronGoodie(
+      id: 'acquario',
+      assetPath: 'assets/goodies/acquario.png',
+      displayName: 'Acquario d\'Oro',
+      emoji: '♒',
+      rarity: GoodieRarity.rare,
+    ),
+    CauldronGoodie(
+      id: 'fratelli',
+      assetPath: 'assets/goodies/fratelli.png',
+      displayName: 'Ale & Sebi',
+      emoji: '🫂',
+      rarity: GoodieRarity.rare,
+    ),
+    CauldronGoodie(
+      id: 'tram',
+      assetPath: 'assets/goodies/tram.png',
+      displayName: 'Züri-Tram',
+      emoji: '🚊',
+      rarity: GoodieRarity.rare,
+    ),
     CauldronGoodie(
       id: 'antigravity',
       assetPath: 'assets/goodies/antigravity.png',

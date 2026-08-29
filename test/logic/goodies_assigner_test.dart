@@ -6,8 +6,11 @@ import 'package:tubature/models/level.dart';
 
 void main() {
   group('CauldronGoodiesCatalog', () {
-    test('standardGoodies has exactly 13 entries', () {
-      expect(CauldronGoodiesCatalog.standardGoodies.length, 13);
+    test('standardGoodies contains all non-legendary entries', () {
+      expect(CauldronGoodiesCatalog.standardGoodies.length,
+          CauldronGoodiesCatalog.common.length +
+              CauldronGoodiesCatalog.uncommon.length +
+              CauldronGoodiesCatalog.rare.length);
     });
 
     test('legendary has exactly 1 entry (Schmoogle)', () {
@@ -15,8 +18,10 @@ void main() {
       expect(CauldronGoodiesCatalog.legendary.first.id, 'schmoogle');
     });
 
-    test('all has exactly 14 entries', () {
-      expect(CauldronGoodiesCatalog.all.length, 14);
+    test('all matches standardGoodies plus legendary', () {
+      expect(CauldronGoodiesCatalog.all.length,
+          CauldronGoodiesCatalog.standardGoodies.length +
+              CauldronGoodiesCatalog.legendary.length);
     });
   });
 
@@ -42,13 +47,13 @@ void main() {
     });
 
     test('when deadEndCount > standardGoodies.length, wraps around gracefully', () {
-      final goodies = GoodiesAssigner.assignGoodies(15, Difficulty.easy);
-      expect(goodies.length, 15);
+      final goodies = GoodiesAssigner.assignGoodies(25, Difficulty.easy);
+      expect(goodies.length, 25);
       expect(goodies.any((g) => g.isLegendary), isFalse);
     });
 
     test('Schmoogle NEVER appears on Easy or Medium difficulty', () {
-      final random = _FakeRandom(pickLast: true);
+      final random = _FakeRandom(0);
       final easyGoodies = GoodiesAssigner.assignGoodies(5, Difficulty.easy, random: random);
       final mediumGoodies = GoodiesAssigner.assignGoodies(5, Difficulty.medium, random: random);
       
@@ -56,8 +61,10 @@ void main() {
       expect(mediumGoodies.any((g) => g.isLegendary), isFalse);
     });
 
-    test('with seeded Random rolling highest weight, Schmoogle appears on Hard', () {
-      final fakeRandom = _FakeRandom(pickLast: true);
+    test('with seeded Random rolling highest weight index, Schmoogle appears on Hard', () {
+      // Schmoogle is at the end of the pool on Hard mode
+      // Roll sequence: [9999 (hits Schmoogle), 0 (hits ruby), 15 (hits dragon)]
+      final fakeRandom = _SequenceRandom();
       final goodies = GoodiesAssigner.assignGoodies(3, Difficulty.hard, random: fakeRandom);
       
       expect(goodies.any((g) => g.isLegendary), isTrue);
@@ -68,9 +75,21 @@ void main() {
 }
 
 class _FakeRandom implements Random {
-  final bool pickLast;
-  int _counter = 0;
-  _FakeRandom({this.pickLast = false});
+  final int fixedInt;
+  _FakeRandom([this.fixedInt = 0]);
+  
+  @override
+  bool nextBool() => true;
+  
+  @override
+  double nextDouble() => 0.0;
+  
+  @override
+  int nextInt(int max) => fixedInt % max;
+}
+
+class _SequenceRandom implements Random {
+  int _idx = 0;
   
   @override
   bool nextBool() => true;
@@ -80,12 +99,12 @@ class _FakeRandom implements Random {
   
   @override
   int nextInt(int max) {
-    if (pickLast && _counter == 0) {
-      _counter++;
-      return max - 1;
+    if (_idx == 0) {
+      _idx++;
+      return max - 1; // Pick Schmoogle (last element)
     }
-    final val = _counter % max;
-    _counter++;
+    final val = (_idx * 15) % max;
+    _idx++;
     return val;
   }
 }

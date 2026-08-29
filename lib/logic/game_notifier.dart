@@ -10,8 +10,9 @@ import '../models/tile.dart';
 import '../services/audio_service.dart';
 import '../services/cross_image_service.dart';
 import '../services/goodies_image_service.dart';
-import '../services/js_recorder_bridge.dart';
 import 'goodies_assigner.dart';
+import 'js_bridge_stub.dart'
+    if (dart.library.js_interop) 'js_bridge_web.dart' as js_bridge;
 import 'level_generator.dart';
 import 'path_finder.dart';
 import 'win_checker.dart';
@@ -101,7 +102,7 @@ class GameNotifier extends Notifier<GameState> {
   @override
   GameState build() {
     if (kIsWeb) {
-      updateJsTubatureReady(true);
+      js_bridge.setJsTubatureReady(true);
     }
     return const GameState();
   }
@@ -335,7 +336,7 @@ class GameNotifier extends Notifier<GameState> {
 
   /// Reliably set window._tubatureGrid via JS bridge.
   static void _setTubatureGrid(String jsonData) {
-    updateJsTubatureGrid(jsonData);
+    js_bridge.setJsTubatureGrid(jsonData);
   }
 }
 

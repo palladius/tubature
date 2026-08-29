@@ -2,28 +2,72 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.0 — 2026-08-29
+
+### 📸 Polaroid End-Game Celebration Mosaic (Picasa Scatter Deck) 🃏✨
+- **Large Screen-Filling Polaroids**: Polaroid cards occupy ~75–80% of the screen with clear, massive goodie artwork.
+- **Picasa-Style Overlapping Pile**: Cards stack organically in a central deck with subtle $\pm 16^\circ$ tilt and realistic drop shadow layering.
+- **Deliberate Cascade Pacing**: Exactly 1 Polaroid drops every 2.0 seconds with smooth physics.
+- **Flippable Deck**: Tapping the top card cycles it to the back to inspect all unlocked goodies.
+- **Deliberate Progression**: Prevents accidental Spacebar skips on victory; requires clicking **"Prossimo Livello ➡️"**.
+- **Victory Integration**: Added direct "Mosaico Polaroid ✨" launch button to `VictoryOverlay`.
+- **Cross-Platform Bridge**: Fixed JS interop bindings with cross-platform conditional import bridge.
+
+## 2.10.0 — 2026-08-29
+
+### Glassmorphic About Screen & Bilingual Story Modal 📜🌐✨
+- **About Dialog**: Added a dedicated `About 📜` button on the Home Screen (beside Tutorial and in the footer) opening a glassmorphic dialog.
+- **Language Switcher**: Instant switching between 🇬🇧 English and 🇮🇹 Italiano with flag emoji toggles.
+- **Story & Credits**: Highlights the story of Tubature created for Alessandro & Sebastiano ("a twist of Ferrara meets Mario pipe-puzzle game").
+- **Interactive Links**: Direct links to Riccardo's GitHub profile, Google Antigravity, and Flutter.
+- **Clean Editable Content**: Extracted all text into `lib/data/about_content.dart` for effortless editing and translation.
+
+## 2.9.3 — 2026-08-29
+
+### Italian Voice Acting Portrait Video (GHI #10) 🎬🇮🇹👦👦
+- **Italian Dialogue Animation**: Generated vertical (9:16) Veo animation for portrait screens (`home_background_portrait_v2.mp4`) with spoken Italian dialogue between Ale, Seby, and Papino repairing the dungeon pipes with the golden wrench and dragons!
+- **Preserved V1**: Kept original portrait video as `assets/videos/home_background_portrait_v1.mp4`.
+- **Closed GHI #10**: Fully satisfied Issue #10.
+
 ## 2.9.2 — 2026-08-29
 
-### ⏱️ Polaroid Cascade Pacing Refinement (2 Seconds per Card)
-- **Deliberate Animation Pacing**: Slower, highly satisfying cascade pacing — exactly **1 Polaroid every 2 seconds** (850ms drop + 1150ms admiration window before the next card drops).
+### Background Video Audio & Unmute Indicator 🔊🎶
+- **Video Audio Enabled**: Enabled audio track for Veo animated background videos (`volume: 1.0`).
+- **Autoplay Restriction Handling**: Added graceful fallback to muted playback if browser policies block unmuted autoplay on load.
+- **Audio Control Indicator**: Added subtle `Sound On` / `Muted (Tap to unmute)` floating button at the top-left to toggle sound anytime.
 
 ## 2.9.1 — 2026-08-29
 
-### 📸 Polaroid Pile Polish & Celebration Safety Fixes 🛡️
-- **Celebration Safety**: Removed accidental spacebar skip on victory screen — players can now fully savor their win without accidental premature advancement.
-- **Large Screen-Filling Polaroids**: Increased Polaroid dimensions to cover **70–80%** of the screen with clear, massive goodie artwork.
-- **Overlapping Picasa Deck**: Polaroids now stack organically in a central pile with subtle $\pm 16^\circ$ tilt and cascade drop physics.
-- **Deck Flipping Gesture**: Tapping on the top Polaroid card cycles it to the back, letting players flick through all unlocked goodies.
-- **Explicit Advance**: Advancing to the next level now requires clicking the prominent **"Prossimo Livello ➡️"** button.
+### Magical Helper Critters Home Animation (V2) 🐉🔧✨
+- **Seby's Magical Helper Swarm**: Upgraded default animated home screen to Version 2 where Papino, Alessandro, and Sebastiano stay unique, while a team of 10 adorable magical creatures, baby dragons, and gnomes pop out with mini-wrenches to playfully fix the plumbing!
+- **Version 1 Preserved**: Preserved Version 1 animation as `assets/videos/home_background_wide_v1.mp4`.
 
 ## 2.9.0 — 2026-08-29
 
-### 📸 Polaroid End-Game Celebration Mosaic (Picasa Scatter Style)
-- **New Component**: `PolaroidWidget` (`lib/widgets/polaroid_widget.dart`) — vintage photo card with classic white frame, larger caption chin, realistic drop shadow, and clamped random rotation ($\pm 30^\circ$).
-- **New Overlay Screen**: `PolaroidMosaicOverlay` (`lib/screens/polaroid_mosaic_overlay.dart`) — post-victory cascade splash page scattering discovered Cauldron Goodie badges across the screen with smooth physics and zoom inspector on tap.
-- **Enhanced Controls**: Pressing **Spacebar** or **Enter** anywhere immediately advances to the next level.
-- **Victory Integration**: Added direct "Mosaico Polaroid ✨" launch button to `VictoryOverlay`.
-- **Platform Portability**: Fixed JS interop bindings with cross-platform conditional import bridge (`js_recorder_bridge.dart`).
+### Veo-Powered Living Painting Home Screen 🎬🪄
+- **Living Painting Effect**: When launching the game, players see the static high-resolution background for 2.5s before smoothly fading into a vivid looping animation (*"puff, si comincia ad animare!"*).
+- **Veo Character Animation**: Generated custom cinematic character animations with Google Veo (`models/veo-3.1-generate-preview`), bringing Papino Riccardo, Alessandro, Sebastiano, and the green dragon companion to life while keeping the stone dungeon background rock-solid.
+- **Orientation Support**: Full Landscape (16:9) and Portrait (9:16) video assets generated (`home_background_wide.mp4` and `home_background_portrait.mp4`) with smooth transitions and graceful fallback.
+- **Cross-Platform Bridge**: Refactored JS interop bridge (`js_bridge_stub.dart` / `js_bridge_web.dart`) to ensure 100% unit and widget test compatibility on VM and Web.
+- **Generation Tooling**: Added `tool/generate_home_animation_veo.py` with CLI parameters for automated asset generation.
+
+## 2.8.3 — 2026-08-29
+
+### New Goodies & Characters Collection 🧆🚊👦👦🦒🦏🐘🐊♒
+- **8 New Circular Goodie Badges**:
+  - ♒ **Acquario d'Oro** (RARE): Gold Saint Camus of Aquarius with ice crystals and golden sacred armor.
+  - 🫂 **Ale & Sebi** (RARE): Heartwarming brotherly hug in a golden magical runic frame (with Sebi's blonde hair!).
+  - 🚊 **Züri-Tram VBZ** (RARE): Classic 3D blue and white Zurich tramway in an ornate brass porthole.
+  - 🧆 **Salama da Sugo** (UNCOMMON): 1/4 slice of Ferrara's famous salamina on mashed potato purée with silver runic rim.
+  - 👦 **Sebi Biondo** (UNCOMMON): Updated Sebi with golden blonde hair.
+  - 🦒 **Giraffa Boxer** (COMMON): Cute boxing giraffe with French beret saying *"Bonjour!"* (Ale's choice!).
+  - 🦏 **Rinoceronte Cucciolo** (COMMON): Super kawaii baby rhino with sparkling eyes (Seby's choice!).
+  - 🐘 **E-Le-Fante** (COMMON): Joyful baby elephant drinking Tubature Fizzy Orange with bubbles spouting from ears.
+  - 🐊 **Coccodrillo Chill** (COMMON): Relaxing on a deckchair with sunglasses, mojito and peace sign ✌️.
+- **Goodie Framing**: All goodies unified into circular brass/pipe porthole badges for ampolla dead-ends.
+
+## 2.7.2 — 2026-08-26
+>>>>>>> origin/main
 
 ### Ferrarese Voices & Image Fix 🎵🖼️
 - **Bug Fix**: All goodie images were JPEG files masquerading as `.png` — some mobile browsers rejected them, showing emoji fallback instead of images. Converted all to real PNG with `sips`.
