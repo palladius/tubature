@@ -9,12 +9,14 @@ class AnimatedBackground extends StatefulWidget {
   final bool isLandscape;
   final Duration initialDelay;
   final Duration fadeDuration;
+  final VoidCallback? onAnimationStarted;
 
   const AnimatedBackground({
     super.key,
     required this.isLandscape,
     this.initialDelay = const Duration(milliseconds: 2500),
     this.fadeDuration = const Duration(milliseconds: 600),
+    this.onAnimationStarted,
   });
 
   @override
@@ -111,6 +113,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
           await _controller?.play();
         }
         _fadeController.forward();
+        widget.onAnimationStarted?.call();
       });
     } catch (e) {
       // Graceful fallback to static image if video is not available or fails
@@ -129,7 +132,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
   @override
   Widget build(BuildContext context) {
-    final isMuted = _controller?.value.volume == 0.0;
+    final isMuted = _controller == null || _controller!.value.volume == 0.0;
 
     return Stack(
       fit: StackFit.expand,
@@ -180,19 +183,22 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                 child: InkWell(
                   onTap: () {
                     if (_controller == null) return;
-                    final newVolume = isMuted ? 1.0 : 0.0;
-                    _controller!.setVolume(newVolume);
-                    setState(() {});
+                    final targetVolume = isMuted ? 1.0 : 0.0;
+                    _controller!.setVolume(targetVolume).then((_) {
+                      if (mounted) setState(() {});
+                    });
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        width: 1,
+                        color: isMuted
+                            ? Colors.white.withValues(alpha: 0.3)
+                            : const Color(0xFFFFD54F),
+                        width: 1.2,
                       ),
                     ),
                     child: Row(
@@ -203,9 +209,9 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                           size: 16,
                           color: isMuted ? Colors.white70 : const Color(0xFFFFD54F),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Text(
-                          isMuted ? 'Muted (Tap to unmute)' : 'Sound On',
+                          isMuted ? 'Muted 🔇 (Tap for Sound)' : 'Sound On 🔊 (Tap to Mute)',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

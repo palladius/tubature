@@ -53,4 +53,29 @@ void main() {
     expect(find.text('PLAY!'), findsOneWidget);
     expect(find.text('🔴 Fixed Hard mode (9-10 grid)'), findsOneWidget);
   });
+
+  testWidgets('Minimizing and expanding controls deck works smoothly', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: TubatureApp()),
+    );
+
+    // Initial state: full controls deck visible
+    expect(find.text('PLAY!'), findsOneWidget);
+    expect(find.byTooltip('Minimize to watch video'), findsOneWidget);
+
+    // Tap minimize button
+    await tester.tap(find.byTooltip('Minimize to watch video'));
+    await tester.pumpAndSettle();
+
+    // Full deck minimized to pill
+    expect(find.text('Tap for Menu ⏶'), findsOneWidget);
+    expect(find.text('PLAY'), findsOneWidget);
+
+    // Tap to expand
+    await tester.tap(find.text('Tap for Menu ⏶'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PLAY!'), findsOneWidget);
+    expect(find.byTooltip('Minimize to watch video'), findsOneWidget);
+  });
 }

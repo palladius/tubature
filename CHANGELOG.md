@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.1 — 2026-08-29
+
+### Dynamic Auto-Collapsing Home Deck & Enhanced Volume Toggle 🎮✨🔊
+- **Auto-Minimizing Controls Deck**: When the home animation begins, the game control deck smoothly collapses into a sleek floating pill (`PLAY` + `Tap for Menu ⏶`) so players can enjoy the full background animation unobstructed.
+- **Auto-Expand Timer**: After 8 seconds of animation, the deck smoothly expands back automatically to the full selection panel.
+- **Manual Toggle & Instant Expand**: Tapping the mini pill immediately opens the controls deck. Added a minimize button (`⏷`) to re-collapse anytime.
+- **Volume On / Off Toggle**: Clarified volume indicator to `Sound On 🔊 (Tap to Mute)` and `Muted 🔇 (Tap for Sound)` with instant volume level switching.
+
 ## 2.11.0 — 2026-08-29
 
 ### 📸 Polaroid End-Game Celebration Mosaic (Picasa Scatter Deck) 🃏✨
