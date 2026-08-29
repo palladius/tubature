@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.10.0 — 2026-08-29
+
+### Glassmorphic About Screen & Bilingual Story Modal 📜🌐✨
+- **About Dialog**: Added a dedicated `About 📜` button on the Home Screen (beside Tutorial and in the footer) opening a glassmorphic dialog.
+- **Language Switcher**: Instant switching between 🇬🇧 English and 🇮🇹 Italiano with flag emoji toggles.
+- **Story & Credits**: Highlights the story of Tubature created for Alessandro & Sebastiano ("a twist of Ferrara meets Mario pipe-puzzle game").
+- **Interactive Links**: Direct links to Riccardo's GitHub profile, Google Antigravity, and Flutter.
+- **Clean Editable Content**: Extracted all text into `lib/data/about_content.dart` for effortless editing and translation.
+
 ## 2.9.3 — 2026-08-29
 
 ### Italian Voice Acting Portrait Video (GHI #10) 🎬🇮🇹👦👦

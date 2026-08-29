@@ -2,7 +2,7 @@ name: tubature
 description: "Tubature — An enchanting pipe-puzzle game starring Riccardo the Dungeon Plumber."
 publish_to: 'none'
 
-version: 2.9.3+286
+version: 2.10.0+287
 
 environment:
   sdk: ^3.10.7
@@ -14,6 +14,7 @@ dependencies:
   equatable: ^2.0.7
   cupertino_icons: ^1.0.8
   video_player: ^2.9.2
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

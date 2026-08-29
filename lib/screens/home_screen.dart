@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/level.dart';
 import '../version.dart';
+import '../widgets/about_dialog.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
@@ -124,11 +125,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 _buildDifficultyDescriptionText(),
                 const SizedBox(height: 10),
 
-                // Tutorial Button
-                _buildTutorialButton(height: 46, fontSize: 15),
-                const SizedBox(height: 6),
+                // Action Buttons: Tutorial + About
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTutorialButton(height: 46, fontSize: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildAboutButton(height: 46, fontSize: 14),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
 
-                // Version
+                // Version & Footer
                 _buildVersionFooter(),
               ],
             ),
@@ -179,11 +190,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _buildDifficultyDescriptionText(),
                   ],
                   SizedBox(height: isShort ? 6 : 10),
-                  _buildTutorialButton(
-                    height: isShort ? 34 : 42,
-                    fontSize: isShort ? 12 : 14,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTutorialButton(
+                          height: isShort ? 34 : 42,
+                          fontSize: isShort ? 12 : 13,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _buildAboutButton(
+                          height: isShort ? 34 : 42,
+                          fontSize: isShort ? 12 : 13,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   _buildVersionFooter(),
                 ],
               ),
@@ -411,6 +435,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: OutlinedButton(
         onPressed: _startTutorial,
         style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           foregroundColor: const Color(0xFF80DEEA),
           side: const BorderSide(
             color: Color(0xFF00ACC1),
@@ -421,18 +446,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '📖  TUTORIAL',
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '📖  TUTORIAL',
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAboutButton({required double height, required double fontSize}) {
+    return SizedBox(
+      height: height,
+      child: OutlinedButton(
+        onPressed: () => AboutTubatureDialog.show(context),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          foregroundColor: const Color(0xFFFFD54F),
+          side: const BorderSide(
+            color: Color(0xFFFFB300),
+            width: 1.8,
+          ),
+          backgroundColor: const Color(0xFFFF8F00).withValues(alpha: 0.20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '📜  ABOUT',
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            ),
+          ),
         ),
       ),
     );
@@ -453,6 +508,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: Colors.white.withValues(alpha: 0.45),
               letterSpacing: 0.5,
               fontWeight: FontWeight.w500,
+            ),
+          ),
+          // ℹ️ About chip
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => AboutTubatureDialog.show(context),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0288D1).withValues(alpha: 0.20),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF03A9F4).withValues(alpha: 0.5)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.info_outline_rounded, size: 11, color: Color(0xFF4FC3F7)),
+                    SizedBox(width: 3),
+                    Text(
+                      'About 📜',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF4FC3F7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           // 🐞 DEBUG panel (LOCALHOST ONLY) — disappears elegantly on GitHub deploy
