@@ -2,7 +2,9 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/cauldron_goodie.dart';
+import '../models/cauldron_goodies_catalog.dart';
 import '../services/goodies_image_service.dart';
+import 'polaroid_mosaic_overlay.dart';
 
 /// Victory overlay shown when the player completes a level.
 ///
@@ -286,10 +288,54 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                             }).toList(),
                           ),
                         ],
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         SizedBox(
-                          width: 220,
-                          height: 56,
+                          width: 240,
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              final goodiesToShow = widget.revealedGoodies.isNotEmpty
+                                  ? widget.revealedGoodies
+                                  : CauldronGoodiesCatalog.all;
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (ctx) => PolaroidMosaicOverlay(
+                                    goodies: goodiesToShow,
+                                    moveCount: widget.moveCount,
+                                    onNextLevel: () {
+                                      Navigator.of(ctx).pop();
+                                      widget.onNextLevel();
+                                    },
+                                    onPlayAgain: () {
+                                      Navigator.of(ctx).pop();
+                                      widget.onPlayAgain();
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Text('📸', style: TextStyle(fontSize: 18)),
+                            label: const Text(
+                              'Mosaico Polaroid ✨',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF673AB7),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: 240,
+                          height: 54,
                           child: ElevatedButton(
                             onPressed: widget.onNextLevel,
                             style: ElevatedButton.styleFrom(

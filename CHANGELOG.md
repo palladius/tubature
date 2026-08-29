@@ -2,7 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
-## 2.7.2 — 2026-08-26
+## 2.9.0 — 2026-08-29
+
+### 📸 Polaroid End-Game Celebration Mosaic (Picasa Scatter Style)
+- **New Component**: `PolaroidWidget` (`lib/widgets/polaroid_widget.dart`) — vintage photo card with classic white frame, larger caption chin, realistic drop shadow, and clamped random rotation ($\pm 30^\circ$).
+- **New Overlay Screen**: `PolaroidMosaicOverlay` (`lib/screens/polaroid_mosaic_overlay.dart`) — post-victory cascade splash page scattering discovered Cauldron Goodie badges across the screen with smooth physics and zoom inspector on tap.
+- **Enhanced Controls**: Pressing **Spacebar** or **Enter** anywhere immediately advances to the next level.
+- **Victory Integration**: Added direct "Mosaico Polaroid ✨" launch button to `VictoryOverlay`.
+- **Platform Portability**: Fixed JS interop bindings with cross-platform conditional import bridge (`js_recorder_bridge.dart`).
 
 ### Ferrarese Voices & Image Fix 🎵🖼️
 - **Bug Fix**: All goodie images were JPEG files masquerading as `.png` — some mobile browsers rejected them, showing emoji fallback instead of images. Converted all to real PNG with `sips`.

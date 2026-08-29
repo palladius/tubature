@@ -155,9 +155,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     final gameState = ref.read(gameProvider);
     final grid = gameState.grid;
-    if (grid == null || gameState.isComplete) return KeyEventResult.ignored;
+    if (grid == null) return KeyEventResult.ignored;
 
     final key = event.logicalKey;
+
+    // When level is complete, Space or Enter triggers Next Level! 🚀
+    if (gameState.isComplete) {
+      if (key == LogicalKeyboardKey.space ||
+          key == LogicalKeyboardKey.enter ||
+          key == LogicalKeyboardKey.numpadEnter) {
+        _handleNextLevel();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
 
     // Navigation: arrows + WASD
     int dr = 0, dc = 0;
