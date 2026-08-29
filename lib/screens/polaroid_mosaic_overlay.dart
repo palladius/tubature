@@ -62,7 +62,7 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
 
     _cascadeController = AnimationController(
       duration: Duration(
-        milliseconds: max(700, min(2200, 400 + count * 220)),
+        milliseconds: max(2000, count * 2000),
       ),
       vsync: this,
     );
@@ -219,9 +219,17 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
                     ? _translations[goodieIndex]
                     : Offset.zero;
 
-                // Staggered drop-in interval based on goodie index
-                final start = (goodieIndex / count) * 0.55;
-                final end = min(1.0, start + 0.45);
+                // Each card drops every 2.0s with an 800ms landing animation
+                final totalMs = max(2000.0, count * 2000.0);
+                final start = (goodieIndex * 2000.0) / totalMs;
+                final end = min(1.0, (goodieIndex * 2000.0 + 850.0) / totalMs);
+
+                // If not yet time for this card to start dropping, keep it hidden
+                final progress = _cascadeController.value;
+                if (progress < start) {
+                  return const SizedBox.shrink();
+                }
+
                 final dropProgress = CurvedAnimation(
                   parent: _cascadeController,
                   curve: Interval(start, end, curve: Curves.easeOutBack),

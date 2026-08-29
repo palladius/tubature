@@ -2,6 +2,11 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.9.2 — 2026-08-29
+
+### ⏱️ Polaroid Cascade Pacing Refinement (2 Seconds per Card)
+- **Deliberate Animation Pacing**: Slower, highly satisfying cascade pacing — exactly **1 Polaroid every 2 seconds** (850ms drop + 1150ms admiration window before the next card drops).
+
 ## 2.9.1 — 2026-08-29
 
 ### 📸 Polaroid Pile Polish & Celebration Safety Fixes 🛡️
