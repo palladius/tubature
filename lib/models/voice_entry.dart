@@ -57,9 +57,9 @@ class VoiceCatalog {
       meaningIt: "Ma guarda che impianto!",
     ),
     VoiceEntry(
-      id: 'mayal-ac-du-bal',
+      id: 'majjal-ac-du-bal',
       folder: 'good',
-      path: 'assets/sounds/good-quality/mayal-akdubal.mp3',
+      path: 'assets/sounds/good-quality/majjal-akdubal.mp3',
       category: 'easter_egg',
       displayName: "Mayàl, ac du bàl!",
       meaningIt: "Maiale, che due palle! (2 ampolle!)",
