@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.2 — 2026-08-29
+
+### Audio & Sound Tuning 🔊💥
+- **Reduced Error Sound Frequency (GHI #9)**: Reduced the trigger probability of vocal break exclamations (*"Aldamàr!"* and *"Mayyàl!"*) on tile rotation pipe breaks from 100% down to 20% (1 in 5 breaks).
+- **Procedural Audio Fallback**: Whenever voice exclamations are not rolled, procedural pipe crack glass shatter sound plays instead, keeping gameplay responsive while eliminating repetitive shouting.
+- **Unit Tests**: Added dedicated unit tests for `AudioService.playBreakSound`.
+
 ## 2.11.1 — 2026-08-29
 
 ### Dynamic Auto-Collapsing Home Deck & Enhanced Volume Toggle 🎮✨🔊
@@ -75,7 +82,7 @@ All notable changes to FlowConnect (Tubature) are documented here.
 - **Goodie Framing**: All goodies unified into circular brass/pipe porthole badges for ampolla dead-ends.
 
 ## 2.7.2 — 2026-08-26
->>>>>>> origin/main
+
 
 ### Ferrarese Voices & Image Fix 🎵🖼️
 - **Bug Fix**: All goodie images were JPEG files masquerading as `.png` — some mobile browsers rejected them, showing emoji fallback instead of images. Converted all to real PNG with `sips`.

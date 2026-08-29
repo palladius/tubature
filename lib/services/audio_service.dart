@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:flutter/foundation.dart';
 import '../models/voice_entry.dart';
 import 'audio_synth_stub.dart'
     if (dart.library.js_interop) 'audio_synth_web.dart' as synth;
@@ -7,6 +9,10 @@ import 'audio_synth_stub.dart'
 /// ampolla filling (glub glub), victory fanfare, and Ferrarese character voice reactions.
 class AudioService {
   static bool isMuted = false;
+  static Random _random = Random();
+
+  @visibleForTesting
+  static set testRandom(Random r) => _random = r;
 
   /// Active voice line callback (for talking avatar widget lip-sync)
   static void Function(VoiceEntry entry)? onVoiceStarted;
@@ -89,16 +95,26 @@ class AudioService {
   /// Play tiered break sound based on connectivity delta.
   /// Δ = number of tiles that lost water connection after a rotation.
   /// - Δ 1–2: procedural glass crack
-  /// - Δ 3–9: "Aldamàr!" voice clip (moderate break)
-  /// - Δ ≥ 10: "Mayyàl!" voice clip (catastrophic break)
-  static void playBreakSound({required int delta}) {
+  /// - Δ 3–9: "Aldamàr!" voice clip (20% probability, else procedural glass crack)
+  /// - Δ ≥ 10: "Mayyàl!" voice clip (20% probability, else procedural glass crack)
+  static void playBreakSound({required int delta, @visibleForTesting double? probabilityRoll}) {
     if (isMuted || delta <= 0) return;
     if (delta < 3) {
       synth.playPipeCrack();
     } else if (delta < 10) {
-      synth.playVoiceFile('assets/voices/bad/tmp-aldamar.mp3');
+      final roll = probabilityRoll ?? _random.nextDouble();
+      if (roll < 0.2) {
+        synth.playVoiceFile('assets/voices/bad/tmp-aldamar.mp3');
+      } else {
+        synth.playPipeCrack();
+      }
     } else {
-      synth.playVoiceFile('assets/voices/good/tmp-majjal.mp3');
+      final roll = probabilityRoll ?? _random.nextDouble();
+      if (roll < 0.2) {
+        synth.playVoiceFile('assets/voices/good/tmp-majjal.mp3');
+      } else {
+        synth.playPipeCrack();
+      }
     }
   }
 }
