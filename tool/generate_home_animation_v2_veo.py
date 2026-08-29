@@ -93,12 +93,12 @@ def main():
     )
 
     portrait_prompt = (
-        "Cinematic fantasy 3D cartoon animation starting from this vertical portrait image. "
-        "The three human characters remain strictly unique: the dad Papino in yellow 'R' cap, older boy Alessandro in green 'A' cap, and younger boy Sebastiano in orange 'S' cap. "
-        "Alessandro and Sebastiano excitedly point at the glowing pipes and speak in enthusiastic Italian: 'Guarda Papino! C'è una perdita nelle tubature magiche! Prendi la chiave inglese!'. "
-        "Papino raises his golden wrench, winks, and replies in Italian: 'Niente paura ragazzi, con la chiave d'oro le ripariamo tutte! Allineate i tubi!'. "
-        "Around them, cute baby dragons and little dungeon gnomes cheerfully pop out holding miniature tools to help fix the pipes. "
-        "Vibrant Pixar-quality animation with clear Italian spoken voices, cheerful fantasy sound effects, and joyful background music."
+        "High quality 3D Pixar fantasy cartoon animation starting from this vertical portrait image with realistic synchronized lip-sync. "
+        "Strict character separation and mouth synchronization: "
+        "1. First, the kids Alessandro (older boy in green 'A' cap) and Sebastiano (younger boy in orange 'S' cap) point at the pipes, open their mouths, and speak excitedly in Italian: 'Guarda Papino! C\'è una perdita nelle tubature! Prendi la chiave inglese!'. While the kids speak, the dad Papino's mouth stays closed in a proud smile. "
+        "2. Next, the adult Riccardo / Papino (the dad with beard in yellow 'R' cap) smiles, opens his mouth, raises his golden wrench, and speaks in a warm Italian voice: 'Niente paura ragazzi, con la chiave d\'oro le ripariamo tutte!'. While the dad speaks, the kids listen and cheer. "
+        "Around them, cute baby dragons and friendly dungeon gnomes scamper out holding mini-tools to help fix the pipes. "
+        "Crystal-clear Italian voice acting, precise lip movements for each speaker, and joyful fantasy music."
     )
 
     if args.mode in ["landscape", "both"]:
