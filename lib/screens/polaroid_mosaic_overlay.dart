@@ -1,12 +1,17 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/cauldron_goodie.dart';
-import '../services/goodies_image_service.dart';
 import '../widgets/polaroid_widget.dart';
 
-/// Fullscreen celebration splash overlay displaying unlocked goodies
-/// as a Picasa-style scattered Polaroid mosaic pile with cascade entrance.
+/// Fullscreen celebration splash overlay displaying discovered goodies
+/// as a large, overlapping Picasa-style scattered Polaroid pile.
+///
+/// Features:
+/// - Large Polaroid photos covering 70-80% of the screen.
+/// - Overlapping stack with subtle random tilt (±15°–20°) and organic offsets.
+/// - Cascade entrance animation slamming/dropping photos onto the pile.
+/// - Interactive flick/tap on top photo to cycle through the pile.
+/// - Requires explicit click on "Prossimo Livello ➡️" to prevent accidental skips.
 class PolaroidMosaicOverlay extends StatefulWidget {
   final List<CauldronGoodie> goodies;
   final VoidCallback onNextLevel;
@@ -29,32 +34,35 @@ class PolaroidMosaicOverlay extends StatefulWidget {
 
 class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
     with SingleTickerProviderStateMixin {
-  late final FocusNode _focusNode;
   late final AnimationController _cascadeController;
   final List<double> _rotations = [];
   final List<Offset> _translations = [];
-  CauldronGoodie? _selectedGoodie;
+
+  // Track order of cards in the deck so user can tap top card to send to back
+  late List<int> _deckOrder;
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
 
-    // Precalculate deterministic organic tilts and offsets for the mosaic
-    final rand = Random(12345 + (widget.levelNumber ?? 1));
-    for (int i = 0; i < widget.goodies.length; i++) {
-      // Tilt between -25° and +25° (within ±30°)
-      final deg = (rand.nextDouble() * 50.0 - 25.0);
+    final count = widget.goodies.length;
+    _deckOrder = List.generate(count, (i) => i);
+
+    // Precalculate deterministic organic tilts (±15°..20°) and slight offsets
+    final rand = Random(42 + (widget.levelNumber ?? 1));
+    for (int i = 0; i < count; i++) {
+      // Tilt between -18° and +18° (~20% max tilt)
+      final deg = (rand.nextDouble() * 32.0 - 16.0);
       _rotations.add(deg * pi / 180.0);
-      // Small organic shift
-      final dx = (rand.nextDouble() * 16.0 - 8.0);
-      final dy = (rand.nextDouble() * 16.0 - 8.0);
+      // Small scatter offset in px
+      final dx = (rand.nextDouble() * 30.0 - 15.0);
+      final dy = (rand.nextDouble() * 24.0 - 12.0);
       _translations.add(Offset(dx, dy));
     }
 
     _cascadeController = AnimationController(
       duration: Duration(
-        milliseconds: max(600, min(2000, 350 + widget.goodies.length * 150)),
+        milliseconds: max(700, min(2200, 400 + count * 220)),
       ),
       vsync: this,
     );
@@ -64,75 +72,78 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
 
   @override
   void dispose() {
-    _focusNode.dispose();
     _cascadeController.dispose();
     super.dispose();
   }
 
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.space ||
-          event.logicalKey == LogicalKeyboardKey.enter ||
-          event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-        widget.onNextLevel();
-      }
-    }
+  /// Tap on top card sends it to the bottom of the deck so you can admire the next one!
+  void _cycleTopCard() {
+    if (_deckOrder.length <= 1) return;
+    setState(() {
+      final top = _deckOrder.removeLast();
+      _deckOrder.insert(0, top);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKeyEvent: _handleKeyEvent,
-      child: GestureDetector(
-        onTap: () {
-          if (_selectedGoodie != null) {
-            setState(() => _selectedGoodie = null);
-          }
-        },
-        child: Material(
-          color: Colors.black.withValues(alpha: 0.85),
-          child: Stack(
-            children: [
-              // Subtle background gradient vignette
-              Positioned.fill(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment.center,
-                      radius: 1.2,
-                      colors: [
-                        Color(0xFF2D1B4E),
-                        Color(0xFF0F0B1A),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Main content column
-              SafeArea(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildCelebrationHeader(),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: _buildMosaicArea(),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildBottomBar(),
-                    const SizedBox(height: 16),
+    return Material(
+      color: Colors.black.withValues(alpha: 0.88),
+      child: Stack(
+        children: [
+          // Background vignette with celebratory glow
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
+                  colors: [
+                    Color(0xFF3B1E54),
+                    Color(0xFF10091D),
                   ],
                 ),
               ),
-
-              // Zoomed goodie detail popup if tapped
-              if (_selectedGoodie != null) _buildSelectedGoodieModal(),
-            ],
+            ),
           ),
-        ),
+
+          // Main column
+          SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                _buildCelebrationHeader(),
+                const SizedBox(height: 8),
+                if (widget.goodies.length > 1)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Tocca la foto per sfogliare la collezione (${widget.goodies.length} foto) 📸👆',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return _buildOverlappingPile(constraints);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildBottomBar(),
+                const SizedBox(height: 14),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -144,14 +155,14 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
         const Text(
           '✨ MAGNIFICO! ✨',
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Color(0xFFFFDF00),
             letterSpacing: 2.0,
             shadows: [
               Shadow(
                 color: Color(0xFFFFA000),
-                blurRadius: 16,
+                blurRadius: 18,
               ),
             ],
           ),
@@ -160,9 +171,9 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
         Text(
           widget.moveCount != null
               ? 'Hai completato il livello in ${widget.moveCount} mosse! 🏆'
-              : 'Hai sbloccato nuovi tesori per la tua collezione! 📸',
+              : 'Ecco i tesori scoperti! 📸',
           style: const TextStyle(
-            fontSize: 15,
+            fontSize: 16,
             color: Colors.white70,
           ),
         ),
@@ -170,11 +181,11 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
     );
   }
 
-  Widget _buildMosaicArea() {
+  Widget _buildOverlappingPile(BoxConstraints constraints) {
     if (widget.goodies.isEmpty) {
       return const Center(
         child: Text(
-          'Nessun badge da mostrare',
+          'Nessun tesoro da mostrare',
           style: TextStyle(color: Colors.white60, fontSize: 16),
         ),
       );
@@ -182,60 +193,69 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
 
     final count = widget.goodies.length;
 
-    return AnimatedBuilder(
-      animation: _cascadeController,
-      builder: (context, child) {
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Center(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 20,
-              runSpacing: 24,
-              children: List.generate(count, (index) {
-                final goodie = widget.goodies[index];
-                final rot = _rotations.length > index ? _rotations[index] : 0.0;
-                final trans = _translations.length > index
-                    ? _translations[index]
+    // Card size: covers ~75-80% of available viewport
+    final cardWidth = (constraints.maxWidth * 0.78).clamp(240.0, 440.0);
+    final cardHeight = (constraints.maxHeight * 0.82).clamp(300.0, cardWidth * 1.28);
+
+    return Center(
+      child: SizedBox(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+        child: AnimatedBuilder(
+          animation: _cascadeController,
+          builder: (context, _) {
+            return Stack(
+              alignment: Alignment.center,
+              children: _deckOrder.asMap().entries.map((entry) {
+                final stackIndex = entry.key; // 0 is bottom, last is top
+                final goodieIndex = entry.value;
+                final isTop = stackIndex == _deckOrder.length - 1;
+
+                final goodie = widget.goodies[goodieIndex];
+                final rot = _rotations.length > goodieIndex
+                    ? _rotations[goodieIndex]
+                    : 0.0;
+                final trans = _translations.length > goodieIndex
+                    ? _translations[goodieIndex]
                     : Offset.zero;
 
-                // Staggered interval for drop-in cascade
-                final start = (index / count) * 0.6;
-                final end = min(1.0, start + 0.4);
-                final itemProgress = CurvedAnimation(
+                // Staggered drop-in interval based on goodie index
+                final start = (goodieIndex / count) * 0.55;
+                final end = min(1.0, start + 0.45);
+                final dropProgress = CurvedAnimation(
                   parent: _cascadeController,
                   curve: Interval(start, end, curve: Curves.easeOutBack),
                 ).value;
 
-                final scale = (0.3 + itemProgress * 0.7).clamp(0.0, 1.0);
-                final opacity = itemProgress.clamp(0.0, 1.0);
+                final scale = (0.4 + dropProgress * 0.6).clamp(0.0, 1.0);
+                final opacity = dropProgress.clamp(0.0, 1.0);
+                final dropOffset = Offset(
+                  trans.dx,
+                  trans.dy + (1.0 - dropProgress) * -120.0, // Drops from top!
+                );
 
                 return Opacity(
                   opacity: opacity,
                   child: Transform.translate(
-                    offset: trans * itemProgress,
+                    offset: dropOffset,
                     child: Transform.scale(
                       scale: scale,
                       child: PolaroidWidget(
                         goodie: goodie,
                         rotationAngle: rot,
-                        width: 140,
-                        height: 180,
-                        onTap: () {
-                          setState(() {
-                            _selectedGoodie = goodie;
-                          });
-                        },
+                        width: cardWidth,
+                        height: cardHeight,
+                        elevation: 10.0 + stackIndex * 3.0,
+                        onTap: isTop ? _cycleTopCard : null,
                       ),
                     ),
                   ),
                 );
-              }),
-            ),
-          ),
-        );
-      },
+              }).toList(),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -256,11 +276,11 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.white30),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 14,
+                  horizontal: 20,
+                  vertical: 16,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
@@ -268,95 +288,28 @@ class _PolaroidMosaicOverlayState extends State<PolaroidMosaicOverlay>
           ],
           ElevatedButton.icon(
             onPressed: widget.onNextLevel,
-            icon: const Icon(Icons.arrow_forward_rounded, color: Colors.black87),
+            icon: const Icon(Icons.arrow_forward_rounded, color: Colors.black87, size: 24),
             label: const Text(
-              'Prossimo Livello ➡️ [Spazio]',
+              'Prossimo Livello ➡️',
               style: TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 18,
               ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFD54F),
               padding: const EdgeInsets.symmetric(
-                horizontal: 28,
-                vertical: 16,
+                horizontal: 32,
+                vertical: 18,
               ),
               elevation: 6,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSelectedGoodieModal() {
-    final goodie = _selectedGoodie!;
-    final cachedImg = GoodiesImageService.getImage(goodie.id);
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedGoodie = null),
-      child: Container(
-        color: Colors.black.withValues(alpha: 0.75),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(24),
-        child: GestureDetector(
-          onTap: () {}, // Prevent click propagation
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PolaroidWidget(
-                goodie: goodie,
-                rotationAngle: 0.0,
-                width: 240,
-                height: 300,
-                preloadedImage: cachedImg,
-                elevation: 16,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '${goodie.emoji} ${goodie.displayName}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: goodie.rarity.color.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: goodie.rarity.color),
-                ),
-                child: Text(
-                  goodie.rarity.label,
-                  style: TextStyle(
-                    color: goodie.rarity.color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: () => setState(() => _selectedGoodie = null),
-                icon: const Icon(Icons.close, color: Colors.white70),
-                label: const Text(
-                  'Chiudi',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

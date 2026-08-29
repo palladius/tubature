@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tubature/models/cauldron_goodie.dart';
 import 'package:tubature/screens/polaroid_mosaic_overlay.dart';
@@ -40,49 +39,7 @@ void main() {
     expect(find.text('Wizard Hat'), findsOneWidget);
   });
 
-  testWidgets('PolaroidMosaicOverlay advances on Spacebar press', (tester) async {
-    bool advanced = false;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: PolaroidMosaicOverlay(
-            goodies: testGoodies,
-            onNextLevel: () => advanced = true,
-          ),
-        ),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-
-    expect(advanced, isTrue);
-  });
-
-  testWidgets('PolaroidMosaicOverlay advances on Enter press', (tester) async {
-    bool advanced = false;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: PolaroidMosaicOverlay(
-            goodies: testGoodies,
-            onNextLevel: () => advanced = true,
-          ),
-        ),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-
-    expect(advanced, isTrue);
-  });
-
-  testWidgets('PolaroidMosaicOverlay advances on button click or background tap', (tester) async {
+  testWidgets('PolaroidMosaicOverlay advances on button click', (tester) async {
     bool advanced = false;
     await tester.pumpWidget(
       MaterialApp(
@@ -104,5 +61,28 @@ void main() {
     await tester.pump();
 
     expect(advanced, isTrue);
+  });
+
+  testWidgets('Tapping top polaroid cycles the deck', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PolaroidMosaicOverlay(
+            goodies: testGoodies,
+            onNextLevel: () {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Tap top polaroid
+    final topCardFinder = find.byType(PolaroidWidget).last;
+    await tester.tap(topCardFinder);
+    await tester.pump();
+
+    // Verify still in overlay
+    expect(find.byType(PolaroidWidget), findsNWidgets(2));
   });
 }

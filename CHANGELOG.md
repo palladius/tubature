@@ -2,6 +2,15 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.9.1 — 2026-08-29
+
+### 📸 Polaroid Pile Polish & Celebration Safety Fixes 🛡️
+- **Celebration Safety**: Removed accidental spacebar skip on victory screen — players can now fully savor their win without accidental premature advancement.
+- **Large Screen-Filling Polaroids**: Increased Polaroid dimensions to cover **70–80%** of the screen with clear, massive goodie artwork.
+- **Overlapping Picasa Deck**: Polaroids now stack organically in a central pile with subtle $\pm 16^\circ$ tilt and cascade drop physics.
+- **Deck Flipping Gesture**: Tapping on the top Polaroid card cycles it to the back, letting players flick through all unlocked goodies.
+- **Explicit Advance**: Advancing to the next level now requires clicking the prominent **"Prossimo Livello ➡️"** button.
+
 ## 2.9.0 — 2026-08-29
 
 ### 📸 Polaroid End-Game Celebration Mosaic (Picasa Scatter Style)

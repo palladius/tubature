@@ -82,7 +82,12 @@ class PolaroidWidget extends StatelessWidget {
               width: 1,
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+          padding: EdgeInsets.fromLTRB(
+            width * 0.05,
+            width * 0.05,
+            width * 0.05,
+            width * 0.10,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -91,36 +96,53 @@ class PolaroidWidget extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E1E28),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(4),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 3,
-                        offset: const Offset(0, 1),
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   clipBehavior: Clip.antiAlias,
+                  padding: EdgeInsets.all(width * 0.04),
                   child: _buildPhotoContent(cachedImg),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: width * 0.04),
               // Bottom chin caption
               SizedBox(
-                height: 24,
+                height: (width * 0.12).clamp(24.0, 48.0),
                 child: Center(
-                  child: Text(
-                    effectiveTitle,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Caveat', // Hand-written feel or fallback
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C2C2C),
-                      letterSpacing: 0.2,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (goodie != null) ...[
+                        Text(
+                          goodie!.emoji,
+                          style: TextStyle(
+                            fontSize: (width * 0.065).clamp(14.0, 24.0),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Flexible(
+                        child: Text(
+                          effectiveTitle,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Caveat',
+                            fontSize: (width * 0.065).clamp(14.0, 22.0),
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF2C2C2C),
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
