@@ -93,10 +93,12 @@ def main():
     )
 
     portrait_prompt = (
-        "Cinematic fantasy animation starting from this vertical image. "
-        "The three human characters (Papino in yellow cap, Alessandro in green cap, Sebastiano in orange cap) remain strictly unique, smiling and cheering. "
-        "A lively group of tiny friendly magical critters and baby dragons playfully emerge around them carrying mini wrenches and plumber tools to fix the magical water pipes. "
-        "Charming, high quality Pixar cartoon style character animation."
+        "Cinematic fantasy 3D cartoon animation starting from this vertical portrait image. "
+        "The three human characters remain strictly unique: the dad Papino in yellow 'R' cap, older boy Alessandro in green 'A' cap, and younger boy Sebastiano in orange 'S' cap. "
+        "Alessandro and Sebastiano excitedly point at the glowing pipes and speak in enthusiastic Italian: 'Guarda Papino! C'è una perdita nelle tubature magiche! Prendi la chiave inglese!'. "
+        "Papino raises his golden wrench, winks, and replies in Italian: 'Niente paura ragazzi, con la chiave d'oro le ripariamo tutte! Allineate i tubi!'. "
+        "Around them, cute baby dragons and little dungeon gnomes cheerfully pop out holding miniature tools to help fix the pipes. "
+        "Vibrant Pixar-quality animation with clear Italian spoken voices, cheerful fantasy sound effects, and joyful background music."
     )
 
     if args.mode in ["landscape", "both"]:

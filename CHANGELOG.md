@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.9.3 — 2026-08-29
+
+### Italian Voice Acting Portrait Video (GHI #10) 🎬🇮🇹👦👦
+- **Italian Dialogue Animation**: Generated vertical (9:16) Veo animation for portrait screens (`home_background_portrait_v2.mp4`) with spoken Italian dialogue between Ale, Seby, and Papino repairing the dungeon pipes with the golden wrench and dragons!
+- **Preserved V1**: Kept original portrait video as `assets/videos/home_background_portrait_v1.mp4`.
+- **Closed GHI #10**: Fully satisfied Issue #10.
+
 ## 2.9.2 — 2026-08-29
 
 ### Background Video Audio & Unmute Indicator 🔊🎶
