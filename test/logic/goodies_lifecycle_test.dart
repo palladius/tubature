@@ -1,4 +1,3 @@
-@TestOn('browser')
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tubature/logic/game_notifier.dart';
@@ -29,7 +28,7 @@ void main() {
     container.dispose();
   });
 
-  int _countDeadEnds(GameState state) {
+  int countDeadEnds(GameState state) {
     int count = 0;
     for (int r = 0; r < state.grid!.rows; r++) {
       for (int c = 0; c < state.grid!.cols; c++) {
@@ -49,7 +48,7 @@ void main() {
       notifier.startNewGame(Difficulty.easy);
       final state = container.read(gameProvider);
 
-      final deadEndCount = _countDeadEnds(state);
+      final deadEndCount = countDeadEnds(state);
 
       expect(state.ampolleGoodies.isNotEmpty, true,
           reason: 'Goodies should be assigned');
@@ -69,7 +68,7 @@ void main() {
 
       notifier.nextLevel();
       final state = container.read(gameProvider);
-      final deadEndCount = _countDeadEnds(state);
+      final deadEndCount = countDeadEnds(state);
 
       expect(state.ampolleGoodies.isNotEmpty, true,
           reason: 'Level 2 should also have goodies — was empty before fix');
