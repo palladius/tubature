@@ -102,11 +102,7 @@ class GameNotifier extends Notifier<GameState> {
   @override
   GameState build() {
     if (kIsWeb) {
-<<<<<<< HEAD
       js_bridge.setJsTubatureReady(true);
-=======
-      setTubatureReady(true);
->>>>>>> 34ac0cf (feat: living painting animated home screen with Veo video background)
     }
     return const GameState();
   }
