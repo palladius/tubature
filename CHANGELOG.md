@@ -2,6 +2,21 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.8.1 — 2026-08-29
+
+### New Goodies & Characters Collection 🧆🚊👦👦🦒🦏🐘🐊♒
+- **8 New Circular Goodie Badges**:
+  - ♒ **Acquario d'Oro** (RARE): Gold Saint Camus of Aquarius with ice crystals and golden sacred armor.
+  - 🫂 **Ale & Sebi** (RARE): Heartwarming brotherly hug in a golden magical runic frame (with Sebi's blonde hair!).
+  - 🚊 **Züri-Tram VBZ** (RARE): Classic 3D blue and white Zurich tramway in an ornate brass porthole.
+  - 🧆 **Salama da Sugo** (UNCOMMON): 1/4 slice of Ferrara's famous salamina on mashed potato purée with silver runic rim.
+  - 👦 **Sebi Biondo** (UNCOMMON): Updated Sebi with golden blonde hair.
+  - 🦒 **Giraffa Boxer** (COMMON): Cute boxing giraffe with French beret saying *"Bonjour!"* (Ale's choice!).
+  - 🦏 **Rinoceronte Cucciolo** (COMMON): Super kawaii baby rhino with sparkling eyes (Seby's choice!).
+  - 🐘 **E-Le-Fante** (COMMON): Joyful baby elephant drinking Tubature Fizzy Orange with bubbles spouting from ears.
+  - 🐊 **Coccodrillo Chill** (COMMON): Relaxing on a deckchair with sunglasses, mojito and peace sign ✌️.
+- **Goodie Framing**: All goodies unified into circular brass/pipe porthole badges for ampolla dead-ends.
+
 ## 2.7.2 — 2026-08-26
 
 ### Ferrarese Voices & Image Fix 🎵🖼️
