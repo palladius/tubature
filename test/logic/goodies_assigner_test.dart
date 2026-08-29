@@ -6,8 +6,8 @@ import 'package:tubature/models/level.dart';
 
 void main() {
   group('CauldronGoodiesCatalog', () {
-    test('standardGoodies has exactly 8 entries', () {
-      expect(CauldronGoodiesCatalog.standardGoodies.length, 8);
+    test('standardGoodies has exactly 13 entries', () {
+      expect(CauldronGoodiesCatalog.standardGoodies.length, 13);
     });
 
     test('legendary has exactly 1 entry (Schmoogle)', () {
@@ -15,8 +15,8 @@ void main() {
       expect(CauldronGoodiesCatalog.legendary.first.id, 'schmoogle');
     });
 
-    test('all has exactly 9 entries', () {
-      expect(CauldronGoodiesCatalog.all.length, 9);
+    test('all has exactly 14 entries', () {
+      expect(CauldronGoodiesCatalog.all.length, 14);
     });
   });
 
@@ -42,13 +42,13 @@ void main() {
     });
 
     test('when deadEndCount > standardGoodies.length, wraps around gracefully', () {
-      final goodies = GoodiesAssigner.assignGoodies(10, Difficulty.easy);
-      expect(goodies.length, 10);
+      final goodies = GoodiesAssigner.assignGoodies(15, Difficulty.easy);
+      expect(goodies.length, 15);
       expect(goodies.any((g) => g.isLegendary), isFalse);
     });
 
     test('Schmoogle NEVER appears on Easy or Medium difficulty', () {
-      final random = _FakeRandom(0.005);
+      final random = _FakeRandom(pickLast: true);
       final easyGoodies = GoodiesAssigner.assignGoodies(5, Difficulty.easy, random: random);
       final mediumGoodies = GoodiesAssigner.assignGoodies(5, Difficulty.medium, random: random);
       
@@ -56,8 +56,8 @@ void main() {
       expect(mediumGoodies.any((g) => g.isLegendary), isFalse);
     });
 
-    test('with seeded Random where value < 0.01, Schmoogle appears on Hard', () {
-      final fakeRandom = _FakeRandom(0.005);
+    test('with seeded Random rolling highest weight, Schmoogle appears on Hard', () {
+      final fakeRandom = _FakeRandom(pickLast: true);
       final goodies = GoodiesAssigner.assignGoodies(3, Difficulty.hard, random: fakeRandom);
       
       expect(goodies.any((g) => g.isLegendary), isTrue);
@@ -68,15 +68,24 @@ void main() {
 }
 
 class _FakeRandom implements Random {
-  final double nextDoubleValue;
-  _FakeRandom(this.nextDoubleValue);
+  final bool pickLast;
+  int _counter = 0;
+  _FakeRandom({this.pickLast = false});
   
   @override
   bool nextBool() => true;
   
   @override
-  double nextDouble() => nextDoubleValue;
+  double nextDouble() => 0.0;
   
   @override
-  int nextInt(int max) => 0; // Always swap with index 0 in shuffle
+  int nextInt(int max) {
+    if (pickLast && _counter == 0) {
+      _counter++;
+      return max - 1;
+    }
+    final val = _counter % max;
+    _counter++;
+    return val;
+  }
 }

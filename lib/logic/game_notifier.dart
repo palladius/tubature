@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:js_interop';
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/cauldron_goodie.dart';
 import '../models/direction.dart';
 import '../models/grid.dart';
 import '../models/level.dart';
@@ -10,20 +9,12 @@ import '../models/position.dart';
 import '../models/tile.dart';
 import '../services/audio_service.dart';
 import '../services/cross_image_service.dart';
-import '../models/cauldron_goodie.dart';
 import '../services/goodies_image_service.dart';
+import '../services/js_recorder_bridge.dart';
 import 'goodies_assigner.dart';
 import 'level_generator.dart';
 import 'path_finder.dart';
 import 'win_checker.dart';
-
-/// JS interop: bind to window._tubatureGrid for the automated recorder.
-/// Top-level @JS declarations bind to globalThis (= window in browsers).
-@JS('_tubatureGrid')
-external set _jsTubatureGrid(JSString? value);
-
-@JS('_tubatureReady')
-external set _jsTubatureReady(JSBoolean? value);
 
 class GameState {
   final Level? currentLevel;
@@ -110,7 +101,7 @@ class GameNotifier extends Notifier<GameState> {
   @override
   GameState build() {
     if (kIsWeb) {
-      try { _jsTubatureReady = true.toJS; } catch (_) {}
+      updateJsTubatureReady(true);
     }
     return const GameState();
   }
@@ -342,13 +333,9 @@ class GameNotifier extends Notifier<GameState> {
     _setTubatureGrid(data);
   }
 
-  /// Reliably set window._tubatureGrid via @JS top-level setter.
+  /// Reliably set window._tubatureGrid via JS bridge.
   static void _setTubatureGrid(String jsonData) {
-    try {
-      _jsTubatureGrid = jsonData.toJS;
-    } catch (_) {
-      // Silently fail on non-web platforms
-    }
+    updateJsTubatureGrid(jsonData);
   }
 }
 
