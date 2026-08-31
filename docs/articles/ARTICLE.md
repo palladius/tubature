@@ -41,27 +41,37 @@ canonicalURL: "https://ricc.rocks/posts/game-development/2026-08-28-tubature-dun
 
 ---
 
-## ☕ The Hook: A Sofa, Two Kids, and the Ad-Pocalypse
+## ☕ The Hook: A Sofa in Zurich, Two Kids, and the Ad-Pocalypse
 
-Picture this: It is a rainy Saturday afternoon at home. I am sitting on the sofa sipping a hot double espresso (☕🇮🇹), hoping for fifteen minutes of peaceful downtime. 
+Picture this: It is a rainy Saturday afternoon in Zurich. I am sitting on the sofa sipping a hot double espresso (☕🇮🇹), hoping for fifteen glorious minutes of peaceful downtime. 
 
-Next to me, my kids are locked in an all-out civil war over a single Android smartphone. The prize? A commercial pipe-puzzle game where you rotate tiles on a grid to guide water from point A to point B. They loved the puzzles. But modern mobile app stores have turned casual gaming into a psychological war zone.
+Next to me, my kids Ale and Seby are locked in an all-out civil war over a single Android phone. The prize? A commercial pipe-puzzle game where you rotate tiles on a grid to guide water from point A to point B. They loved the spatial puzzles. But modern mobile app stores have turned casual gaming into a psychological war zone.
 
-Every single 20-second puzzle was immediately interrupted by a 30-second unskippable video ad for fake mobile games about pulling pins. When the ads finally stopped, aggressive modal dialogs popped up begging for in-app purchases: *"Out of Plumber Energy! Buy 50 Magic Gems for $4.99 or wait 4 hours to rotate another pipe!"*
+Every single 20-second puzzle was immediately interrupted by a 30-second unskippable video ad for fake games about pulling pins. When the ads finally stopped, aggressive modal popups appeared: *"Out of Plumber Energy! Buy 50 Magic Gems for $4.99 or wait 4 hours to rotate another pipe!"*
 
-My kids were frustrated, arguing over whose turn it was to watch an ad. I was staring in disbelief at the monetization dark patterns. 
+Ale was frustrated, Seby was in tears, and they were actively arguing over whose turn it was to sit through an ad. I was staring in disbelief at the monetization dark patterns. 
 
-I am Riccardo: an SRE and BashOps veteran who loves clean shell scripts, elegant Ruby gems, and building things that respect human attention. I spent two decades keeping production systems running, and if there is one thing I cannot tolerate, it is software designed to manufacture user misery.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        THE MODERN MOBILE "GAME"                        │
+│                                                                        │
+│   [ 20s Puzzle ] ──► [ 30s Video Ad ] ──► [ Paywall Modal ($4.99) ]   │
+│         ▲                                               │              │
+│         └────────────────── Wait 4 Hours ◄──────────────┘              │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+I am Riccardo: an SRE and operations veteran who loves clean shell scripts, elegant Ruby gems, and building things that respect human attention. I spent two decades keeping production systems running, and if there is one thing I cannot tolerate, it is software intentionally architected to manufacture user misery.
 
 I looked at my kids, slammed my espresso cup down, and declared:  
 **"Basta! Ullalla! Why are we suffering through ad-pocalypse when we can build our own ad-free, magical dungeon plumber game from scratch?"**
 
-*Et voilà!* Over a few evening pair-programming sessions with **Google Antigravity**, we built **Tubature: The Dungeon Plumber** (🚰🐉💎). It is an open-source, kid-friendly fantasy puzzle game built with **Flutter**, **Riverpod**, and pure **Dart**—playable seamlessly on Android, iOS, tablet, and desktop browser!
+*Et voilà!* Over a couple of relaxed evening pair-programming sessions with **Google Antigravity**, we built **Tubature: The Dungeon Plumber** (🚰🐉💎). It is an open-source, kid-friendly fantasy puzzle game built with **Flutter**, **Riverpod**, and pure **Dart**—playable seamlessly on Android, iOS, tablet, and desktop browsers!
 
 <div align="center">
   <img src="media/20260824-game-v2.4.2-easy-mobile.gif" width="300" alt="Tubature gameplay gif" style="border-radius: 12px;"/>
   <br/>
-  <em>Tap, rotate, and watch the crystal dungeon water flood through conduits!</em>
+  <em>Tap, rotate, and watch the crystal dungeon water flood through conduits! (Panettone not included 🍞)</em>
 </div>
 
 ---
@@ -103,13 +113,17 @@ In traditional pipe games, you connect a **Source** tile to a **Sink** tile, and
 Tubature v2.0 changes the rules entirely: **There is no Sink!**  
 The water originates from the Source creature, and victory only occurs when **every single tile on the grid** is connected and filled with rushing crystal water.
 
-<div align="center">
-  <img src="media/FlowConnect_1.jpg" width="220" style="display:inline-block; margin: 4px; border-radius: 8px;" alt="Design mockup 1"/>
-  <img src="media/FlowConnect_2.jpg" width="220" style="display:inline-block; margin: 4px; border-radius: 8px;" alt="Design mockup 2"/>
-  <img src="media/FlowConnect_3.jpg" width="220" style="display:inline-block; margin: 4px; border-radius: 8px;" alt="Design mockup 3"/>
-  <br/>
-  <em>Original Italian design mockups: Every pipe must connect back to the creature source.</em>
-</div>
+```
+  OLD SINK-BASED PUZZLE (Boring):            TUBATURE SPANNING TREE (100% Filled):
+  ┌─────────┬─────────┬─────────┐            ┌─────────┬─────────┬─────────┐
+  │  [SRC] ───► ───►  │ [SINK]  │            │  [SRC] ────► ┬───► ───┐ │
+  ├─────────┼─────────┼─────────┤            ├─────────┼────┼────┼───┼─┤
+  │ (junk)  │ (junk)  │ (junk)  │            │   └─────┼────┘    └───┤ │
+  ├─────────┼─────────┼─────────┤            ├─────────┼─────────────┼─┤
+  │ (junk)  │ (junk)  │ (junk)  │            │   ┌─────┴─────────────┘ │
+  └─────────┴─────────┴─────────┘            └─────────┴───────────────┘
+  Only 1 path active (dead tiles wasted)     EVERY tile connected & flooded (100%)
+```
 
 Here is what the pure Dart `WinChecker` looks like:
 
@@ -257,7 +271,7 @@ Building Tubature was a blast, but we hit our fair share of interesting hurdles:
 ## 🤝 Behind the Scenes & Collaborators
 
 A massive shoutout to:
-- **My Kids**: Chief Playtesters, bug finders, and enthusiastic designers who demanded the emerald dragon and wizard lab themes!
+- **Ale & Seby**: Chief Playtesters, bug finders, and enthusiastic designers who demanded the emerald dragon and wizard lab themes!
 - **Google Antigravity Team**: For creating the ultimate AI pair-programming environment that turned game ideas into working code in record time.
 
 ---

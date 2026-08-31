@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tubature/models/cauldron_goodies_catalog.dart';
 import 'package:tubature/screens/victory_overlay.dart';
 
 void main() {
@@ -175,5 +176,38 @@ void main() {
 
       expect(find.text('✨ MAGNIFICO! ✨'), findsWidgets);
     });
+
+    testWidgets('renders revealed goodies and opens carousel on tap',
+        (WidgetTester tester) async {
+      final goodies = CauldronGoodiesCatalog.common.take(2).toList();
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: VictoryOverlay(
+            moveCount: 8,
+            revealedGoodies: goodies,
+            onNextLevel: () {},
+            onPlayAgain: () {},
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text('🧪 Discovered:'), findsOneWidget);
+
+      // Tap first revealed goodie
+      final goodieFinder = find.byType(GestureDetector);
+      expect(goodieFinder, findsWidgets);
+
+      // Find goodie circle with emoji
+      expect(find.text(goodies.first.emoji), findsOneWidget);
+      await tester.tap(find.text(goodies.first.emoji));
+      await tester.pumpAndSettle();
+
+      // Should open the carousel dialog displaying the goodie name and counter
+      expect(find.text(goodies.first.displayName), findsOneWidget);
+      expect(find.text('1 / 2'), findsOneWidget);
+    });
+    });
   });
 }
+

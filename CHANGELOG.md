@@ -2,6 +2,22 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.3 — 2026-08-29
+
+### Goodie Carousel & Ferrarese Audio Hookup 🎡🐷🛵
+- **Looping Goodies Carousel (`GoodieCarouselDialog`)**: Discovered victory coins and goodies gallery items are now *scorrevoli* (carousel viewer)!
+  - **Loop Navigation**: Navigate infinitely in a circular loop with Left/Right chevron arrow buttons (`<` and `>`).
+  - **Touch & Gesture Controls**: Horizontal swipe gestures (swipe left for next, swipe right for previous).
+  - **Keyboard Navigation**: ArrowLeft / KeyA (previous), ArrowRight / KeyD / Space (next), Escape (close).
+  - **Counter & Dots**: Progress indicator (`3 / 9`) with active dot indicators for compact sets.
+- **Majjal Sound Hookup 🐷**:
+  - Name updated to authentic **Majjal!**
+  - Plays Alessandro's high-fidelity vocal track `majjal.mp3` (`assets/sounds/good-quality/majjal.mp3` / `maial.mp3`) when revealed or selected.
+- **Motorino nel Canale Sound Hookup 🛵**:
+  - Wired Alessandro's *"¡Máñate al canal!"* voice clip (`magnat_al_canal.mp3`) to the Motorino goodie.
+- **Audio Replay**: Sound replay icon button 🔊 and image tap triggers audio playback inside the carousel dialog.
+- **Comprehensive Tests**: Added `goodie_carousel_dialog_test.dart` and extended `victory_overlay_test.dart` and `goodies_catalog_test.dart`.
+
 ## 2.11.2 — 2026-08-29
 
 ### Audio & Sound Tuning 🔊💥

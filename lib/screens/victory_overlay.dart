@@ -5,6 +5,7 @@ import '../models/cauldron_goodie.dart';
 import '../models/cauldron_goodies_catalog.dart';
 import '../services/goodies_image_service.dart';
 import 'polaroid_mosaic_overlay.dart';
+import '../widgets/goodie_carousel_dialog.dart';
 
 /// Victory overlay shown when the player completes a level.
 ///
@@ -85,73 +86,12 @@ class _VictoryOverlayState extends State<VictoryOverlay>
     super.dispose();
   }
 
-  /// Show a goodie at full size in a dismissable overlay 🖼️
-  void _showGoodieFullscreen(BuildContext context, CauldronGoodie goodie, ui.Image? img) {
-    if (img == null) return;
-    showDialog(
-      context: context,
-      barrierColor: Colors.black87,
-      builder: (ctx) => GestureDetector(
-        onTap: () => Navigator.of(ctx).pop(),
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 240,
-                height: 240,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: goodie.isLegendary
-                        ? const Color(0xFFFFD700)
-                        : Colors.white70,
-                    width: goodie.isLegendary ? 4 : 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (goodie.isLegendary
-                              ? const Color(0xFFFFD700)
-                              : Colors.white)
-                          .withValues(alpha: 0.4),
-                      blurRadius: 24,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: RawImage(image: img, fit: BoxFit.cover),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                goodie.displayName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (goodie.isLegendary)
-                const Text(
-                  '⭐ LEGENDARY ⭐',
-                  style: TextStyle(
-                    color: Color(0xFFFFD700),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              const SizedBox(height: 8),
-              const Text(
-                'Tap to close',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
+  /// Show goodies carousel overlay starting at the tapped goodie index 🎡
+  void _openGoodiesCarousel(BuildContext context, int initialIndex) {
+    GoodieCarouselDialog.show(
+      context,
+      goodies: widget.revealedGoodies,
+      initialIndex: initialIndex,
     );
   }
 
@@ -254,10 +194,12 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                             spacing: 8,
                             runSpacing: 4,
                             alignment: WrapAlignment.center,
-                            children: widget.revealedGoodies.map((goodie) {
+                            children: widget.revealedGoodies.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final goodie = entry.value;
                               final ui.Image? img = GoodiesImageService.getImage(goodie.id);
                               return GestureDetector(
-                                onTap: () => _showGoodieFullscreen(context, goodie, img),
+                                onTap: () => _openGoodiesCarousel(context, index),
                                 child: Container(
                                     width: 48,
                                     height: 48,

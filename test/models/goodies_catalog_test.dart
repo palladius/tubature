@@ -81,5 +81,18 @@ void main() {
       expect(CauldronGoodiesCatalog.all.length >= 10, true,
           reason: 'Need enough variety for large grids');
     });
+
+    // WHY: Goodies with custom audio must have non-empty audio paths ending in .mp3/.ogg
+    test('goodies with audio have valid audio paths', () {
+      final goodiesWithAudio = CauldronGoodiesCatalog.all.where((g) => g.hasAudio).toList();
+      expect(goodiesWithAudio.isNotEmpty, true);
+      for (final g in goodiesWithAudio) {
+        expect(g.audioPath != null && g.audioPath!.isNotEmpty, true,
+            reason: '${g.id} audioPath must not be empty');
+        expect(
+            g.audioPath!.endsWith('.mp3') || g.audioPath!.endsWith('.ogg'), true,
+            reason: '${g.id} audioPath must end in .mp3 or .ogg');
+      }
+    });
   });
 }

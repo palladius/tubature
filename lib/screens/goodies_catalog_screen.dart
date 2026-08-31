@@ -1,8 +1,8 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../models/cauldron_goodie.dart';
 import '../models/cauldron_goodies_catalog.dart';
 import '../services/goodies_image_service.dart';
+import '../widgets/goodie_carousel_dialog.dart';
 
 /// Full-page gallery of all goodies with rarity, probability, and clickable
 /// full-size previews. DEBUG only — accessed from localhost Debug Panel.
@@ -70,7 +70,11 @@ class _GoodiesCatalogScreenState extends State<GoodiesCatalogScreen> {
                 final rarityColor = _rarityColor(goodie.rarity);
 
                 return GestureDetector(
-                  onTap: () => _showFullscreen(context, goodie, img),
+                  onTap: () => GoodieCarouselDialog.show(
+                    context,
+                    goodies: allGoodies,
+                    initialIndex: index,
+                  ),
                   child: Column(
                     children: [
                       Expanded(
@@ -136,82 +140,5 @@ class _GoodiesCatalogScreenState extends State<GoodiesCatalogScreen> {
 
   /// MTG-style rarity colors: Black (common), Silver (uncommon), Gold (rare), Bronze (mythic)
   Color _rarityColor(GoodieRarity rarity) => rarity.color;
-
-  void _showFullscreen(
-      BuildContext context, CauldronGoodie goodie, ui.Image? img) {
-    final rarityColor = _rarityColor(goodie.rarity);
-    showDialog(
-      context: context,
-      barrierColor: Colors.black87,
-      builder: (ctx) => GestureDetector(
-        onTap: () => Navigator.of(ctx).pop(),
-        child: Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 260,
-                height: 260,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: rarityColor,
-                    width: goodie.isLegendary ? 4 : 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: rarityColor.withValues(alpha: 0.5),
-                      blurRadius: 24,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: img != null
-                      ? RawImage(image: img, fit: BoxFit.cover)
-                      : Center(
-                          child: Text(goodie.emoji,
-                              style: const TextStyle(fontSize: 80)),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                goodie.displayName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: rarityColor.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  goodie.rarity.name.toUpperCase(),
-                  style: TextStyle(
-                    color: rarityColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Tap to close',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
+

@@ -54,10 +54,10 @@ class CauldronGoodiesCatalog {
     CauldronGoodie(
       id: 'maialino',
       assetPath: 'assets/goodies/maialino.png',
-      displayName: 'Mayàl!',
+      displayName: 'Majjal!',
       emoji: '🐷',
       rarity: GoodieRarity.common,
-      audioPath: 'assets/sounds/good-quality/maial_basso_5st_fast_b.mp3',
+      audioPath: 'assets/sounds/good-quality/majjal.mp3',
     ),
     CauldronGoodie(
       id: 'e-le-fante',
@@ -164,7 +164,7 @@ class CauldronGoodiesCatalog {
       displayName: 'Motorino nel Canale',
       emoji: '🛵',
       rarity: GoodieRarity.rare,
-      // audioPath: TODO — Ale will record a custom clip for this!
+      audioPath: 'assets/sounds/good-quality/magnat_al_canal.mp3',
     ),
   ];
 
