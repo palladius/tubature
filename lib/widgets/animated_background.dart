@@ -92,8 +92,6 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
   Future<void> _initVideo() async {
     if (_isStopped) return;
     final asset = _videoAsset;
-    // Each orientation video plays at most once during the app session
-    if (_playedAssets.contains(asset)) return;
     _currentVideoAsset = asset;
 
     try {
@@ -116,7 +114,6 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
             (controller.value.duration > Duration.zero &&
              controller.value.position >= controller.value.duration)) {
           controller.pause();
-          controller.setVolume(0.0);
         }
         setState(() {});
       });
@@ -125,23 +122,31 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
         _isVideoReady = true;
       });
 
-      // Schedule the animated entrance after initial delay (2 seconds)
-      _delayTimer = Timer(widget.initialDelay, () async {
-        if (!mounted || !_isVideoReady || _controller == null || _isStopped) return;
-        _playedAssets.add(asset);
-        try {
-          await _controller!.play();
-        } catch (e) {
-          // If browser blocks unmuted autoplay, mute and play
-          if (kDebugMode) {
-            print('Autoplay with sound restricted, falling back to muted: $e');
+      final hasAlreadyPlayed = _playedAssets.contains(asset);
+      if (!hasAlreadyPlayed) {
+        // Schedule the animated entrance after initial delay (2 seconds)
+        _delayTimer = Timer(widget.initialDelay, () async {
+          if (!mounted || !_isVideoReady || _controller == null || _isStopped) return;
+          _playedAssets.add(asset);
+          try {
+            await _controller!.setVolume(1.0);
+            await _controller!.play();
+          } catch (e) {
+            // If browser blocks unmuted autoplay, mute and play visually
+            if (kDebugMode) {
+              print('Autoplay with sound restricted, falling back to muted: $e');
+            }
+            await _controller?.setVolume(0.0);
+            await _controller?.play();
           }
-          await _controller?.setVolume(0.0);
-          await _controller?.play();
-        }
-        _fadeController.forward();
-        widget.onAnimationStarted?.call();
-      });
+          _fadeController.forward();
+          widget.onAnimationStarted?.call();
+        });
+      } else {
+        // Already played once in this orientation during session: show frozen frame
+        _fadeController.value = 1.0;
+        await _controller?.seekTo(_controller!.value.duration);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('AnimatedBackground video not loaded for $asset: $e');
@@ -199,7 +204,7 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
           ),
 
         // 3. Audio Toggle Indicator (Top-Left corner)
-        if (_controller != null && _isVideoReady && !_isStopped && !_controller!.value.isCompleted)
+        if (_controller != null && _isVideoReady && !_isStopped)
           Positioned(
             top: 16,
             left: 16,
@@ -207,46 +212,82 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async {
                     if (_controller == null) return;
-                    final targetVolume = isMuted ? 1.0 : 0.0;
-                    _controller!.setVolume(targetVolume).then((_) {
-                      if (mounted) setState(() {});
-                    });
+                    final isEnded = _controller!.value.isCompleted ||
+                        (_controller!.value.duration > Duration.zero &&
+                            _controller!.value.position >= _controller!.value.duration);
+
+                    if (isEnded) {
+                      // Replay from beginning with full sound
+                      await _controller!.setVolume(1.0);
+                      await _controller!.seekTo(Duration.zero);
+                      await _controller!.play();
+                    } else if (isMuted) {
+                      // Unmute and ensure playing
+                      await _controller!.setVolume(1.0);
+                      if (!_controller!.value.isPlaying) {
+                        await _controller!.play();
+                      }
+                    } else {
+                      // Mute
+                      await _controller!.setVolume(0.0);
+                    }
+                    if (mounted) setState(() {});
                   },
                   borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isMuted
-                            ? Colors.white.withValues(alpha: 0.3)
-                            : const Color(0xFFFFD54F),
-                        width: 1.2,
+                  child: Builder(builder: (context) {
+                    final isEnded = _controller!.value.isCompleted ||
+                        (_controller!.value.duration > Duration.zero &&
+                            _controller!.value.position >= _controller!.value.duration);
+
+                    final IconData icon;
+                    final String label;
+                    final Color color;
+
+                    if (isEnded) {
+                      icon = Icons.replay_rounded;
+                      label = 'Replay Video 🔊';
+                      color = const Color(0xFFFFD54F);
+                    } else if (isMuted) {
+                      icon = Icons.volume_off_rounded;
+                      label = 'Muted 🔇 (Tap for Sound 🔊)';
+                      color = const Color(0xFFFF9800);
+                    } else {
+                      icon = Icons.volume_up_rounded;
+                      label = 'Sound On 🔊 (Tap to Mute)';
+                      color = const Color(0xFFFFD54F);
+                    }
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isMuted
+                              ? const Color(0xFFFF9800)
+                              : const Color(0xFFFFD54F),
+                          width: 1.4,
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                          size: 16,
-                          color: isMuted ? Colors.white70 : const Color(0xFFFFD54F),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isMuted ? 'Muted 🔇 (Tap for Sound)' : 'Sound On 🔊 (Tap to Mute)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isMuted ? Colors.white70 : const Color(0xFFFFD54F),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon, size: 16, color: color),
+                          const SizedBox(width: 6),
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
               ),
             ),
