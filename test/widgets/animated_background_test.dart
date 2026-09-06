@@ -41,4 +41,24 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
   });
+
+  testWidgets('AnimatedBackground stop() cancels playback cleanly', (tester) async {
+    final key = GlobalKey<AnimatedBackgroundState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AnimatedBackground(
+            key: key,
+            isLandscape: false,
+            initialDelay: const Duration(milliseconds: 500),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(AnimatedBackground), findsOneWidget);
+    key.currentState?.stop();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+  });
 }

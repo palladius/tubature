@@ -14,23 +14,38 @@ class AnimatedBackground extends StatefulWidget {
   const AnimatedBackground({
     super.key,
     required this.isLandscape,
-    this.initialDelay = const Duration(milliseconds: 2500),
+    this.initialDelay = const Duration(seconds: 2),
     this.fadeDuration = const Duration(milliseconds: 600),
     this.onAnimationStarted,
   });
 
   @override
-  State<AnimatedBackground> createState() => _AnimatedBackgroundState();
+  State<AnimatedBackground> createState() => AnimatedBackgroundState();
 }
 
-class _AnimatedBackgroundState extends State<AnimatedBackground>
+class AnimatedBackgroundState extends State<AnimatedBackground>
     with SingleTickerProviderStateMixin {
+  static final Set<String> _playedAssets = {};
+
   VideoPlayerController? _controller;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   Timer? _delayTimer;
   bool _isVideoReady = false;
+  bool _isStopped = false;
   String? _currentVideoAsset;
+
+  /// Stops any pending timer, pauses video playback, and mutes video audio.
+  void stop() {
+    _isStopped = true;
+    _delayTimer?.cancel();
+    _delayTimer = null;
+    if (_controller != null) {
+      _controller!.pause();
+      _controller!.setVolume(0.0);
+    }
+    if (mounted) setState(() {});
+  }
 
   String get _imageAsset => widget.isLandscape
       ? 'assets/images/home_background_wide.jpg'
@@ -75,7 +90,10 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   }
 
   Future<void> _initVideo() async {
+    if (_isStopped) return;
     final asset = _videoAsset;
+    // Each orientation video plays at most once during the app session
+    if (_playedAssets.contains(asset)) return;
     _currentVideoAsset = asset;
 
     try {
@@ -83,29 +101,38 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
       _controller = controller;
 
       await controller.initialize();
-      if (!mounted || _currentVideoAsset != asset) {
+      if (!mounted || _currentVideoAsset != asset || _isStopped) {
         controller.dispose();
         return;
       }
 
-      await controller.setLooping(true);
-      await controller.setVolume(1.0); // Enable video audio track
+      // Bugfix: Play video and audio once, freeze on final frame, never loop infinitely!
+      await controller.setLooping(false);
+      await controller.setVolume(1.0);
 
       controller.addListener(() {
-        if (mounted) setState(() {});
+        if (!mounted) return;
+        if (controller.value.isCompleted ||
+            (controller.value.duration > Duration.zero &&
+             controller.value.position >= controller.value.duration)) {
+          controller.pause();
+          controller.setVolume(0.0);
+        }
+        setState(() {});
       });
 
       setState(() {
         _isVideoReady = true;
       });
 
-      // Schedule the animated entrance after initial delay
+      // Schedule the animated entrance after initial delay (2 seconds)
       _delayTimer = Timer(widget.initialDelay, () async {
-        if (!mounted || !_isVideoReady || _controller == null) return;
+        if (!mounted || !_isVideoReady || _controller == null || _isStopped) return;
+        _playedAssets.add(asset);
         try {
           await _controller!.play();
         } catch (e) {
-          // If browser blocks unmuted autoplay, mute and play, then unmute on user interaction
+          // If browser blocks unmuted autoplay, mute and play
           if (kDebugMode) {
             print('Autoplay with sound restricted, falling back to muted: $e');
           }
@@ -116,7 +143,6 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
         widget.onAnimationStarted?.call();
       });
     } catch (e) {
-      // Graceful fallback to static image if video is not available or fails
       if (kDebugMode) {
         print('AnimatedBackground video not loaded for $asset: $e');
       }
@@ -173,7 +199,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
           ),
 
         // 3. Audio Toggle Indicator (Top-Left corner)
-        if (_controller != null && _isVideoReady)
+        if (_controller != null && _isVideoReady && !_isStopped && !_controller!.value.isCompleted)
           Positioned(
             top: 16,
             left: 16,

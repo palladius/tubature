@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.4 — 2026-09-06
+
+### Bugfix: Intro Video Audio Loop & Play Cutoff 🎬🔇 (Fixes #13)
+- **Single Playback Only**: Intro background video no longer loops audio infinitely (`setLooping(false)`). Plays once and freezes on the final frame without repeating.
+- **Orientation Awareness**: Video runs at most once per orientation (portrait and landscape) at startup.
+- **Shortened Delay**: Reduced initial animation delay to 2 seconds (down from 2.5s).
+- **Immediate Cutoff on Play / Navigation**: Video and audio instantly pause and mute whenever the user presses PLAY, Tutorial, or navigates away (`_stopBackgroundVideo()`, `RouteAware`).
+
 ## 2.11.3 — 2026-08-29
 
 ### Goodie Carousel & Ferrarese Audio Hookup 🎡🐷🛵

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../app.dart' show routeObserver;
 import '../models/level.dart';
 import '../version.dart';
 import '../widgets/about_dialog.dart';
@@ -26,7 +27,8 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
+  final GlobalKey<AnimatedBackgroundState> _backgroundKey = GlobalKey<AnimatedBackgroundState>();
   Difficulty? _selectedDifficulty;
   bool _isControlsMinimized = false;
   Timer? _autoExpandTimer;
@@ -39,9 +41,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute != null) {
+      routeObserver.subscribe(this, modalRoute);
+    }
+  }
+
+  @override
+  void didPushNext() {
+    // When navigating away to GameScreen or any other screen, immediately stop video and audio
+    _stopBackgroundVideo();
+  }
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _autoExpandTimer?.cancel();
     super.dispose();
+  }
+
+  void _stopBackgroundVideo() {
+    _backgroundKey.currentState?.stop();
   }
 
   void _onAnimationStarted() {
@@ -91,6 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           // 1. Animated Background Artwork (Wide or Portrait with dynamic Veo video transition)
           AnimatedBackground(
+            key: _backgroundKey,
             isLandscape: isLandscape,
             onAnimationStarted: _onAnimationStarted,
           ),
@@ -847,6 +870,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               title: const Text('✚ Cross Test Level'),
               subtitle: const Text('4×4 grid with guaranteed cross tile', style: TextStyle(fontSize: 11)),
               onTap: () {
+                _stopBackgroundVideo();
                 Navigator.of(ctx).pop();
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -868,6 +892,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showGoodiesCatalogDebug(BuildContext context) {
+    _stopBackgroundVideo();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const GoodiesCatalogScreen(),
@@ -900,6 +925,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _startPlay() {
+    _stopBackgroundVideo();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => GameScreen(
@@ -910,6 +936,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _startTutorial() {
+    _stopBackgroundVideo();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const GameScreen(
