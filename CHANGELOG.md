@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.5 — 2026-09-06
+
+### Smooth Cross-Fade to Pristine Artwork ✨🎨
+- **Seamless Outro Cross-Fade**: When the intro video ends, it now smoothly cross-dissolves back into the original, crisp, high-resolution illustration instead of freezing on the AI-generated final frame.
+- **Flawless Final Visual**: Avoids distorted AI artifacts on character faces and hands by transitioning back to the hand-crafted static background.
+- **Replay Polish**: Replaying smoothly fades the video back in and cross-fades back out at the end.
+
 ## 2.11.4 — 2026-09-06
 
 ### Bugfix: Intro Video Audio Loop & Play Cutoff 🎬🔇 (Fixes #13)

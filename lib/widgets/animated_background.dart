@@ -108,10 +108,25 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
 
       controller.addListener(() {
         if (!mounted) return;
+        final position = controller.value.position;
+        final duration = controller.value.duration;
+
+        // Smooth cross-fade transition back to the pristine original artwork in the last 1.2s
+        if (duration > const Duration(seconds: 3) &&
+            position >= duration - const Duration(milliseconds: 1200)) {
+          if (_fadeController.status != AnimationStatus.reverse &&
+              _fadeController.status != AnimationStatus.dismissed) {
+            _fadeController.reverse();
+          }
+        }
+
         if (controller.value.isCompleted ||
-            (controller.value.duration > Duration.zero &&
-             controller.value.position >= controller.value.duration)) {
+            (duration > Duration.zero && position >= duration)) {
           controller.pause();
+          if (_fadeController.status != AnimationStatus.dismissed &&
+              _fadeController.status != AnimationStatus.reverse) {
+            _fadeController.reverse();
+          }
         }
         setState(() {});
       });
@@ -209,15 +224,17 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
                             _controller!.value.position >= _controller!.value.duration);
 
                     if (isEnded) {
-                      // Replay from beginning with full sound
+                      // Replay from beginning with full sound and fade in
                       await _controller!.setVolume(1.0);
                       await _controller!.seekTo(Duration.zero);
                       await _controller!.play();
+                      _fadeController.forward();
                     } else if (isMuted) {
                       // Unmute and ensure playing
                       await _controller!.setVolume(1.0);
                       if (!_controller!.value.isPlaying) {
                         await _controller!.play();
+                        _fadeController.forward();
                       }
                     } else {
                       // Mute
