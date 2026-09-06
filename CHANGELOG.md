@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.6 — 2026-09-06
+
+### Full-Screen Video Fit & Video Integrity Tests 🎬🧪
+- **Full-Screen Responsive Video (`BoxFit.cover`)**: Replaced fixed 16:9 container with adaptive `LayoutBuilder` + `OverflowBox` calculation. Eliminates all vertical black borders / letterboxing on mobile and portrait browsers.
+- **Web Video CSS**: Added CSS `object-fit: cover` to ensure HTML5 `<video>` element on web fills the complete viewport.
+- **Automated Video & Audio Unit Test**: Added `test/widgets/background_videos_audio_test.dart` asserting MP4 headers, >1MB size, and stereo AAC audio streams with verified English (landscape) and Italian (portrait) spoken dialogue.
+
 ## 2.11.5 — 2026-09-06
 
 ### Smooth Cross-Fade to Pristine Artwork ✨🎨

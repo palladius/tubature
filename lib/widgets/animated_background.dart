@@ -188,23 +188,38 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
           ),
         ),
 
-        // 2. Video Player with smooth FadeTransition
+        // 2. Video Player with smooth FadeTransition (Full-screen Cover)
         if (_controller != null && _isVideoReady)
           FadeTransition(
             opacity: _fadeAnimation,
-            child: SizedBox.expand(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: _controller!.value.size.width > 0
-                      ? _controller!.value.size.width
-                      : 1920,
-                  height: _controller!.value.size.height > 0
-                      ? _controller!.value.size.height
-                      : 1080,
-                  child: VideoPlayer(_controller!),
-                ),
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final screenW = constraints.maxWidth;
+                final screenH = constraints.maxHeight;
+                final videoAspect = _controller!.value.isInitialized && _controller!.value.aspectRatio > 0
+                    ? _controller!.value.aspectRatio
+                    : (widget.isLandscape ? 16 / 9 : 3 / 4);
+
+                // Calculate exact cover dimensions matching video aspect ratio
+                double w = screenW;
+                double h = screenW / videoAspect;
+                if (h < screenH) {
+                  h = screenH;
+                  w = screenH * videoAspect;
+                }
+
+                return ClipRect(
+                  child: OverflowBox(
+                    maxWidth: double.infinity,
+                    maxHeight: double.infinity,
+                    child: SizedBox(
+                      width: w,
+                      height: h,
+                      child: VideoPlayer(_controller!),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
