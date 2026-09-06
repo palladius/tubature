@@ -107,14 +107,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Swipe Left (drag right-to-left) -> Next
-      await tester.drag(find.text('Majjal!'), const Offset(-300, 0));
+      await tester.fling(find.text('Majjal!'), const Offset(-300, 0), 1000);
       await tester.pumpAndSettle();
 
       expect(find.text('Motorino nel Canale'), findsOneWidget);
       expect(find.text('2 / 3'), findsOneWidget);
 
       // Swipe Right (drag left-to-right) -> Previous
-      await tester.drag(find.text('Motorino nel Canale'), const Offset(300, 0));
+      await tester.fling(find.text('Motorino nel Canale'), const Offset(300, 0), 1000);
       await tester.pumpAndSettle();
 
       expect(find.text('Majjal!'), findsOneWidget);
@@ -148,7 +148,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('catalog entries for Majjal and Motorino have sound paths', () {
+    test('catalog entries for Majjal and Motorino have sound paths', () {
       final majjal = CauldronGoodiesCatalog.all.firstWhere((g) => g.id == 'maialino');
       expect(majjal.displayName, 'Majjal!');
       expect(majjal.audioPath, 'assets/sounds/good-quality/majjal.mp3');

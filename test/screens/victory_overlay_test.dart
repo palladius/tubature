@@ -201,12 +201,11 @@ void main() {
       // Find goodie circle with emoji
       expect(find.text(goodies.first.emoji), findsOneWidget);
       await tester.tap(find.text(goodies.first.emoji));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Should open the carousel dialog displaying the goodie name and counter
       expect(find.text(goodies.first.displayName), findsOneWidget);
       expect(find.text('1 / 2'), findsOneWidget);
-    });
     });
   });
 }
