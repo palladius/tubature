@@ -25,8 +25,6 @@ class AnimatedBackground extends StatefulWidget {
 
 class AnimatedBackgroundState extends State<AnimatedBackground>
     with SingleTickerProviderStateMixin {
-  static final Set<String> _playedAssets = {};
-
   VideoPlayerController? _controller;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -122,31 +120,23 @@ class AnimatedBackgroundState extends State<AnimatedBackground>
         _isVideoReady = true;
       });
 
-      final hasAlreadyPlayed = _playedAssets.contains(asset);
-      if (!hasAlreadyPlayed) {
-        // Schedule the animated entrance after initial delay (2 seconds)
-        _delayTimer = Timer(widget.initialDelay, () async {
-          if (!mounted || !_isVideoReady || _controller == null || _isStopped) return;
-          _playedAssets.add(asset);
-          try {
-            await _controller!.setVolume(1.0);
-            await _controller!.play();
-          } catch (e) {
-            // If browser blocks unmuted autoplay, mute and play visually
-            if (kDebugMode) {
-              print('Autoplay with sound restricted, falling back to muted: $e');
-            }
-            await _controller?.setVolume(0.0);
-            await _controller?.play();
+      // Schedule the animated entrance after initial delay (2 seconds)
+      _delayTimer = Timer(widget.initialDelay, () async {
+        if (!mounted || !_isVideoReady || _controller == null || _isStopped) return;
+        try {
+          await _controller!.setVolume(1.0);
+          await _controller!.play();
+        } catch (e) {
+          // If browser blocks unmuted autoplay, mute and play visually
+          if (kDebugMode) {
+            print('Autoplay with sound restricted, falling back to muted: $e');
           }
-          _fadeController.forward();
-          widget.onAnimationStarted?.call();
-        });
-      } else {
-        // Already played once in this orientation during session: show frozen frame
-        _fadeController.value = 1.0;
-        await _controller?.seekTo(_controller!.value.duration);
-      }
+          await _controller?.setVolume(0.0);
+          await _controller?.play();
+        }
+        _fadeController.forward();
+        widget.onAnimationStarted?.call();
+      });
     } catch (e) {
       if (kDebugMode) {
         print('AnimatedBackground video not loaded for $asset: $e');
