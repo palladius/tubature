@@ -2,6 +2,11 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.7 — 2026-09-07
+
+### Build Packaging & Asset Integrity Verification 🧪📦
+- **Automated Bundle Integrity Tests**: Added `test/build_bundle_assets_test.dart` asserting that all declared media (videos, sound effects, voices, images) exist, have non-zero size, and are properly bundled into `build/web/` and `AssetManifest.bin.json`.
+
 ## 2.11.6 — 2026-09-06
 
 ### Full-Screen Video Fit & Video Integrity Tests 🎬🧪
