@@ -77,6 +77,12 @@ class _VictoryOverlayState extends State<VictoryOverlay>
     )..repeat();
 
     _fadeController.forward();
+
+    if (widget.revealedGoodies.isNotEmpty) {
+      GoodiesImageService.preloadImages(widget.revealedGoodies).then((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   @override
@@ -199,6 +205,7 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                               final goodie = entry.value;
                               final ui.Image? img = GoodiesImageService.getImage(goodie.id);
                               return GestureDetector(
+                                key: ValueKey('goodie_badge_${goodie.id}'),
                                 onTap: () => _openGoodiesCarousel(context, index),
                                 child: Container(
                                     width: 48,
@@ -223,7 +230,12 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                                     child: ClipOval(
                                       child: img != null
                                           ? RawImage(image: img, fit: BoxFit.cover)
-                                          : Center(child: Text(goodie.emoji, style: const TextStyle(fontSize: 20))),
+                                          : Image.asset(
+                                              goodie.assetPath,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (ctx, err, stack) =>
+                                                  Center(child: Text(goodie.emoji, style: const TextStyle(fontSize: 20))),
+                                            ),
                                     ),
                                 ),
                               );

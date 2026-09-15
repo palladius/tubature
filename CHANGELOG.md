@@ -2,6 +2,14 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.8 — 2026-09-15
+
+### VictoryOverlay Badge Fallback & Asset Integrity Verification 🖼️🧪 (Fixes #8)
+- **Robust Goodie Badge Rendering**: In `VictoryOverlay`, badge rendering now falls back to `Image.asset` with error builder before defaulting to emoji, ensuring assets render asynchronously even if not yet cached.
+- **Asynchronous Goodies Preloading**: `VictoryOverlay` preloads revealed goodies in `initState` and triggers `setState` once decoded into `GoodiesImageService`.
+- **RootBundle & Codec Unit Test**: Added test in `test/models/goodies_images_test.dart` asserting all 22 goodies in `CauldronGoodiesCatalog.all` load via `rootBundle` and decode via `ui.instantiateImageCodec`.
+- **Comprehensive Badges Widget Test**: Added widget test asserting that when all 22 goodies are unlocked, all badges display images and 0 goodies fall back to emojis.
+
 ## 2.11.7 — 2026-09-07
 
 ### Build Packaging & Asset Integrity Verification 🧪📦

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tubature/models/cauldron_goodies_catalog.dart';
 
@@ -60,6 +62,21 @@ void main() {
       final paths = CauldronGoodiesCatalog.all.map((g) => g.assetPath).toList();
       expect(paths.toSet().length, equals(paths.length),
           reason: 'Duplicate asset paths found!');
+    });
+
+    test('all goodies can be loaded via rootBundle and decoded by ui.instantiateImageCodec', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      for (final goodie in CauldronGoodiesCatalog.all) {
+        final data = await rootBundle.load(goodie.assetPath);
+        expect(data.lengthInBytes, greaterThan(0),
+            reason: 'Data empty for ${goodie.assetPath}');
+        final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+        final frame = await codec.getNextFrame();
+        expect(frame.image, isNotNull,
+            reason: 'Failed to decode image frame for ${goodie.assetPath}');
+        expect(frame.image.width, greaterThan(0));
+        expect(frame.image.height, greaterThan(0));
+      }
     });
   });
 }

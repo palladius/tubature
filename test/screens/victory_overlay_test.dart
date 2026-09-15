@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tubature/models/cauldron_goodies_catalog.dart';
 import 'package:tubature/screens/victory_overlay.dart';
+import 'package:tubature/services/goodies_image_service.dart';
 
 void main() {
   group('VictoryOverlay', () {
@@ -194,18 +195,54 @@ void main() {
 
       expect(find.text('🧪 Discovered:'), findsOneWidget);
 
-      // Tap first revealed goodie
-      final goodieFinder = find.byType(GestureDetector);
-      expect(goodieFinder, findsWidgets);
-
-      // Find goodie circle with emoji
-      expect(find.text(goodies.first.emoji), findsOneWidget);
-      await tester.tap(find.text(goodies.first.emoji));
+      // Find goodie circle by key
+      final firstBadge = find.byKey(ValueKey('goodie_badge_${goodies.first.id}'));
+      expect(firstBadge, findsOneWidget);
+      await tester.tap(firstBadge);
       await tester.pump(const Duration(milliseconds: 300));
 
       // Should open the carousel dialog displaying the goodie name and counter
       expect(find.text(goodies.first.displayName), findsOneWidget);
       expect(find.text('1 / 2'), findsOneWidget);
+    });
+
+    testWidgets('renders all goodies without any broken fallback emoji',
+        (WidgetTester tester) async {
+      final allGoodies = CauldronGoodiesCatalog.all;
+      await tester.runAsync(() async {
+        await GoodiesImageService.preloadImages(allGoodies);
+      });
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: VictoryOverlay(
+            moveCount: 42,
+            revealedGoodies: allGoodies,
+            onNextLevel: () {},
+            onPlayAgain: () {},
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text('🧪 Discovered:'), findsOneWidget);
+
+      // Verify each badge is rendered and NO goodie falls back to emoji text
+      for (final goodie in allGoodies) {
+        expect(
+          find.byKey(ValueKey('goodie_badge_${goodie.id}')),
+          findsOneWidget,
+          reason: 'Badge missing for ${goodie.id}',
+        );
+        expect(
+          find.text(goodie.emoji),
+          findsNothing,
+          reason: 'Goodie ${goodie.id} fell back to emoji (${goodie.emoji}) instead of image!',
+        );
+      }
+
+      // Verify all RawImages are rendered
+      expect(find.byType(RawImage), findsNWidgets(allGoodies.length));
     });
   });
 }
