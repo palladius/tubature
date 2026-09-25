@@ -2,6 +2,12 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.9 — 2026-09-25
+
+### Custom App & Favicon Icons (Schmoogle! 🐉✨)
+- **Goodbye Blue Flutter Icon**: Replaced default Flutter placeholder icons and favicons (`Icon-192`, `Icon-512`, `Icon-maskable`, `favicon.png`, `favicon.ico`) with custom high-res Schmoogle artwork.
+- **Homescreen / PWA Polish**: Adding Tubature to the homescreen on iPad/iPhone/Android now shows the legendary dragon creature instead of the standard Flutter logo.
+
 ## 2.11.8 — 2026-09-25
 
 ### PWA Offline Support Fix ✈️📱
