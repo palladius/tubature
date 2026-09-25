@@ -2,6 +2,18 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.9 — 2026-09-25
+
+### Custom App & Favicon Icons (Schmoogle! 🐉✨)
+- **Goodbye Blue Flutter Icon**: Replaced default Flutter placeholder icons and favicons (`Icon-192`, `Icon-512`, `Icon-maskable`, `favicon.png`, `favicon.ico`) with custom high-res Schmoogle artwork.
+- **Homescreen / PWA Polish**: Adding Tubature to the homescreen on iPad/iPhone/Android now shows the legendary dragon creature instead of the standard Flutter logo.
+
+## 2.11.8 — 2026-09-25
+
+### PWA Offline Support Fix ✈️📱
+- **Enabled Offline Caching**: Removed aggressive service worker unregistration script from `web/index.html` that previously disabled PWA offline caching.
+- **Service Worker Lifecycle**: Restored Flutter's standard service worker caching mechanism (`flutter_service_worker.js`) so that installed PWAs (iPad, Chrome, Safari, Android) cache the app shell, engine, and media assets for offline play (e.g. on airplanes/airports).
+
 ## 2.11.7 — 2026-09-07
 
 ### Build Packaging & Asset Integrity Verification 🧪📦
