@@ -61,25 +61,7 @@
   <title>Tubature — The Dungeon Plumber 🚰🐉💎</title>
   <link rel="manifest" href="manifest.json">
 </head>
-  <script>
-    // Unconditionally clear outdated service worker caches to ensure fresh code on every update
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (var name of names) {
-          if (!name.includes('2.4.0')) {
-            caches.delete(name);
-          }
-        }
-      });
-    }
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (var registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-  </script>
+
   <script>
     window._tubatureAudio = {
       ctx: null,
@@ -274,6 +256,6 @@
       }
     };
   </script>
-  <script src="flutter_bootstrap.js?v=2.4.0" async></script>
+  <script src="flutter_bootstrap.js?v=2.11.8" async></script>
 </body>
 </html>
