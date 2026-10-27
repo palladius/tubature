@@ -2,6 +2,11 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.11.9 — 2026-10-27
+
+### Interactive 80s Retro ASCII Terminal Game Mode 🕹️📟 (Fixes #2)
+- **Playable CLI Mode (`tool/cli_play.dart`)**: Added an interactive 80s retro ASCII/ANSI terminal game mode allowing full keyboard gameplay (`WASD`/Arrow keys, Space to connect/draw pipes, level selection, and live HUD) directly in the terminal.
+
 ## 2.11.8 — 2026-09-15
 
 ### VictoryOverlay Badge Fallback & Asset Integrity Verification 🖼️🧪 (Fixes #8)
