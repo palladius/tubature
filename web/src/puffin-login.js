@@ -246,6 +246,7 @@ export const I18N = Object.freeze({
 
 export const STORAGE_KEYS = Object.freeze({
   AUTH: 'puffin_auth_v2',
+  LOGINS: 'puffin_logins_v1',
   LANG: 'puffin_lang_v1',
   SCORES: 'puffin_scores_v2',
   DELETED_SCORES: 'puffin_deleted_scores_v1',
@@ -575,8 +576,14 @@ export function validateAndNormalizeScorePayload(raw = {}, fallbackTelemetry = {
 
   const hostname = String(raw.hostname ?? fallbackTelemetry.hostname ?? '').trim();
   const ipAddress =
-    String(raw.ip_address ?? raw.ipAddress ?? fallbackTelemetry.ipAddress ?? '').trim() ||
-    '127.0.0.1';
+    String(
+      raw.source_ip ??
+        raw.ip_address ??
+        raw.ipAddress ??
+        fallbackTelemetry.source_ip ??
+        fallbackTelemetry.ipAddress ??
+        ''
+    ).trim() || '127.0.0.1';
   const device = String(raw.device ?? fallbackTelemetry.device ?? 'Browser').trim();
 
   const summaryText =
@@ -593,6 +600,7 @@ export function validateAndNormalizeScorePayload(raw = {}, fallbackTelemetry = {
     player_id: resolvedPlayerId,
     score,
     hostname,
+    source_ip: ipAddress,
     ip_address: ipAddress,
     device,
     summary_text: summaryText,
@@ -612,6 +620,57 @@ export function validateAndNormalizeScorePayload(raw = {}, fallbackTelemetry = {
     ipAddress,
     summaryText,
     metadata: extra,
+  };
+}
+
+export function validateAndNormalizeLoginPayload(raw = {}, fallbackTelemetry = {}) {
+  const appId =
+    String(raw.app_id || raw.appId || raw.game_id || raw.gameId || fallbackTelemetry.appId || '').trim() ||
+    'puffin-login';
+  const resolvedPlayerId = normalizeProfileId(
+    raw.player_id ?? raw.playerId ?? raw.userId ?? raw.id ?? 'guest',
+    false
+  );
+  const profile = getProfileById(resolvedPlayerId);
+
+  const nowIso = new Date().toISOString();
+  const loggedAtRaw = raw.logged_at || raw.loggedAt || raw.timestamp || nowIso;
+  const loggedMs = Number.isNaN(Date.parse(loggedAtRaw)) ? Date.now() : Date.parse(loggedAtRaw);
+  const loggedAt = new Date(loggedMs).toISOString();
+
+  const hostname = String(raw.hostname ?? fallbackTelemetry.hostname ?? '').trim();
+  const ipAddress =
+    String(
+      raw.source_ip ??
+        raw.ip_address ??
+        raw.ipAddress ??
+        fallbackTelemetry.source_ip ??
+        fallbackTelemetry.ipAddress ??
+        ''
+    ).trim() || '127.0.0.1';
+  const device = String(raw.device ?? fallbackTelemetry.device ?? 'Browser').trim();
+  const authMethod = String(raw.auth_method || raw.authMethod || profile.authType || 'none').trim();
+
+  return {
+    id: raw.id || `lgn_${loggedMs}_${resolvedPlayerId}`,
+    player_id: resolvedPlayerId,
+    userId: resolvedPlayerId,
+    app_id: appId,
+    game_id: appId,
+    appId,
+    logged_at: loggedAt,
+    loggedAt,
+    source_ip: ipAddress,
+    ip_address: ipAddress,
+    ipAddress,
+    hostname,
+    device,
+    auth_method: authMethod,
+    displayName: profile.displayName,
+    shortName: profile.shortName,
+    role: profile.role,
+    colorHex: profile.colorHex,
+    avatar: profile.avatar,
   };
 }
 
@@ -3042,9 +3101,6 @@ export const PUFFIN_LOGIN_RING_DEFAULT = [
     supports_puffin_login: true,
     status: 'live',
   },
-];
-
-export const PUFFIN_LOGIN_RING_CANDIDATES = [
   {
     id: 'carlesso-fotoquad',
     puffin_game_id: 'carlesso-fotoquad',
@@ -3054,9 +3110,24 @@ export const PUFFIN_LOGIN_RING_CANDIDATES = [
     play_url: 'https://palladius.github.io/carlesso-fotoquad/',
     repo_url: 'https://github.com/palladius/carlesso-fotoquad',
     screenshot: 'https://palladius.github.io/vetrina/assets/screenshots/carlesso-fotoquad.jpg',
-    supports_puffin_login: false,
-    status: 'candidate',
+    supports_puffin_login: true,
+    status: 'live',
   },
+  {
+    id: 'tribecca',
+    puffin_game_id: 'tribecca',
+    title: '🇮🇹♟️🔺 TriBecca: Scacchi 3D a 3 Giocatori',
+    shortTitle: 'TriBecca',
+    emoji: '♟️',
+    play_url: 'https://palladius.github.io/tribecca/',
+    repo_url: 'https://github.com/palladius/tribecca',
+    screenshot: 'https://palladius.github.io/vetrina/assets/screenshots/tribecca.png',
+    supports_puffin_login: true,
+    status: 'live',
+  },
+];
+
+export const PUFFIN_LOGIN_RING_CANDIDATES = [
   {
     id: 'family-mahjong-3d',
     puffin_game_id: 'family-mahjong-3d',
