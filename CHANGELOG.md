@@ -2,6 +2,13 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.12.0 — 2026-11-07
+
+### PuffinLogin, Cloud Firestore Hall of Fame & Puffin Login Ring 🐧🔥💍
+- **7-Hero PuffinLogin Gate (`<puffin-login>`)**: Integrated `src/puffin-login.js` (`v1.6.1`) with the 7 family profiles (`riccardo`, `kate`, `ale`, `seby`, `lucilla`, `guest`, and UAT `<tt>bot</tt>`), 4-digit kids PIN pad, Veo 3.1 animated portraits, and `3× × 3×` (`174×174px`) selected hero spotlight.
+- **Automatic Level-Victory Score Submission to Cloud Firestore (`ror-goldie` / `puffin-login`)**: Bridged `_exportGridToJs()` (`window._tubatureGrid`) so solving any dungeon level automatically computes the score (by difficulty, grid size, and move efficiency), persists it to Cloud Firestore (`game_id: "tubature"`), and reveals the Top-10 Hall of Fame (`<puffin-leaderboard filter-game="tubature">`).
+- **Puffin Login Ring (`ring.html` & `<puffin-ring>`)**: Added `web/ring.html` and registered `tubature` (`supports_puffin_login: true`) in the GeoCities-style **Puffin Login Ring** alongside `demo-snake`.
+
 ## 2.11.9 — 2026-10-27
 
 ### Interactive 80s Retro ASCII Terminal Game Mode 🕹️📟 (Fixes #2)

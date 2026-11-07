@@ -329,6 +329,9 @@ class GameNotifier extends Notifier<GameState> {
       'connectedCount': connectedCount,
       'totalTiles': totalTiles,
       'hasSolution': solvedGrid != null,
+      'difficulty': state.difficultyLabel,
+      'levelNumber': state.currentLevelNumber,
+      'levelsCompleted': state.levelsCompleted,
     });
 
     _setTubatureGrid(data);
