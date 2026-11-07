@@ -3039,8 +3039,8 @@ export const PUFFIN_LOGIN_RING_DEFAULT = [
     play_url: 'https://palladius.github.io/kids-jigsaw-puzzle/',
     repo_url: 'https://github.com/palladius/kids-jigsaw-puzzle',
     screenshot: 'https://palladius.github.io/vetrina/assets/screenshots/kids-jigsaw-puzzle.png',
-    supports_puffin_login: false,
-    status: 'upcoming',
+    supports_puffin_login: true,
+    status: 'live',
   },
 ];
 
