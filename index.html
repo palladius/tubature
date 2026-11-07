@@ -61,7 +61,25 @@
   <title>Tubature — The Dungeon Plumber 🚰🐉💎</title>
   <link rel="manifest" href="manifest.json">
 </head>
-
+  <script>
+    // Unconditionally clear outdated service worker caches to ensure fresh code on every update
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var name of names) {
+          if (!name.includes('2.4.0')) {
+            caches.delete(name);
+          }
+        }
+      });
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
   <script>
     window._tubatureAudio = {
       ctx: null,
@@ -256,6 +274,194 @@
       }
     };
   </script>
-  <script src="flutter_bootstrap.js?v=2.11.8" async></script>
+
+  <!-- 🐧🔥💍 PuffinLogin HUD, Hall of Fame & Puffin Login Ring Bridge (v2.12.0) -->
+  <style>
+    #tubature-puffin-hud {
+      position: fixed;
+      top: 10px;
+      right: 12px;
+      z-index: 99990;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: 'Nunito', 'Inter', system-ui, -apple-system, sans-serif;
+      pointer-events: auto;
+    }
+    .tubature-hud-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.34rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #fde047;
+      border: 1.5px solid rgba(250, 204, 21, 0.55);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .tubature-hud-pill:hover {
+      transform: scale(1.05);
+      background: rgba(30, 41, 59, 0.98);
+      color: #fff;
+    }
+    #hof-section {
+      position: fixed;
+      inset: 0;
+      z-index: 99995;
+      background: rgba(7, 10, 22, 0.82);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      font-family: 'Nunito', 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    #hof-section[hidden] {
+      display: none !important;
+    }
+    .tubature-hof-card {
+      width: min(100%, 560px);
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #13182d;
+      border: 2px solid rgba(250, 204, 21, 0.55);
+      border-radius: 1.35rem;
+      padding: 1rem 1.15rem;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.85);
+      color: #f8fafc;
+    }
+    .tubature-hof-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .tubature-hof-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fde047;
+    }
+    .tubature-hof-close {
+      cursor: pointer;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #fff;
+      border: 1px solid #4ade80;
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+  </style>
+
+  <div id="tubature-puffin-hud">
+    <a class="tubature-hud-pill" href="./ring.html" title="Open the Puffin Login Ring of Fire!">🔥💍 Ring</a>
+    <button type="button" id="tubature-hof-toggle-btn" class="tubature-hud-pill" title="Show Tubature Hall of Fame">🏆 Hall of Fame</button>
+    <puffin-login id="puffin-widget" app-id="tubature" require-login="true"></puffin-login>
+  </div>
+
+  <section id="hof-section" hidden>
+    <div class="tubature-hof-card">
+      <div class="tubature-hof-header">
+        <h2>🚰🏆 Tubature — Hall of Fame</h2>
+        <button type="button" id="tubature-hof-close-btn" class="tubature-hof-close">🐉 Back to Game ✕</button>
+      </div>
+      <puffin-leaderboard id="tubature-lb" filter-game="tubature"></puffin-leaderboard>
+    </div>
+  </section>
+
+  <script type="module">
+    import { PuffinLogin } from './src/puffin-login.js';
+
+    const hofSection = document.getElementById('hof-section');
+    const hofToggleBtn = document.getElementById('tubature-hof-toggle-btn');
+    const hofCloseBtn = document.getElementById('tubature-hof-close-btn');
+
+    if (hofToggleBtn && hofSection) {
+      hofToggleBtn.addEventListener('click', () => {
+        hofSection.hidden = !hofSection.hidden;
+      });
+    }
+    if (hofCloseBtn && hofSection) {
+      hofCloseBtn.addEventListener('click', () => {
+        hofSection.hidden = true;
+      });
+    }
+    if (hofSection) {
+      hofSection.addEventListener('click', (e) => {
+        if (e.target === hofSection) hofSection.hidden = true;
+      });
+    }
+
+    // Intercept window._tubatureGrid exported by Flutter's GameNotifier._exportGridToJs()
+    let _rawTubatureGrid = window._tubatureGrid || null;
+    let _wasComplete = false;
+    let _levelStartedAtIso = new Date().toISOString();
+
+    function handleTubatureGridUpdate(jsonStr) {
+      if (!jsonStr || typeof jsonStr !== 'string') return;
+      try {
+        const state = JSON.parse(jsonStr);
+        if (!state.isComplete && state.moveCount === 0) {
+          _wasComplete = false;
+          _levelStartedAtIso = PuffinLogin.startGameSession('tubature');
+          if (hofSection) hofSection.hidden = true;
+        } else if (state.isComplete && !_wasComplete) {
+          _wasComplete = true;
+          const diff = state.difficulty || 'Easy';
+          const baseScore = diff === 'Hard' ? 3500 : diff === 'Medium' ? 2200 : 1200;
+          const totalTiles = Number(state.totalTiles) || 25;
+          const moves = Number(state.moveCount) || 1;
+          const efficiencyBonus = Math.max(100, (totalTiles * 3 - moves) * 35);
+          const streakBonus = (Number(state.levelsCompleted) || 0) * 300;
+          const finalScore = baseScore + efficiencyBonus + streakBonus;
+          const gridDim = `${state.rows || 5}x${state.cols || 5}`;
+          const lvlNum = state.levelNumber || 1;
+
+          PuffinLogin.submitScore({
+            game_id: 'tubature',
+            score: finalScore,
+            started_at: _levelStartedAtIso,
+            ended_at: new Date().toISOString(),
+            summary_text: `Connected all ${totalTiles} dungeon conduits on Level #${lvlNum} (${diff}, ${gridDim}) in ${moves} moves!`,
+            extra: {
+              difficulty: diff,
+              level: lvlNum,
+              grid: gridDim,
+              moves,
+              total_tiles: totalTiles,
+            },
+          });
+
+          setTimeout(() => {
+            if (_wasComplete && hofSection) {
+              hofSection.hidden = false;
+            }
+          }, 3000);
+        } else if (!state.isComplete) {
+          _wasComplete = false;
+        }
+      } catch (_) {}
+    }
+
+    Object.defineProperty(window, '_tubatureGrid', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return _rawTubatureGrid;
+      },
+      set(val) {
+        _rawTubatureGrid = val;
+        handleTubatureGridUpdate(val);
+      },
+    });
+  </script>
+  <script src="flutter_bootstrap.js?v=2.12.0" async></script>
 </body>
 </html>
