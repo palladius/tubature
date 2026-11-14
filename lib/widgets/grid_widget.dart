@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../logic/js_bridge_stub.dart'
     if (dart.library.js_interop) '../logic/js_bridge_web.dart' as js_bridge;
+import '../logic/performance_config.dart';
 import '../models/direction.dart';
 import '../models/grid.dart';
 import '../models/position.dart';
@@ -222,23 +223,26 @@ class _GridWidgetState extends State<GridWidget> {
                 clipBehavior: Clip.none,
                 children: [
                   // ─── Grid ───
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: widget.isVictoryCelebrating
-                              ? widget.theme.flowColor.withValues(alpha: 0.35)
-                              : Colors.black.withValues(alpha: 0.08),
-                          blurRadius: widget.isVictoryCelebrating ? 24 : 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      key: _boardKey,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Column(
+                  RepaintBoundary(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: PerformanceConfig.isLowEnd
+                            ? const []
+                            : [
+                                BoxShadow(
+                                  color: widget.isVictoryCelebrating
+                                      ? widget.theme.flowColor.withValues(alpha: 0.35)
+                                      : Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: widget.isVictoryCelebrating ? 24 : 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                      ),
+                      child: ClipRRect(
+                        key: _boardKey,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: List.generate(widget.grid.rows, (row) {
                           return Row(
@@ -324,6 +328,7 @@ class _GridWidgetState extends State<GridWidget> {
                         }),
                       ),
                     ),
+                  ),
                   ),
 
                   // ─── Zoom overlay 🔍 ───

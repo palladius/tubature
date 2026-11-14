@@ -6,6 +6,10 @@ import 'ermete_painter.dart';
 
 /// Floating picture-in-picture widget featuring Ermete (The Ferrarese Plumber)
 /// speaking authentic voice lines with animated mouth flapping and comic speech bubbles.
+///
+/// Performance Note:
+/// [_blinkController] and [_mouthController] only tick while Ermete is visible on screen
+/// (`_isVisible == true`), ensuring 0 idle ticker wakeups during normal gameplay.
 class TalkingAvatarWidget extends StatefulWidget {
   final VoidCallback? onDismissed;
 
@@ -25,7 +29,7 @@ class _TalkingAvatarWidgetState extends State<TalkingAvatarWidget> with TickerPr
   late AnimationController _mouthController;
   late Animation<double> _mouthAnimation;
 
-  // Eye Blink Controller
+  // Eye Blink Controller (only active while avatar is visible)
   late AnimationController _blinkController;
 
   // Slide & Scale Transition Controller
@@ -48,7 +52,7 @@ class _TalkingAvatarWidgetState extends State<TalkingAvatarWidget> with TickerPr
     _blinkController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
-    )..repeat();
+    );
 
     _entranceController = AnimationController(
       vsync: this,
@@ -77,6 +81,7 @@ class _TalkingAvatarWidgetState extends State<TalkingAvatarWidget> with TickerPr
 
     _entranceController.forward(from: 0.0);
     _mouthController.repeat(reverse: true);
+    _blinkController.repeat();
 
     // Estimate voice duration based on line (~2.2s - 3.2s)
     final durationMs = voice.id == 'majjal-ac-du-bal' ? 2800 : 2400;
@@ -94,6 +99,8 @@ class _TalkingAvatarWidgetState extends State<TalkingAvatarWidget> with TickerPr
       if (mounted) {
         _entranceController.reverse().then((_) {
           if (mounted) {
+            _blinkController.stop();
+            _blinkController.reset();
             setState(() {
               _isVisible = false;
             });
@@ -123,111 +130,113 @@ class _TalkingAvatarWidgetState extends State<TalkingAvatarWidget> with TickerPr
 
     final voice = _currentVoice!;
 
-    return AnimatedBuilder(
-      animation: _entranceController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _slideAnimation.value),
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            alignment: Alignment.bottomRight,
-            child: child,
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 80, right: 16, left: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: voice.isEasterEgg
-                ? const Color(0xFFFFD700)
-                : (voice.isGood ? const Color(0xFF4ADE80) : const Color(0xFFF87171)),
-            width: 2.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.45),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _entranceController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _slideAnimation.value),
+            child: Transform.scale(
+              scale: _scaleAnimation.value,
+              alignment: Alignment.bottomRight,
+              child: child,
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // 1. Ermete Animated Avatar Head
-            AnimatedBuilder(
-              animation: Listenable.merge([_mouthAnimation, _blinkController]),
-              builder: (context, _) {
-                final blinkVal = (_blinkController.value > 0.92) ? 1.0 : 0.0;
-                return SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: CustomPaint(
-                    painter: ErmetePainter(
-                      mouthOpenProgress: _mouthAnimation.value,
-                      blinkProgress: blinkVal,
-                      isHappy: voice.isGood,
-                    ),
-                  ),
-                );
-              },
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 80, right: 16, left: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B).withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: voice.isEasterEgg
+                  ? const Color(0xFFFFD700)
+                  : (voice.isGood ? const Color(0xFF4ADE80) : const Color(0xFFF87171)),
+              width: 2.5,
             ),
-            const SizedBox(width: 12),
-
-            // 2. Comic Speech Bubble Content
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Speaker tag
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        voice.isEasterEgg ? '🥚 ERMETE (EASTER EGG)' : '🔧 ERMETE DA FERRARA',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
-                          color: voice.isEasterEgg ? const Color(0xFFFFD700) : const Color(0xFF94A3B8),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.volume_up_rounded, size: 13, color: Color(0xFF38BDF8)),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-
-                  // Dialect line (large & bold)
-                  Text(
-                    '« ${voice.displayName} »',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      fontFamily: 'sans-serif',
-                    ),
-                  ),
-
-                  // Italian subtitle
-                  Text(
-                    voice.meaningIt,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.white.withValues(alpha: 0.75),
-                    ),
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.45),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 1. Ermete Animated Avatar Head
+              AnimatedBuilder(
+                animation: Listenable.merge([_mouthAnimation, _blinkController]),
+                builder: (context, _) {
+                  final blinkVal = (_blinkController.value > 0.92) ? 1.0 : 0.0;
+                  return SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: CustomPaint(
+                      painter: ErmetePainter(
+                        mouthOpenProgress: _mouthAnimation.value,
+                        blinkProgress: blinkVal,
+                        isHappy: voice.isGood,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+
+              // 2. Comic Speech Bubble Content
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Speaker tag
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          voice.isEasterEgg ? '🥚 ERMETE (EASTER EGG)' : '🔧 ERMETE DA FERRARA',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                            color: voice.isEasterEgg ? const Color(0xFFFFD700) : const Color(0xFF94A3B8),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.volume_up_rounded, size: 13, color: Color(0xFF38BDF8)),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+
+                    // Dialect line (large & bold)
+                    Text(
+                      '« ${voice.displayName} »',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        fontFamily: 'sans-serif',
+                      ),
+                    ),
+
+                    // Italian subtitle
+                    Text(
+                      voice.meaningIt,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

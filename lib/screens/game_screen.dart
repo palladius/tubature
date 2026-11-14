@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
 import '../logic/puffin_bridge_stub.dart'
     if (dart.library.js_interop) '../logic/puffin_bridge_web.dart';
+import '../logic/performance_config.dart';
 import '../logic/puffin_login.dart';
 import '../models/cauldron_goodie.dart';
 import '../models/cauldron_goodies_catalog.dart';
@@ -813,6 +814,56 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               onPressed: () => LeaderboardScreen.showModal(context),
               icon: const Icon(Icons.emoji_events_rounded, color: Color(0xFFD97706), size: 20),
               tooltip: 'Hall of Fame 🏆',
+            ),
+            const SizedBox(width: 10),
+            // 🍓 Raspberry Pi Turbo Mode toggle
+            ListenableBuilder(
+              listenable: PerformanceConfig.instance,
+              builder: (context, _) {
+                final isRpi = PerformanceConfig.instance.isRaspberryPiMode;
+                return SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isRpi ? const Color(0xFFDCFCE7) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isRpi
+                          ? Border.all(color: const Color(0xFF16A34A), width: 1.5)
+                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      key: const ValueKey('game_rpi_turbo_btn'),
+                      onPressed: () {
+                        final nowRpi = PerformanceConfig.instance.toggleRaspberryPiMode();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              nowRpi
+                                  ? '🍓 Raspberry Pi Turbo Mode: ON ⚡ (60 FPS, Zero Idle CPU)'
+                                  : '✨ Standard High-FX Mode: ON',
+                            ),
+                            duration: const Duration(milliseconds: 1200),
+                          ),
+                        );
+                      },
+                      icon: Text(
+                        isRpi ? '🍓⚡' : '🍓',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      padding: EdgeInsets.zero,
+                      tooltip: isRpi ? 'RPi Turbo: ON ⚡' : 'Enable RPi Turbo Mode 🍓',
+                    ),
+                  ),
+                );
+              },
             ),
             if (_isLocalhost()) ...[
               const SizedBox(width: 10),

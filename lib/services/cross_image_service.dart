@@ -14,13 +14,17 @@ class CrossImageService {
     'se': 'assets/cross/cross_se_basil.png',
   };
 
-  /// Pre-load all 4 cross icons. Safe to call multiple times.
+  /// Pre-load all 4 cross icons at compact 64x64 resolution. Safe to call multiple times.
   static Future<void> preload() async {
     if (_loaded) return;
     for (final entry in _assets.entries) {
       try {
         final data = await rootBundle.load(entry.value);
-        final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+        final codec = await ui.instantiateImageCodec(
+          data.buffer.asUint8List(),
+          targetWidth: 64,
+          targetHeight: 64,
+        );
         final frame = await codec.getNextFrame();
         _cache[entry.key] = frame.image;
       } catch (_) {

@@ -56,7 +56,76 @@
       width: 100% !important;
       height: 100% !important;
     }
+    html.rpi-mode *, html.rpi-mode *::before, html.rpi-mode *::after {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      text-shadow: none !important;
+    }
+    html.rpi-mode #hof-section,
+    html.rpi-mode .tubature-hud-pill {
+      box-shadow: none !important;
+    }
   </style>
+  <script>
+    // 🍓🐧 Raspberry Pi 400 ("Sguisatazzo") & Low-End ARM64 Auto-Detection + WebKit2GTK CanvasKit Fix
+    (function() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var override = null;
+        ['rpi', 'raspberry', 'sguisatazzo', 'lowperf', 'lite'].forEach(function(k) {
+          if (params.has(k)) {
+            var v = (params.get(k) || '').toLowerCase();
+            if (v === '1' || v === 'true' || v === 'on' || v === 'yes') override = true;
+            else if (v === '0' || v === 'false' || v === 'off' || v === 'no') override = false;
+          }
+        });
+        var saved = null;
+        try {
+          var s = window.localStorage.getItem('tubature_rpi_mode');
+          if (s === '1') saved = true;
+          else if (s === '0') saved = false;
+        } catch (_) {}
+
+        var ua = (navigator.userAgent || '') + ' ' + (navigator.platform || '');
+        var isArmLinux = /aarch64|armv7l|armv8l|arm64|raspberry|rpi|sguisa/i.test(ua) && /Linux/i.test(ua);
+        var isLowDprRunner = (window.devicePixelRatio > 0 && window.devicePixelRatio <= 0.85);
+        var isLowCoreLinux = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 && /Linux/i.test(ua) && !/x86_64/i.test(ua));
+        var autoDetected = Boolean(isArmLinux || isLowDprRunner || isLowCoreLinux);
+
+        var active = override !== null ? override : (saved !== null ? saved : autoDetected);
+        window._tubatureLowEnd = Boolean(active);
+        if (window._tubatureLowEnd) {
+          document.documentElement.classList.add('rpi-mode');
+        }
+
+        window._setTubatureRpiMode = function(enabled) {
+          var flag = Boolean(enabled);
+          window._tubatureLowEnd = flag;
+          document.documentElement.classList.toggle('rpi-mode', flag);
+          try {
+            window.localStorage.setItem('tubature_rpi_mode', flag ? '1' : '0');
+          } catch (_) {}
+        };
+
+        // Fix for WebKit2GTK 2.54 with WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER on Broadcom VideoCore VI:
+        // Browser window.ImageDecoder returns empty grey/white textures when GPU compositing is disabled.
+        // Removing window.ImageDecoder before Flutter bootstrap forces CanvasKit to use its reliable
+        // internal C++ WASM Skia image decoder (MakeAnimatedImageFromEncoded).
+        if (window._tubatureLowEnd || isArmLinux || isLowDprRunner) {
+          try {
+            delete window.ImageDecoder;
+          } catch (_) {}
+          try {
+            Object.defineProperty(window, 'ImageDecoder', {
+              value: undefined,
+              configurable: true,
+              writable: true
+            });
+          } catch (_) {}
+        }
+      } catch (_) {}
+    })();
+  </script>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -78,7 +147,7 @@
     if ('caches' in window) {
       caches.keys().then(function(names) {
         for (var name of names) {
-          if (!name.includes('2.12.2')) {
+          if (!name.includes('2.13.0')) {
             caches.delete(name);
           }
         }
@@ -550,6 +619,6 @@
       },
     });
   </script>
-  <script src="flutter_bootstrap.js?v=2.12.2" async></script>
+  <script src="flutter_bootstrap.js?v=2.13.0" async></script>
 </body>
 </html>

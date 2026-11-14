@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../logic/performance_config.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
 import '../theme/level_theme.dart';
@@ -19,6 +20,8 @@ import 'cauldron_reveal_painter.dart';
 ///    - Multi-layered animated sinusoidal streamlines flowing at water current speed
 ///    - Traveling specular caustics and glistening sunlight ripples
 ///    - Drifting micro-bubbles and vortex eddies
+///    - In Raspberry Pi / Low-End mode ([isLowEnd]): uses a fast single-pass highlight stroke
+///      with zero trig/Path allocations and zero `MaskFilter.blur` overhead.
 ///
 /// 3. Dynamic Crystal Ampolla Bulb:
 ///    - Neck breach splash -> rising turbulent liquid volume -> swirling core & glub bubbles
@@ -31,6 +34,7 @@ class PipePainter extends CustomPainter {
   final Direction? inflowDirection;
   final ui.Image? goodieImage;
   final List<ui.Image?>? crossImages;
+  final bool isLowEnd;
 
   const PipePainter({
     required this.tile,
@@ -41,6 +45,7 @@ class PipePainter extends CustomPainter {
     this.inflowDirection,
     this.goodieImage,
     this.crossImages,
+    this.isLowEnd = false,
   });
 
   @override
@@ -317,6 +322,12 @@ class PipePainter extends CustomPainter {
       fillPaint.strokeWidth = pipeWidth;
       canvas.drawLine(from, to, fillPaint);
 
+      // Fast-path for Raspberry Pi / Low-End mode: single crisp highlight line, zero trig/Path overhead!
+      if (isLowEnd || !PerformanceConfig.enableCanvasBlurAndSaveLayer) {
+        canvas.drawLine(from, to, highlightPaint);
+        return;
+      }
+
       // 2. Continuous Traveling Streamlines (sinusoidal river ripples)
       final streamPaint = Paint()
         ..color = Color.lerp(theme.flowColorLight, Colors.white, 0.40)!
@@ -583,6 +594,7 @@ class PipePainter extends CustomPainter {
           bulbRadius,
           progress,
           shimmerProgress,
+          isLowEnd: isLowEnd,
         );
       }
     }
@@ -717,12 +729,15 @@ class PipePainter extends CustomPainter {
 
   void _drawSourceMarker(Canvas canvas, Size size, Offset center, bool connected) {
     final auraRadius = size.width * 0.38;
+    final auraPaint = Paint()
+      ..color = (connected ? theme.flowColor : Colors.amber).withValues(alpha: 0.25);
+    if (!isLowEnd && PerformanceConfig.enableCanvasBlurAndSaveLayer) {
+      auraPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    }
     canvas.drawCircle(
       center,
       auraRadius,
-      Paint()
-        ..color = (connected ? theme.flowColor : Colors.amber).withValues(alpha: 0.25)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      auraPaint,
     );
     canvas.drawCircle(
       center,
@@ -769,16 +784,22 @@ class PipePainter extends CustomPainter {
 
       final pos = positions[i];
 
-      // Subtle colored glow circle behind icon
-      final glowPaint = Paint()
-        ..color = glowColors[i]
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      // Subtle colored glow circle behind icon (skip expensive MaskFilter.blur on RPi)
+      final glowPaint = Paint()..color = glowColors[i];
+      if (!isLowEnd && PerformanceConfig.enableCanvasBlurAndSaveLayer) {
+        glowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      }
       canvas.drawCircle(pos, iconSize * 0.45, glowPaint);
 
       // Draw the icon image centered in the quadrant
       final srcRect = Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble());
       final dstRect = Rect.fromCenter(center: pos, width: iconSize, height: iconSize);
-      canvas.drawImageRect(img, srcRect, dstRect, Paint()..filterQuality = FilterQuality.high);
+      canvas.drawImageRect(
+        img,
+        srcRect,
+        dstRect,
+        Paint()..filterQuality = isLowEnd ? FilterQuality.low : FilterQuality.medium,
+      );
     }
   }
 
@@ -790,6 +811,7 @@ class PipePainter extends CustomPainter {
         oldDelegate.pulseProgress != pulseProgress ||
         oldDelegate.shimmerProgress != shimmerProgress ||
         oldDelegate.goodieImage != goodieImage ||
-        oldDelegate.crossImages != crossImages;
+        oldDelegate.crossImages != crossImages ||
+        oldDelegate.isLowEnd != isLowEnd;
   }
 }

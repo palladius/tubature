@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../logic/performance_config.dart';
 import '../logic/puffin_login.dart';
 import '../models/cauldron_goodie.dart';
 import '../models/cauldron_goodies_catalog.dart';
@@ -61,7 +62,10 @@ class _VictoryOverlayState extends State<VictoryOverlay>
   void initState() {
     super.initState();
     _celebrationText = _celebrations[_random.nextInt(_celebrations.length)];
-    _confetti = List.generate(40, (_) => _ConfettiPiece.random(_random));
+    _confetti = List.generate(
+      PerformanceConfig.victoryConfettiCount,
+      (_) => _ConfettiPiece.random(_random),
+    );
 
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -78,7 +82,13 @@ class _VictoryOverlayState extends State<VictoryOverlay>
     _confettiController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
-    )..repeat();
+    );
+    if (PerformanceConfig.isLowEnd) {
+      // Single confetti burst on Raspberry Pi so idle CPU drops to 0% after 3s
+      _confettiController.forward();
+    } else {
+      _confettiController.repeat();
+    }
 
     _fadeController.forward();
 
@@ -119,18 +129,22 @@ class _VictoryOverlayState extends State<VictoryOverlay>
             ),
           ),
 
-          // Confetti layer
-          AnimatedBuilder(
-            animation: _confettiController,
-            builder: (context, _) {
-              return CustomPaint(
-                painter: _ConfettiPainter(
-                  confetti: _confetti,
-                  progress: _confettiController.value,
-                ),
-                size: Size.infinite,
-              );
-            },
+          // Confetti layer (isolated in RepaintBoundary + IgnorePointer)
+          IgnorePointer(
+            child: RepaintBoundary(
+              child: AnimatedBuilder(
+                animation: _confettiController,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _ConfettiPainter(
+                      confetti: _confetti,
+                      progress: _confettiController.value,
+                    ),
+                    size: Size.infinite,
+                  );
+                },
+              ),
+            ),
           ),
 
           // Victory card — DRAGGABLE & RESPONSIVE! 🧪

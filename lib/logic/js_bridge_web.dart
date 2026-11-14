@@ -12,6 +12,15 @@ external set _jsTubatureBoardRect(JSString? value);
 @JS('_tubatureHomeRects')
 external set _jsTubatureHomeRects(JSString? value);
 
+@JS('_tubatureLowEnd')
+external JSBoolean? get _jsTubatureLowEnd;
+
+@JS('_tubatureLowEnd')
+external set _jsTubatureLowEnd(JSBoolean? value);
+
+@JS('_setTubatureRpiMode')
+external void _jsSetTubatureRpiMode(JSBoolean value);
+
 void setJsTubatureGrid(String? jsonData) {
   try {
     _jsTubatureGrid = jsonData?.toJS;
@@ -33,5 +42,20 @@ void setJsTubatureBoardRect(String? jsonData) {
 void setJsTubatureHomeRects(String? jsonData) {
   try {
     _jsTubatureHomeRects = jsonData?.toJS;
+  } catch (_) {}
+}
+
+bool getJsTubatureLowEnd() {
+  try {
+    return _jsTubatureLowEnd?.toDart ?? false;
+  } catch (_) {
+    return false;
+  }
+}
+
+void setJsTubatureLowEnd(bool value) {
+  try {
+    _jsTubatureLowEnd = value.toJS;
+    _jsSetTubatureRpiMode(value.toJS);
   } catch (_) {}
 }

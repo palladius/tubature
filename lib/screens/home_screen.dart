@@ -10,6 +10,7 @@ import '../logic/js_bridge_stub.dart'
     if (dart.library.js_interop) '../logic/js_bridge_web.dart' as js_bridge;
 import '../logic/puffin_bridge_stub.dart'
     if (dart.library.js_interop) '../logic/puffin_bridge_web.dart';
+import '../logic/performance_config.dart';
 import '../logic/puffin_login.dart';
 import '../models/level.dart';
 import '../version.dart';
@@ -530,31 +531,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
     required Widget child,
     required EdgeInsets padding,
   }) {
-    return ClipRRect(
+    return ListenableBuilder(
       key: key,
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
+      listenable: PerformanceConfig.instance,
+      builder: (context, _) {
+        final rpiMode = PerformanceConfig.isLowEnd;
+        final cardContainer = Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: const Color(0xFF161F28).withValues(alpha: 0.88),
+            color: const Color(0xFF161F28).withValues(alpha: rpiMode ? 0.95 : 0.88),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: const Color(0xFFFFD54F).withValues(alpha: 0.45),
               width: 1.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
-                blurRadius: 18,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            boxShadow: rpiMode
+                ? const []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      blurRadius: 18,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
           ),
           child: child,
-        ),
-      ),
+        );
+
+        // On Raspberry Pi / Sguisatazzo, skip the expensive 16px Gaussian BackdropFilter
+        if (!PerformanceConfig.enableBackdropBlur) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: cardContainer,
+          );
+        }
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: cardContainer,
+          ),
+        );
+      },
     );
   }
 
@@ -958,6 +977,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
                 ),
               ),
             ),
+          ),
+          // 🍓 Raspberry Pi Turbo Mode chip
+          ListenableBuilder(
+            listenable: PerformanceConfig.instance,
+            builder: (context, _) {
+              final isRpi = PerformanceConfig.instance.isRaspberryPiMode;
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  key: const ValueKey('rpi_turbo_toggle'),
+                  onTap: () {
+                    PerformanceConfig.instance.toggleRaspberryPiMode();
+                    if (PerformanceConfig.instance.isRaspberryPiMode) {
+                      _stopBackgroundVideo();
+                    }
+                    setState(() {});
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isRpi
+                          ? const Color(0xFF16A34A).withValues(alpha: 0.28)
+                          : const Color(0xFFE11D48).withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isRpi
+                            ? const Color(0xFF4ADE80).withValues(alpha: 0.75)
+                            : const Color(0xFFFB7185).withValues(alpha: 0.45),
+                      ),
+                    ),
+                    child: Text(
+                      isRpi ? '🍓 RPi Turbo: ON ⚡' : '🍓 RPi Mode: OFF',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: isRpi ? const Color(0xFF4ADE80) : const Color(0xFFFDA4AF),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
           // 🐞 DEBUG panel (LOCALHOST ONLY) — disappears elegantly on GitHub deploy
           if (_isLocalhost())

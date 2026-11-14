@@ -1,9 +1,15 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../logic/performance_config.dart';
 
 /// Renders a CauldronGoodie image inside an ampolla bulb with a
 /// turbulence-to-clarity convergence animation.
+///
+/// Raspberry Pi Optimization:
+/// - Avoids expensive offscreen `canvas.saveLayer` allocation when in
+///   [PerformanceConfig.isLowEnd] mode OR once turbulence has settled
+///   (`turbulence <= 0.1`), rendering via a single fast clipped draw call.
 class CauldronRevealPainter {
   /// Calculate image opacity based on flow progress phase
   static double convergenceOpacity(double flowProgress) {
@@ -42,45 +48,53 @@ class CauldronRevealPainter {
     Offset bulbCenter,
     double bulbRadius,
     double flowProgress,
-    double shimmerProgress,
-  ) {
+    double shimmerProgress, {
+    bool? isLowEnd,
+  }) {
     final opacity = convergenceOpacity(flowProgress);
     if (opacity <= 0.0) return;
-    
-    final turbulence = turbulenceIntensity(flowProgress);
+
+    final lowEnd = isLowEnd ?? !PerformanceConfig.enableCanvasBlurAndSaveLayer;
+    final turbulence = lowEnd ? 0.0 : turbulenceIntensity(flowProgress);
     final imageRadius = bulbRadius * 0.85; // slightly smaller than bulb
-    
-    // Use saveLayer to composite ALL copies as a single group with global opacity.
-    // This prevents dark blobs when drawing multiple overlapping copies of
-    // images with opaque backgrounds.
-    final layerBounds = Rect.fromCircle(
-      center: bulbCenter,
-      radius: imageRadius + bulbRadius * 0.3, // extra margin for offsets
-    );
-    canvas.saveLayer(
-      layerBounds,
-      Paint()..color = Color.fromRGBO(255, 255, 255, opacity),
-    );
-    
-    // Circular clip to bulb
-    canvas.clipPath(
-      Path()..addOval(Rect.fromCircle(center: bulbCenter, radius: imageRadius)),
-    );
-    
-    // Source rect (full image)
+
     final src = Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
-    // Destination rect (fit in bulb circle)
     final dst = Rect.fromCircle(center: bulbCenter, radius: imageRadius);
-    
-    final paint = Paint()
-      ..filterQuality = FilterQuality.medium;
-    
-    if (turbulence > 0.1) {
-      // Draw multiple offset copies for blur/turbulence effect
-      // Since we're inside a saveLayer with global opacity, draw each copy
-      // at full alpha — the layer handles the transparency
+
+    // Fast single-pass path (no offscreen saveLayer FBO allocation!)
+    // Used always in Raspberry Pi mode AND on all devices once turbulence <= 0.1.
+    if (lowEnd || turbulence <= 0.1) {
+      canvas.save();
+      canvas.clipPath(
+        Path()..addOval(dst),
+      );
+      canvas.drawImageRect(
+        image,
+        src,
+        dst,
+        Paint()
+          ..filterQuality = FilterQuality.low
+          ..color = Color.fromRGBO(255, 255, 255, opacity.clamp(0.0, 1.0)),
+      );
+      canvas.restore();
+    } else {
+      // Multi-copy turbulent reveal phase on high-end devices
+      final layerBounds = Rect.fromCircle(
+        center: bulbCenter,
+        radius: imageRadius + bulbRadius * 0.3,
+      );
+      canvas.saveLayer(
+        layerBounds,
+        Paint()..color = Color.fromRGBO(255, 255, 255, opacity),
+      );
+
+      canvas.clipPath(
+        Path()..addOval(dst),
+      );
+
+      final paint = Paint()..filterQuality = FilterQuality.low;
       final copies = (turbulence * 4).ceil().clamp(1, 5);
-      
+
       for (int i = 0; i < copies; i++) {
         final angle = (shimmerProgress * 2 * pi) + (i * 2 * pi / copies);
         final offsetDist = turbulence * imageRadius * 0.20;
@@ -88,8 +102,7 @@ class CauldronRevealPainter {
           cos(angle) * offsetDist,
           sin(angle) * offsetDist,
         );
-        
-        // Each copy at reduced alpha within the layer (not global)
+
         final copyAlpha = (1.0 / copies).clamp(0.2, 0.6);
         canvas.drawImageRect(
           image,
@@ -98,21 +111,15 @@ class CauldronRevealPainter {
           paint..color = Color.fromRGBO(255, 255, 255, copyAlpha),
         );
       }
-    } else {
-      // Clean render — single image at full alpha within the layer
-      canvas.drawImageRect(
-        image,
-        src,
-        dst,
-        paint..color = const Color.fromRGBO(255, 255, 255, 1.0),
-      );
+
+      canvas.restore();
     }
-    
-    canvas.restore(); // restore saveLayer — applies global opacity
-    
-    // Phase 4 golden shimmer glow (outside the layer so it's always visible)
+
+    // Phase 4 golden shimmer glow
     if (flowProgress >= 0.95) {
-      final glowPulse = (sin(shimmerProgress * 4 * pi) * 0.3 + 0.7).clamp(0.0, 1.0);
+      final glowPulse = lowEnd
+          ? 0.85
+          : (sin(shimmerProgress * 4 * pi) * 0.3 + 0.7).clamp(0.0, 1.0);
       canvas.drawCircle(
         bulbCenter,
         imageRadius + 2.0,

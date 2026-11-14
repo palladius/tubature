@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../logic/performance_config.dart';
 import '../models/direction.dart';
 import '../models/tile.dart';
 import '../models/position.dart';
@@ -14,9 +15,10 @@ import 'creature_painter.dart';
 /// Widget for a single tile in the puzzle grid.
 ///
 /// Features:
+/// - Isolated [RepaintBoundary] so rotating 1 tile only repaints that tile (not all 36–100 tiles)
 /// - Smooth rotation animation (200ms) with tap scale bounce
 /// - Organic liquid fluid flow propagation with turbulent chaos jitter
-/// - Continuous fluid shimmer and moving bubbles
+/// - Continuous fluid shimmer (auto-disabled at rest in Raspberry Pi / Low-End mode for 0% idle CPU)
 /// - Victory pulse celebration
 class TileWidget extends StatefulWidget {
   final Tile tile;
@@ -80,7 +82,8 @@ class _TileWidgetState extends State<TileWidget>
       curve: Curves.easeInOut,
     );
 
-    // Continuous dynamic living river current & shimmer (60 FPS)
+    // Continuous dynamic living river current & shimmer
+    // Automatically paused at rest when PerformanceConfig.isRaspberryPiMode is active.
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 1800),
       vsync: this,
@@ -97,13 +100,41 @@ class _TileWidgetState extends State<TileWidget>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
+    PerformanceConfig.instance.addListener(_onPerformanceConfigChanged);
+
     if (widget.tile.isConnected) {
-      _shimmerController.repeat();
+      _syncShimmerTicker();
       _triggerFlowAnimation();
     }
 
-    if (widget.isVictoryCelebrating) {
+    if (widget.isVictoryCelebrating && !PerformanceConfig.isLowEnd) {
       _pulseController.repeat(reverse: true);
+    }
+  }
+
+  void _onPerformanceConfigChanged() {
+    if (!mounted) return;
+    _syncShimmerTicker();
+    if (PerformanceConfig.isLowEnd && _pulseController.isAnimating) {
+      _pulseController.stop();
+      _pulseController.value = 0.0;
+    } else if (!PerformanceConfig.isLowEnd &&
+        widget.isVictoryCelebrating &&
+        !_pulseController.isAnimating) {
+      _pulseController.repeat(reverse: true);
+    }
+    setState(() {});
+  }
+
+  void _syncShimmerTicker() {
+    if (widget.tile.isConnected && PerformanceConfig.enableContinuousShimmer) {
+      if (!_shimmerController.isAnimating) {
+        _shimmerController.repeat();
+      }
+    } else {
+      if (_shimmerController.isAnimating) {
+        _shimmerController.stop();
+      }
     }
   }
 
@@ -113,7 +144,7 @@ class _TileWidgetState extends State<TileWidget>
 
     if (widget.tile.isConnected != oldWidget.tile.isConnected) {
       if (widget.tile.isConnected) {
-        _shimmerController.repeat();
+        _syncShimmerTicker();
         _triggerFlowAnimation();
       } else {
         _shimmerController.stop();
@@ -124,7 +155,7 @@ class _TileWidgetState extends State<TileWidget>
     }
 
     if (widget.isVictoryCelebrating != oldWidget.isVictoryCelebrating) {
-      if (widget.isVictoryCelebrating) {
+      if (widget.isVictoryCelebrating && !PerformanceConfig.isLowEnd) {
         _pulseController.repeat(reverse: true);
       } else {
         _pulseController.stop();
@@ -144,10 +175,8 @@ class _TileWidgetState extends State<TileWidget>
             (cos(r * 1.7 - c * 2.9) * 10))
         .toInt();
 
-    // Key insight: fill duration is 700ms, stagger is only 180ms.
-    // So tile N+1 starts when tile N is at 180/700 = 26% progress.
-    // At any moment, ~4 tiles are actively filling → truly continuous fluid wave!
-    final baseDelay = depth * 180;
+    final staggerMs = PerformanceConfig.isLowEnd ? 90 : 180;
+    final baseDelay = depth * staggerMs;
     final delayMs = max(0, baseDelay + chaosJitter);
 
     // Keep dry until wave reaches this tile
@@ -156,14 +185,16 @@ class _TileWidgetState extends State<TileWidget>
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted && widget.tile.isConnected) {
         if (widget.tile.type == TileType.deadEnd) {
-          _flowController.duration = const Duration(milliseconds: 8500);
+          _flowController.duration = PerformanceConfig.ampollaFillDuration;
           _flowController.forward(from: 0.0);
           AudioService.playAmpollaGlub();
           if (widget.goodie?.isLegendary == true) {
             AudioService.playSchmoogleReveal();
           }
         } else {
-          _flowController.duration = const Duration(milliseconds: 700);
+          _flowController.duration = Duration(
+            milliseconds: PerformanceConfig.isLowEnd ? 360 : 700,
+          );
           _flowController.forward(from: 0.0);
           if (depth > 0) {
             AudioService.playWaterFlow(chainLength: depth);
@@ -175,6 +206,7 @@ class _TileWidgetState extends State<TileWidget>
 
   @override
   void dispose() {
+    PerformanceConfig.instance.removeListener(_onPerformanceConfigChanged);
     _scaleController.dispose();
     _flowController.dispose();
     _shimmerController.dispose();
@@ -187,9 +219,11 @@ class _TileWidgetState extends State<TileWidget>
     if (widget.onTap == null) return;
 
     AudioService.playTileClick();
-    _scaleController.forward().then((_) {
-      if (mounted) _scaleController.reverse();
-    });
+    if (!PerformanceConfig.isLowEnd) {
+      _scaleController.forward().then((_) {
+        if (mounted) _scaleController.reverse();
+      });
+    }
 
     widget.onTap!();
   }
@@ -197,39 +231,41 @@ class _TileWidgetState extends State<TileWidget>
   @override
   Widget build(BuildContext context) {
     final rotationTurns = widget.tile.rotation / 360.0;
+    final isLowEnd = PerformanceConfig.isLowEnd;
 
-    return GestureDetector(
-      onTap: _handleTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: Listenable.merge([
-          _scaleAnimation,
-          _flowAnimation,
-          _shimmerAnimation,
-          _pulseAnimation,
-        ]),
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              decoration: BoxDecoration(
-                color: widget.theme.tileBackground,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: widget.tile.isConnected
-                      ? widget.theme.flowColor.withValues(
-                          alpha: 0.35 * _flowAnimation.value,
-                        )
-                      : Colors.grey.withValues(alpha: 0.15),
-                  width: 0.5,
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: _handleTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: Listenable.merge([
+            _scaleAnimation,
+            _flowAnimation,
+            _shimmerAnimation,
+            _pulseAnimation,
+          ]),
+          builder: (context, child) {
+            return Transform.scale(
+              scale: isLowEnd ? 1.0 : _scaleAnimation.value,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: widget.theme.tileBackground,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: widget.tile.isConnected
+                        ? widget.theme.flowColor.withValues(
+                            alpha: 0.35 * _flowAnimation.value,
+                          )
+                        : Colors.grey.withValues(alpha: 0.15),
+                    width: 0.5,
+                  ),
                 ),
-              ),
-              child: Stack(
-                children: [
-                  // Pipe layer with rotation and dynamic fluid simulation
+                child: Stack(
+                  children: [
+                    // Pipe layer with rotation and dynamic fluid simulation
                     AnimatedRotation(
                       turns: rotationTurns,
-                      duration: const Duration(milliseconds: 200),
+                      duration: Duration(milliseconds: isLowEnd ? 120 : 200),
                       curve: Curves.easeOut,
                       child: CustomPaint(
                         painter: PipePainter(
@@ -238,32 +274,43 @@ class _TileWidgetState extends State<TileWidget>
                           flowProgress:
                               widget.tile.isConnected ? _flowAnimation.value : 0.0,
                           pulseProgress:
-                              widget.isVictoryCelebrating ? _pulseAnimation.value : 0.0,
+                              widget.isVictoryCelebrating && !isLowEnd
+                                  ? _pulseAnimation.value
+                                  : 0.0,
                           shimmerProgress:
-                              widget.tile.isConnected ? _shimmerAnimation.value : 0.0,
-                          inflowDirection: widget.inflowDirection?.rotateClockwiseBy(-widget.tile.rotation),
-                          goodieImage: widget.goodie != null ? GoodiesImageService.getImage(widget.goodie!.id) : null,
-                          crossImages: widget.tile.type == TileType.cross ? CrossImageService.allImages : null,
+                              widget.tile.isConnected && !isLowEnd
+                                  ? _shimmerAnimation.value
+                                  : 0.0,
+                          inflowDirection: widget.inflowDirection
+                              ?.rotateClockwiseBy(-widget.tile.rotation),
+                          goodieImage: widget.goodie != null
+                              ? GoodiesImageService.getImage(widget.goodie!.id)
+                              : null,
+                          crossImages: widget.tile.type == TileType.cross
+                              ? CrossImageService.allImages
+                              : null,
+                          isLowEnd: isLowEnd,
                         ),
                         size: Size.infinite,
                       ),
                     ),
-                  // Creature overlay for source only
-                  if (widget.tile.type == TileType.source)
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: CreaturePainter(
-                          creatureType: _getSourceCreature(),
-                          theme: widget.theme,
-                          isConnected: widget.tile.isConnected,
+                    // Creature overlay for source only
+                    if (widget.tile.type == TileType.source)
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: CreaturePainter(
+                            creatureType: _getSourceCreature(),
+                            theme: widget.theme,
+                            isConnected: widget.tile.isConnected,
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
