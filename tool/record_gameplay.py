@@ -194,13 +194,13 @@ def compute_tile_centers(profile, rows, cols):
     W, H = profile["width"], profile["height"]
     top_bar = 80
     bottom_bar = 90
-    pad = 16
+    pad = 4 if W < 500 else 16
 
     avail_w = W - pad * 2
     avail_h = H - top_bar - bottom_bar - pad * 2
 
     tile_size = min(avail_w / cols, avail_h / rows)
-    tile_size = max(tile_size, 48.0)
+    tile_size = min(max(tile_size, 1.0), 120.0)
 
     grid_w = tile_size * cols
     grid_h = tile_size * rows

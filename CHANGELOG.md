@@ -2,6 +2,22 @@
 
 All notable changes to FlowConnect (Tubature) are documented here.
 
+## 2.12.2 — 2026-11-14
+
+### Mobile Pixel 10 100% Auto-Fit Grid, Zero-Occlusion Goodies Shelf, Responsive Victory Modal & Hall of Fame Debug Toggle 📱🧩🏆 (Fixes #15, #16)
+- **Deterministic 100% Auto-Fit Grid (`lib/widgets/grid_widget.dart`)**: Removed `.clamp(48.0, double.infinity)` that forced tiles to be ≥48px and caused `7×7`, `8×8`, `9×9`, and `10×10` grids to overflow mobile viewports (leaving only 5–6 columns visible at 100% zoom). Reduced mobile board padding to `4px` and added `InteractiveViewer` (`1.0x`–`2.5x`) with automatic identity-matrix reset on victory/reset.
+- **Zero-Occlusion MTG / Cauldron Goodies Shelf (`lib/screens/game_screen.dart`)**: Replaced the floating `Positioned(right: 8, top: 56, bottom: 60)` `_activeBadges` overlay (which blocked taps on the rightmost column of tiles) with a dedicated non-overlapping horizontal shelf (`_buildGoodiesShelf`) inside the main vertical `Column`. Wrapped the celebration banner and `TalkingAvatarWidget` in `IgnorePointer`.
+- **Responsive Top Bar, Bottom Bar & Victory Modal (`lib/screens/game_screen.dart`, `lib/screens/victory_overlay.dart`, `web/index.html`)**: Constrained and scaled top-bar stats/badges with `FittedBox(fit: BoxFit.scaleDown)`, wrapped `VictoryOverlay` in `ConstrainedBox` + `SingleChildScrollView` + `FittedBox` button labels so `"📸 Mosaico Polaroid ✨"` never wraps or clips, enforced strict `100vw`/`100dvh` CSS viewport bounds in `web/index.html`, and auto-hid `#tubature-puffin-hud` on victory.
+- **Hall of Fame Back-to-Game Link & Debug UAT/Demo Toggle (`lib/screens/leaderboard_screen.dart`, `lib/logic/puffin_login.dart`, `web/src/puffin-login.js`)**: Hidden demo (`scr_seed_*` / `is_dummy_seed`) and UAT bot (`saga`) scores by default behind a `🧪 Debug UAT/Demo: OFF/ON` toggle button, and added always-visible `⬅️ Torna al Gioco (/)` buttons at the top and bottom of every Hall of Fame view.
+- **Pixel 10 Portrait Layout & CSS Regression Suite (`test/screens/mobile_pixel10_layout_test.dart`)**: Added automated tests verifying 100% fit and zero `RenderFlex` overflow across `6×6`–`10×10` grids on `412×915`, `360×780`, `320×700`, and `280×620` viewports, rightmost-column tap responsiveness with revealed badges, `VictoryOverlay` `1.2x` text scaling, and `web/index.html` CSS rules.
+
+## 2.12.1 — 2026-11-08
+
+### Native Flutter PuffinLogin, Hall of Fame Screen & P1 Telemetry Sync 🐧🏆📊
+- **Native Flutter `PuffinLogin` & `LeaderboardScreen` (`lib/logic/puffin_login.dart`, `lib/screens/leaderboard_screen.dart`)**: Added pure-Dart salted SHA-256 verification (`SHA-256("puffin-salt-2026:<userId>:<secret>")`), the 6 family RPG profiles (`riccardo`, `kate`, `ale`, `seby`, `lucilla`, `guest`) + UAT bot (`saga`), Cutie `X X X X` 4-digit PIN pad with 3-strike lockout jam, and full `HomeScreen` / `GameScreen` / `VictoryOverlay` integration.
+- **P1 Per-Game Telemetry & Cauldron Goodies Collectibles**: Upgraded `web/src/puffin-login.js` to `v1.8.0` and enriched score submissions with `duration_sec`, `extra.difficulty`, `extra.grid`, `extra.grid_size`, `extra.pieces`, `extra.moves`, `extra.hints`, and `extra.goodies_unlocked` (`tubature:<slug>`).
+- **Non-Blocking Hall of Fame Card & Reset Fix**: Docked `#hof-section` to bottom-right so `VictoryOverlay` (Cauldron Goodies, Polaroid Mosaic, Next Level) remains unobstructed, fixed `web/ring.html` `app-id="tubature"`, and ensured `GameNotifier.resetLevel()` exports updated grid state to JS.
+
 ## 2.12.0 — 2026-11-07
 
 ### PuffinLogin, Cloud Firestore Hall of Fame & Puffin Login Ring 🐧🔥💍

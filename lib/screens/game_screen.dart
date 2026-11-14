@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../logic/game_notifier.dart';
+import '../logic/puffin_bridge_stub.dart'
+    if (dart.library.js_interop) '../logic/puffin_bridge_web.dart';
+import '../logic/puffin_login.dart';
 import '../models/cauldron_goodie.dart';
 import '../models/cauldron_goodies_catalog.dart';
 import '../models/position.dart';
@@ -16,6 +19,7 @@ import '../theme/level_theme.dart';
 import '../widgets/audio_debug_dialog.dart';
 import '../widgets/grid_widget.dart';
 import '../widgets/talking_avatar_widget.dart';
+import 'leaderboard_screen.dart';
 import 'victory_overlay.dart';
 
 /// The main game screen — shows the puzzle grid with top bar, fluid propagation,
@@ -40,6 +44,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   int _currentTutorialLevel = 1;
   bool _showVictoryOverlay = false;
   Timer? _victoryTimer;
+  DateTime _levelStartedAt = DateTime.now().toUtc();
+  int _lastVictoryScore = 0;
 
   // Keyboard navigation state
   final FocusNode _gameFocusNode = FocusNode();
@@ -98,6 +104,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _startGame() {
+    _levelStartedAt = DateTime.now().toUtc();
+    PuffinPlatformBridge.setWebHallOfFameVisible(false);
     final notifier = ref.read(gameProvider.notifier);
     if (widget.crossTest) {
       notifier.startCrossTestLevel();
@@ -230,6 +238,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _handleNextLevel() {
     _victoryTimer?.cancel();
     _clearBadges();
+    _levelStartedAt = DateTime.now().toUtc();
+    PuffinPlatformBridge.setWebHallOfFameVisible(false);
     setState(() => _showVictoryOverlay = false);
     final notifier = ref.read(gameProvider.notifier);
     if (widget.tutorialLevel != null) {
@@ -245,6 +255,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _handlePlayAgain() {
     _victoryTimer?.cancel();
     _clearBadges();
+    _levelStartedAt = DateTime.now().toUtc();
+    PuffinPlatformBridge.setWebHallOfFameVisible(false);
     setState(() => _showVictoryOverlay = false);
     ref.read(gameProvider.notifier).resetLevel();
   }
@@ -266,6 +278,44 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         final ampollaCount = next.grid?.tiles.expand((row) => row).where((t) => t.type == TileType.deadEnd).length ?? 0;
         AudioService.playVictoryVoice(ampollaCount: ampollaCount);
 
+        final rows = next.grid?.rows ?? 6;
+        final cols = next.grid?.cols ?? 6;
+        final totalTiles = rows * cols;
+        final score = calculateTubatureScore(
+          difficulty: next.difficultyLabel,
+          totalTiles: totalTiles,
+          moves: next.moveCount,
+          levelsCompleted: next.levelsCompleted,
+        );
+        _lastVictoryScore = score;
+        final endedAt = DateTime.now().toUtc();
+        final durationSec = endedAt.difference(_levelStartedAt).inSeconds.clamp(1, 86400);
+        final goodiesUnlocked = next.ampolleGoodies.values
+            .map((g) => 'tubature:${g.id}')
+            .toList();
+
+        unawaited(
+          PuffinLogin.instance.submitScore(
+            score: score,
+            durationSec: durationSec,
+            startedAt: _levelStartedAt.toIso8601String(),
+            endedAt: endedAt.toIso8601String(),
+            summaryText:
+                'Connected all $totalTiles dungeon conduits on Level #${next.currentLevelNumber} (${next.difficultyLabel}, ${rows}x$cols) in ${next.moveCount} moves!',
+            extra: <String, dynamic>{
+              'difficulty': next.difficultyLabel.toLowerCase(),
+              'level': next.currentLevelNumber,
+              'grid': '${rows}x$cols',
+              'grid_size': rows,
+              'pieces': totalTiles,
+              'total_tiles': totalTiles,
+              'moves': next.moveCount,
+              'hints': 0,
+              'goodies_unlocked': goodiesUnlocked,
+            },
+          ),
+        );
+
         _victoryTimer?.cancel();
         setState(() => _showVictoryOverlay = false);
         _victoryTimer = Timer(const Duration(milliseconds: 2800), () {
@@ -275,6 +325,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         });
       } else if (previous != null && previous.isComplete && !next.isComplete) {
         _victoryTimer?.cancel();
+        PuffinPlatformBridge.setWebHallOfFameVisible(false);
         if (_showVictoryOverlay) {
           setState(() => _showVictoryOverlay = false);
         }
@@ -308,7 +359,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         child: SafeArea(
           child: Stack(
             children: [
-              // Main game content
+              // Main game content — strictly non-overlapping vertical layout
               Column(
                 children: [
                   // Top bar
@@ -317,7 +368,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   Expanded(
                     child: gameState.grid != null
                         ? Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
                             child: GridWidget(
                               grid: gameState.grid!,
                               connectedTiles: gameState.connectedTiles,
@@ -344,67 +395,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             child: CircularProgressIndicator(),
                           ),
                   ),
+                  // 🏅 Dedicated horizontal shelf for revealed MTG / Cauldron goodies
+                  // Placed in the Column outside GridWidget so it NEVER occludes any tile!
+                  if (_activeBadges.isNotEmpty)
+                    _buildGoodiesShelf(levelTheme),
                   // Bottom bar
                   _buildBottomBar(gameState, levelTheme),
                 ],
               ),
-
-              // 🏅 Revealed goodies badges — full opacity, adapt to available space
-              if (_activeBadges.isNotEmpty)
-                Positioned(
-                  right: 8,
-                  top: 56,
-                  bottom: 60,
-                  child: SizedBox(
-                    width: 80,
-                    child: Wrap(
-                      direction: Axis.vertical,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _activeBadges.map((goodie) {
-                        final ui.Image? img = GoodiesImageService.getImage(goodie.id);
-                        final badgeColor = goodie.isLegendary
-                            ? goodie.rarity.color
-                            : levelTheme.flowColor;
-                        return MouseRegion(
-                          onEnter: goodie.hasAudio
-                              ? (_) => AudioService.playAssetFile(goodie.audioPath!)
-                              : null,
-                          child: GestureDetector(
-                            onTap: goodie.hasAudio
-                                ? () => AudioService.playAssetFile(goodie.audioPath!)
-                                : null,
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: badgeColor,
-                                  width: goodie.isLegendary ? 3 : 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: badgeColor.withValues(alpha: 0.5),
-                                    blurRadius: 12,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: ClipOval(
-                                child: img != null
-                                    ? RawImage(image: img, fit: BoxFit.cover)
-                                    : Center(
-                                        child: Text(goodie.emoji,
-                                            style: const TextStyle(fontSize: 22))),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
 
               // Floating Admiration Banner during the 3-second celebration window
               if (gameState.isComplete && !_showVictoryOverlay)
@@ -412,47 +410,54 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   top: 70,
                   left: 24,
                   right: 24,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: levelTheme.flowColor.withValues(alpha: 0.4),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.stars_rounded, color: levelTheme.flowColor, size: 24),
-                          const SizedBox(width: 8),
-                          Text(
-                            'ALL PIPES CONNECTED! 🌊✨',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: levelTheme.flowColorDark,
-                              letterSpacing: 1.1,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: levelTheme.flowColor.withValues(alpha: 0.4),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.stars_rounded, color: levelTheme.flowColor, size: 24),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'ALL PIPES CONNECTED! 🌊✨',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: levelTheme.flowColorDark,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-              // Floating Talking Avatar Overlay (Ermete da Ferrara)
+              // Floating Talking Avatar Overlay (Ermete da Ferrara) — IgnorePointer so tiles stay tappable
               const Positioned(
                 bottom: 20,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: TalkingAvatarWidget(),
+                child: IgnorePointer(
+                  child: Center(
+                    child: TalkingAvatarWidget(),
+                  ),
                 ),
               ),
 
@@ -460,6 +465,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               if (gameState.isComplete && _showVictoryOverlay)
                 VictoryOverlay(
                   moveCount: gameState.moveCount,
+                  score: _lastVictoryScore,
                   revealedGoodies: gameState.ampolleGoodies.values.toList(),
                   onNextLevel: _handleNextLevel,
                   onPlayAgain: _handlePlayAgain,
@@ -473,109 +479,177 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     ); // Focus
   }
 
+  /// Dedicated non-overlapping horizontal bar for revealed MTG / Cauldron Goodies badges.
+  Widget _buildGoodiesShelf(LevelTheme levelTheme) {
+    return Container(
+      height: 54,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: _activeBadges.map((goodie) {
+            final ui.Image? img = GoodiesImageService.getImage(goodie.id);
+            final badgeColor = goodie.isLegendary
+                ? goodie.rarity.color
+                : levelTheme.flowColor;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: MouseRegion(
+                onEnter: goodie.hasAudio
+                    ? (_) => AudioService.playAssetFile(goodie.audioPath!)
+                    : null,
+                child: GestureDetector(
+                  onTap: goodie.hasAudio
+                      ? () => AudioService.playAssetFile(goodie.audioPath!)
+                      : null,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: badgeColor,
+                        width: goodie.isLegendary ? 2.5 : 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: badgeColor.withValues(alpha: 0.45),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: img != null
+                          ? RawImage(image: img, fit: BoxFit.cover)
+                          : Center(
+                              child: Text(
+                                goodie.emoji,
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTopBar(GameState gameState, LevelTheme theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Row(
         children: [
           // Back button
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.arrow_back_rounded),
-            iconSize: 28,
+            iconSize: 24,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
             color: const Color(0xFF333333),
           ),
-          // Level title
+          // Level title — Expanded so it takes remaining space and truncates gracefully
           Expanded(
-            child: Text(
-              _getLevelTitle(gameState),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF333333),
-              ),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          // Move counter
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.touch_app, size: 18, color: theme.flowColor),
-                const SizedBox(width: 4),
-                Text(
-                  '${gameState.moveCount}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: theme.flowColorDark,
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                _getLevelTitle(gameState),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
                 ),
-              ],
+                textAlign: TextAlign.left,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          // Progress indicator: connected/total tiles
-          if (gameState.grid != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(12),
-              ),
+          // Stats + PuffinLogin badge constrained to <=58% of screen width + FittedBox
+          // so even on 280px screens or with 3-digit move counts (249) and 100/100 tiles,
+          // the top bar NEVER overflows and always leaves room for the level title!
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: (MediaQuery.of(context).size.width * 0.58).clamp(80.0, 320.0),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.water_drop, size: 16, color: theme.flowColor),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${gameState.connectedTiles.length}/${gameState.grid!.rows * gameState.grid!.cols}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: theme.flowColorDark,
+                  // Move counter
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.touch_app, size: 14, color: theme.flowColor),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${gameState.moveCount}',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: theme.flowColorDark,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(width: 5),
+                  // Progress indicator: connected/total tiles
+                  if (gameState.grid != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.water_drop, size: 13, color: theme.flowColor),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${gameState.connectedTiles.length}/${gameState.grid!.rows * gameState.grid!.cols}',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: theme.flowColorDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(width: 4),
+                  // Reserve space on Web for the top-right <puffin-login> pill or show native badge
+                  const PuffinLoginBadge(reserveWebSpace: true),
                 ],
               ),
             ),
-          const SizedBox(width: 4),
-          // 🐞 DEBUG: Show all goodies catalog (LOCALHOST ONLY)
-          if (_isLocalhost())
-            IconButton(
-              onPressed: () => _showGoodiesCatalogDebug(context),
-              icon: const Icon(Icons.collections_bookmark, color: Colors.purple, size: 20),
-              tooltip: '🐞 Goodies Catalog (Debug)',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            ),
-          // Audio debug soundboard button (LOCALHOST ONLY)
-          if (_isLocalhost())
-            IconButton(
-              onPressed: () => AudioDebugDialog.show(context),
-              icon: const Icon(Icons.campaign_rounded, color: Color(0xFF38BDF8), size: 22),
-              tooltip: 'Audio Soundboard 🧪',
-            ),
-          // Audio mute toggle
-          IconButton(
-            onPressed: () {
-              setState(() {
-                AudioService.toggleMute();
-              });
-            },
-            icon: Icon(
-              AudioService.isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-              color: AudioService.isMuted ? Colors.grey.shade400 : theme.flowColorDark,
-              size: 22,
-            ),
-            tooltip: AudioService.isMuted ? 'Unmute Sound' : 'Mute Sound',
           ),
         ],
       ),
@@ -653,78 +727,111 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Widget _buildBottomBar(GameState gameState, LevelTheme theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      child: SizedBox(
+    Widget buildToolbarIconButton({
+      required VoidCallback onPressed,
+      required Widget icon,
+      required String tooltip,
+    }) {
+      return SizedBox(
+        width: 36,
         height: 36,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: IconButton(
+            onPressed: onPressed,
+            icon: icon,
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            tooltip: tooltip,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      child: SizedBox(
+        height: 38,
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
             // Hint button
-            SizedBox(
-              width: 36,
-              height: 36,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✨ Hints coming soon!'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.auto_fix_high),
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  color: theme.flowColor,
-                  tooltip: 'Hint',
-                ),
-              ),
+            buildToolbarIconButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✨ Hints coming soon!'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+              icon: Icon(Icons.auto_fix_high, color: theme.flowColor, size: 20),
+              tooltip: 'Hint',
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             // Reset button
-            SizedBox(
-              width: 36,
-              height: 36,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  onPressed: () {
-                    AudioService.playFailureVoice();
-                    ref.read(gameProvider.notifier).resetLevel();
-                  },
-                  icon: const Icon(Icons.refresh_rounded),
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  color: const Color(0xFF888888),
-                  tooltip: 'Reset',
-                ),
-              ),
+            buildToolbarIconButton(
+              onPressed: () {
+                AudioService.playFailureVoice();
+                ref.read(gameProvider.notifier).resetLevel();
+              },
+              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF888888), size: 20),
+              tooltip: 'Reset',
             ),
+            const SizedBox(width: 10),
+            // Audio mute toggle
+            buildToolbarIconButton(
+              onPressed: () {
+                setState(() {
+                  AudioService.toggleMute();
+                });
+              },
+              icon: Icon(
+                AudioService.isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                color: AudioService.isMuted ? Colors.grey.shade400 : theme.flowColorDark,
+                size: 20,
+              ),
+              tooltip: AudioService.isMuted ? 'Unmute Sound' : 'Mute Sound',
+            ),
+            const SizedBox(width: 10),
+            // 🏆 Hall of Fame button
+            buildToolbarIconButton(
+              onPressed: () => LeaderboardScreen.showModal(context),
+              icon: const Icon(Icons.emoji_events_rounded, color: Color(0xFFD97706), size: 20),
+              tooltip: 'Hall of Fame 🏆',
+            ),
+            if (_isLocalhost()) ...[
+              const SizedBox(width: 10),
+              buildToolbarIconButton(
+                onPressed: () => _showGoodiesCatalogDebug(context),
+                icon: const Icon(Icons.collections_bookmark, color: Colors.purple, size: 18),
+                tooltip: '🐞 Goodies Catalog (Debug)',
+              ),
+              const SizedBox(width: 10),
+              buildToolbarIconButton(
+                onPressed: () => AudioDebugDialog.show(context),
+                icon: const Icon(Icons.campaign_rounded, color: Color(0xFF38BDF8), size: 20),
+                tooltip: 'Audio Soundboard 🧪',
+              ),
+            ],
           ],
         ),
+      ),
+    ),
       ),
     );
   }

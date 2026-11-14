@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../app.dart' show routeObserver;
+import '../logic/js_bridge_stub.dart'
+    if (dart.library.js_interop) '../logic/js_bridge_web.dart' as js_bridge;
+import '../logic/puffin_bridge_stub.dart'
+    if (dart.library.js_interop) '../logic/puffin_bridge_web.dart';
+import '../logic/puffin_login.dart';
 import '../models/level.dart';
 import '../version.dart';
 import '../widgets/about_dialog.dart';
@@ -12,6 +18,7 @@ import '../widgets/animated_background.dart';
 import '../widgets/audio_debug_dialog.dart';
 import 'game_screen.dart';
 import 'goodies_catalog_screen.dart';
+import 'leaderboard_screen.dart';
 
 /// Home screen — Epic D&D Dungeon Plumber theme starring Riccardo, Ale & Seby.
 ///
@@ -29,6 +36,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
   final GlobalKey<AnimatedBackgroundState> _backgroundKey = GlobalKey<AnimatedBackgroundState>();
+  final GlobalKey _autoBtnKey = GlobalKey();
+  final GlobalKey _easyBtnKey = GlobalKey();
+  final GlobalKey _medBtnKey = GlobalKey();
+  final GlobalKey _hardBtnKey = GlobalKey();
+  final GlobalKey _playBtnKey = GlobalKey();
   Difficulty? _selectedDifficulty;
   bool _isControlsMinimized = false;
   Timer? _autoExpandTimer;
@@ -38,6 +50,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
     super.initState();
     // Allow all orientations on the Home Screen so phone rotation works freely
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    PuffinLogin.instance.init();
+    PuffinPlatformBridge.setWebHallOfFameVisible(false);
+
+    if (kIsWeb) {
+      final params = Uri.base.queryParameters;
+      final diffParam = params['difficulty']?.toLowerCase();
+      if (diffParam == 'easy') {
+        _selectedDifficulty = Difficulty.easy;
+      } else if (diffParam == 'medium' || diffParam == 'med') {
+        _selectedDifficulty = Difficulty.medium;
+      } else if (diffParam == 'hard') {
+        _selectedDifficulty = Difficulty.hard;
+      }
+      if (params['autostart'] == '1' || params['autostart'] == 'true') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _startPlay();
+        });
+      }
+    }
   }
 
   @override
@@ -67,22 +98,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
   }
 
   void _onAnimationStarted() {
-    // Automatically minimize controls deck when video begins so user enjoys the full scene
-    if (mounted) {
-      setState(() {
-        _isControlsMinimized = true;
-      });
+    // Keep controls deck expanded by default so players can always select difficulty and tap PLAY!
+    // Players can still manually tap the minimize chevron if they want an unobstructed view.
+  }
+
+  void _exportHomeRects() {
+    if (!kIsWeb || !mounted) return;
+    Map<String, double>? rectOf(GlobalKey k) {
+      final box = k.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return null;
+      final tl = box.localToGlobal(Offset.zero);
+      return {
+        'x': tl.dx + box.size.width / 2,
+        'y': tl.dy + box.size.height / 2,
+        'left': tl.dx,
+        'top': tl.dy,
+        'width': box.size.width,
+        'height': box.size.height,
+      };
     }
 
-    // Automatically expand controls back smoothly after 8 seconds
-    _autoExpandTimer?.cancel();
-    _autoExpandTimer = Timer(const Duration(seconds: 8), () {
-      if (mounted && _isControlsMinimized) {
-        setState(() {
-          _isControlsMinimized = false;
-        });
-      }
-    });
+    final map = <String, dynamic>{
+      'auto': rectOf(_autoBtnKey),
+      'easy': rectOf(_easyBtnKey),
+      'medium': rectOf(_medBtnKey),
+      'hard': rectOf(_hardBtnKey),
+      'play': rectOf(_playBtnKey),
+    };
+    js_bridge.setJsTubatureHomeRects(jsonEncode(map));
   }
 
   void _expandControls() {
@@ -105,6 +148,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape || size.width > size.height;
+
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _exportHomeRects());
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF161F28),
@@ -158,28 +205,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 1. Top Header Banner
-          _buildHeader(isCompact: false),
+          _buildHeader(isCompact: size.height < 720),
 
-          // 2. Generous middle space showing Riccardo, Ale, Seby & Dragon
-          const Spacer(),
-
-          // 3. Smoothly Animated Glassmorphic Bottom Deck / Minimized Pill
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            switchInCurve: Curves.easeOutBack,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.90, end: 1.0).animate(animation),
-                  child: child,
+          // 2. Scroll-safe bottom-aligned deck so even at +20% zoom or short viewports it never overflows
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    switchInCurve: Curves.easeOutBack,
+                    switchOutCurve: Curves.easeIn,
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: Tween<double>(begin: 0.90, end: 1.0).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _isControlsMinimized
+                        ? _buildMinimizedPill(key: const ValueKey('minimized_portrait'))
+                        : _buildFullPortraitDeck(key: const ValueKey('full_portrait')),
+                  ),
                 ),
-              );
-            },
-            child: _isControlsMinimized
-                ? _buildMinimizedPill(key: const ValueKey('minimized_portrait'))
-                : _buildFullPortraitDeck(key: const ValueKey('full_portrait')),
+              ),
+            ),
           ),
         ],
       ),
@@ -219,6 +274,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
           const SizedBox(height: 8),
 
           // 2x2 Difficulty Cards
+          _buildPuffinHeroBar(isShort: false),
+          const SizedBox(height: 8),
           _buildGridDifficultySelector(isShort: false),
           const SizedBox(height: 12),
 
@@ -329,6 +386,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
                 ],
               ),
               SizedBox(height: isShort ? 6 : 10),
+              _buildPuffinHeroBar(isShort: isShort),
+              SizedBox(height: isShort ? 6 : 8),
               _buildGridDifficultySelector(isShort: isShort),
               SizedBox(height: isShort ? 6 : 12),
               _buildPlayButton(
@@ -516,26 +575,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'TUBATURE',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: isCompact ? 28 : 38,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFFFFD54F),
-              letterSpacing: isCompact ? 3 : 4,
-              shadows: const [
-                Shadow(
-                  color: Color(0xFFFF8F00),
-                  blurRadius: 16,
-                  offset: Offset(0, 2),
-                ),
-                Shadow(
-                  color: Colors.black,
-                  blurRadius: 8,
-                  offset: Offset(0, 3),
-                ),
-              ],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'TUBATURE',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isCompact ? 28 : 38,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFFFFD54F),
+                letterSpacing: isCompact ? 3 : 4,
+                shadows: const [
+                  Shadow(
+                    color: Color(0xFFFF8F00),
+                    blurRadius: 16,
+                    offset: Offset(0, 2),
+                  ),
+                  Shadow(
+                    color: Colors.black,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
             ),
           ),
           Text(
@@ -573,6 +635,107 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
     );
   }
 
+  Widget _buildPuffinHeroBar({required bool isShort}) {
+    return ListenableBuilder(
+      listenable: PuffinLogin.instance,
+      builder: (context, _) {
+        final user = PuffinLogin.instance.currentUser;
+        final isIt = PuffinLogin.instance.lang == 'it';
+        final borderColor = user?.color ?? const Color(0xFFFFD54F);
+
+        return Row(
+          children: [
+            Expanded(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () => PuffinLogin.instance.openLoginModal(context),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: isShort ? 4 : 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF121528).withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: borderColor, width: 1.6),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (user != null) ...[
+                          PuffinAvatarWidget(
+                            profile: user,
+                            size: isShort ? 20 : 24,
+                            borderWidth: 1.5,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              '${user.shortName} • ${isIt ? "Cambia eroe" : "Switch Hero"}',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: isShort ? 11 : 12,
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          const Icon(Icons.lock_outline, size: 15, color: Color(0xFFFFD54F)),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              isIt ? 'Login (PuffinLogin)' : 'Log in (PuffinLogin)',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: isShort ? 11 : 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: () => LeaderboardScreen.showModal(context),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: isShort ? 5 : 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF121528).withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFFFD54F), width: 1.5),
+                  ),
+                  child: Text(
+                    '🏆 Hall of Fame',
+                    style: TextStyle(
+                      color: const Color(0xFFFFD54F),
+                      fontWeight: FontWeight.w900,
+                      fontSize: isShort ? 11 : 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// 2x2 grid selector for both portrait and landscape
   Widget _buildGridDifficultySelector({bool isShort = false}) {
     return Column(
@@ -582,6 +745,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
           children: [
             Expanded(
               child: _DifficultyCard(
+                key: _autoBtnKey,
                 label: 'Auto ⚡',
                 subLabel: 'Ramps up',
                 isShort: isShort,
@@ -593,6 +757,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
             const SizedBox(width: 8),
             Expanded(
               child: _DifficultyCard(
+                key: _easyBtnKey,
                 label: 'Easy 🟢',
                 subLabel: '6×6 grid',
                 isShort: isShort,
@@ -608,6 +773,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
           children: [
             Expanded(
               child: _DifficultyCard(
+                key: _medBtnKey,
                 label: 'Med 🟡',
                 subLabel: '7-8 grid',
                 isShort: isShort,
@@ -619,6 +785,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
             const SizedBox(width: 8),
             Expanded(
               child: _DifficultyCard(
+                key: _hardBtnKey,
                 label: 'Hard 🔴',
                 subLabel: '9-10 grid',
                 isShort: isShort,
@@ -635,6 +802,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
 
   Widget _buildPlayButton({required double height, required double fontSize}) {
     return SizedBox(
+      key: _playBtnKey,
       height: height,
       child: ElevatedButton(
         onPressed: _startPlay,
@@ -925,6 +1093,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
   }
 
   void _startPlay() {
+    if (kIsWeb && !PuffinLogin.instance.isLoggedIn) {
+      PuffinLogin.instance.openLoginModal(context, mandatory: true);
+      return;
+    }
+    PuffinPlatformBridge.setWebHallOfFameVisible(false);
     _stopBackgroundVideo();
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -936,6 +1109,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with RouteAware {
   }
 
   void _startTutorial() {
+    if (kIsWeb && !PuffinLogin.instance.isLoggedIn) {
+      PuffinLogin.instance.openLoginModal(context, mandatory: true);
+      return;
+    }
+    PuffinPlatformBridge.setWebHallOfFameVisible(false);
     _stopBackgroundVideo();
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -956,6 +1134,7 @@ class _DifficultyCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _DifficultyCard({
+    super.key,
     required this.label,
     required this.subLabel,
     this.isShort = false,

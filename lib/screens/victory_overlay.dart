@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../logic/puffin_login.dart';
 import '../models/cauldron_goodie.dart';
 import '../models/cauldron_goodies_catalog.dart';
 import '../services/goodies_image_service.dart';
+import 'leaderboard_screen.dart';
 import 'polaroid_mosaic_overlay.dart';
 import '../widgets/goodie_carousel_dialog.dart';
 
@@ -13,6 +15,7 @@ import '../widgets/goodie_carousel_dialog.dart';
 /// move count, revealed goodies gallery, and next level / play again buttons.
 class VictoryOverlay extends StatefulWidget {
   final int moveCount;
+  final int? score;
   final List<CauldronGoodie> revealedGoodies;
   final VoidCallback onNextLevel;
   final VoidCallback onPlayAgain;
@@ -20,6 +23,7 @@ class VictoryOverlay extends StatefulWidget {
   const VictoryOverlay({
     super.key,
     required this.moveCount,
+    this.score,
     this.revealedGoodies = const [],
     required this.onNextLevel,
     required this.onPlayAgain,
@@ -129,7 +133,7 @@ class _VictoryOverlayState extends State<VictoryOverlay>
             },
           ),
 
-          // Victory card — DRAGGABLE! 🧪
+          // Victory card — DRAGGABLE & RESPONSIVE! 🧪
           Center(
             child: Transform.translate(
               offset: _dragOffset,
@@ -141,186 +145,284 @@ class _VictoryOverlayState extends State<VictoryOverlay>
                 },
                 child: ScaleTransition(
                   scale: _scaleAnimation,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: 380,
+                      maxHeight: MediaQuery.of(context).size.height * 0.88,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Drag handle indicator ⬍
-                        Container(
-                          width: 40,
-                          height: 5,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFCCCCCC),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                        Text(
-                          _celebrationText,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Solved in ${widget.moveCount} moves!',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFF666666),
-                          ),
-                        ),
-                        // Goodies gallery 🧪
-                        if (widget.revealedGoodies.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          const Text(
-                            '🧪 Discovered:',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF999999),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            alignment: WrapAlignment.center,
-                            children: widget.revealedGoodies.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final goodie = entry.value;
-                              final ui.Image? img = GoodiesImageService.getImage(goodie.id);
-                              return GestureDetector(
-                                key: ValueKey('goodie_badge_${goodie.id}'),
-                                onTap: () => _openGoodiesCarousel(context, index),
-                                child: Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: goodie.isLegendary
-                                            ? const Color(0xFFFFD700)
-                                            : const Color(0xFFDDDDDD),
-                                        width: goodie.isLegendary ? 2 : 1,
-                                      ),
-                                      boxShadow: goodie.isLegendary
-                                          ? [
-                                              BoxShadow(
-                                                color: const Color(0xFFFFD700).withValues(alpha: 0.4),
-                                                blurRadius: 8,
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    child: ClipOval(
-                                      child: img != null
-                                          ? RawImage(image: img, fit: BoxFit.cover)
-                                          : Image.asset(
-                                              goodie.assetPath,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (ctx, err, stack) =>
-                                                  Center(child: Text(goodie.emoji, style: const TextStyle(fontSize: 20))),
-                                            ),
-                                    ),
-                                ),
-                              );
-                            }).toList(),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
                         ],
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: 240,
-                          height: 48,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              final goodiesToShow = widget.revealedGoodies.isNotEmpty
-                                  ? widget.revealedGoodies
-                                  : CauldronGoodiesCatalog.all;
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (ctx) => PolaroidMosaicOverlay(
-                                    goodies: goodiesToShow,
-                                    moveCount: widget.moveCount,
-                                    onNextLevel: () {
-                                      Navigator.of(ctx).pop();
-                                      widget.onNextLevel();
-                                    },
-                                    onPlayAgain: () {
-                                      Navigator.of(ctx).pop();
-                                      widget.onPlayAgain();
-                                    },
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Drag handle indicator ⬍
+                            Container(
+                              width: 40,
+                              height: 5,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFCCCCCC),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _celebrationText,
+                                style: const TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF333333),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Solved in ${widget.moveCount} moves!',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                color: Color(0xFF666666),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ListenableBuilder(
+                              listenable: PuffinLogin.instance,
+                              builder: (context, _) {
+                                final user = PuffinLogin.instance.currentUser ??
+                                    getPuffinProfileById('guest');
+                                final resolvedScore = widget.score ??
+                                    calculateTubatureScore(
+                                      difficulty: 'Easy',
+                                      totalTiles: 36,
+                                      moves: widget.moveCount,
+                                      levelsCompleted: 0,
+                                    );
+                                return Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  alignment: WrapAlignment.center,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF121528),
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(color: user.color, width: 1.8),
+                                      ),
+                                      child: Text(
+                                        '${user.emoji} ${user.shortName} • $resolvedScore pt',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w900,
+                                          color: user.color,
+                                        ),
+                                      ),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () => LeaderboardScreen.showModal(context),
+                                      icon: const Text('🏆', style: TextStyle(fontSize: 14)),
+                                      label: const Text(
+                                        'Hall of Fame',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: const Color(0xFF121528),
+                                        side: const BorderSide(color: Color(0xFFFACC15), width: 1.8),
+                                        backgroundColor: const Color(0xFFFEF9C3),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            // Goodies gallery 🧪
+                            if (widget.revealedGoodies.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              const Text(
+                                '🧪 Discovered:',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF999999),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                alignment: WrapAlignment.center,
+                                children: widget.revealedGoodies.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final goodie = entry.value;
+                                  final ui.Image? img = GoodiesImageService.getImage(goodie.id);
+                                  return GestureDetector(
+                                    key: ValueKey('goodie_badge_${goodie.id}'),
+                                    onTap: () => _openGoodiesCarousel(context, index),
+                                    child: Container(
+                                      width: 46,
+                                      height: 46,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: goodie.isLegendary
+                                              ? const Color(0xFFFFD700)
+                                              : const Color(0xFFDDDDDD),
+                                          width: goodie.isLegendary ? 2 : 1,
+                                        ),
+                                        boxShadow: goodie.isLegendary
+                                            ? [
+                                                BoxShadow(
+                                                  color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                                                  blurRadius: 8,
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: ClipOval(
+                                        child: img != null
+                                            ? RawImage(image: img, fit: BoxFit.cover)
+                                            : Image.asset(
+                                                goodie.assetPath,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (ctx, err, stack) => Center(
+                                                  child: Text(
+                                                    goodie.emoji,
+                                                    style: const TextStyle(fontSize: 20),
+                                                  ),
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minWidth: 220,
+                                maxWidth: 260,
+                                minHeight: 48,
+                              ),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    final goodiesToShow = widget.revealedGoodies.isNotEmpty
+                                        ? widget.revealedGoodies
+                                        : CauldronGoodiesCatalog.all;
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (ctx) => PolaroidMosaicOverlay(
+                                          goodies: goodiesToShow,
+                                          moveCount: widget.moveCount,
+                                          onNextLevel: () {
+                                            Navigator.of(ctx).pop();
+                                            widget.onNextLevel();
+                                          },
+                                          onPlayAgain: () {
+                                            Navigator.of(ctx).pop();
+                                            widget.onPlayAgain();
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Text('📸', style: TextStyle(fontSize: 18)),
+                                  label: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Mosaico Polaroid ✨',
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF673AB7),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    elevation: 2,
                                   ),
                                 ),
-                              );
-                            },
-                            icon: const Text('📸', style: TextStyle(fontSize: 18)),
-                            label: const Text(
-                              'Mosaico Polaroid ✨',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF673AB7),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                            const SizedBox(height: 10),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                minWidth: 220,
+                                maxWidth: 260,
+                                minHeight: 52,
                               ),
-                              elevation: 2,
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: widget.onNextLevel,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF4CAF50),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    elevation: 3,
+                                  ),
+                                  child: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Next Level 🐉',
+                                      maxLines: 1,
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: widget.onPlayAgain,
+                              child: const Text(
+                                'Play Again 🔄',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF888888),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: 240,
-                          height: 54,
-                          child: ElevatedButton(
-                            onPressed: widget.onNextLevel,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4CAF50),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 3,
-                            ),
-                            child: const Text(
-                              'Next Level 🐉',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: widget.onPlayAgain,
-                          child: const Text(
-                            'Play Again 🔄',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF888888),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

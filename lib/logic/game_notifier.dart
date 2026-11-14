@@ -200,6 +200,7 @@ class GameNotifier extends Notifier<GameState> {
         moveCount: 0,
         isComplete: false,
       );
+      _exportGridToJs();
     }
   }
 
@@ -332,6 +333,11 @@ class GameNotifier extends Notifier<GameState> {
       'difficulty': state.difficultyLabel,
       'levelNumber': state.currentLevelNumber,
       'levelsCompleted': state.levelsCompleted,
+      'grid': '${grid.rows}x${grid.cols}',
+      'grid_size': grid.rows,
+      'goodiesUnlocked': state.ampolleGoodies.values
+          .map((g) => 'tubature:${g.id}')
+          .toList(),
     });
 
     _setTubatureGrid(data);
