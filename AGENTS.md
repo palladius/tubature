@@ -38,7 +38,10 @@ Tubature is a pipe-puzzle game built with Flutter/Dart. The player rotates tiles
 
 ## UX & Platform Priorities
 - **Android-first**, Web second, iOS third
-- Primary audience: **kids** — large, finger-friendly tap targets (minimum 48×48dp, prefer 56×56dp+)
+- Primary audience: **kids** — finger-friendly tap targets with **deterministic 100% viewport auto-fit**: NEVER clamp grid tile sizes to a fixed minimum like `48.0` (which overflows `7×7`–`10×10` boards on Pixel 10 portrait `412×915` and `+20%` zoom `343×762`); always use `LayoutBuilder` auto-fit (`tileSize.clamp(1.0, 120.0)`) + `InteractiveViewer` pinch-to-zoom (`1.0x`–`2.5x`, auto-resetting on victory)
+- Never place floating badge overlays (`_activeBadges`) in a `Stack` over the puzzle grid on mobile portrait — use the dedicated non-overlapping `_buildGoodiesShelf` inside the main `Column`
+- Export `RenderBox` bounds to `window._tubatureBoardRect` and `window._tubatureHomeRects` for deterministic Chrome CDP verification, and pass `-vf "scale=trunc(iw/2)*2:trunc(ih/2)*2"` to `ffmpeg` (`libx264` / `yuv420p`) when recording odd-height mobile viewports (`412×915`)
+- **Raspberry Pi 400 ("Sguisatazzo") Turbo Compliance (`v2.13.0+`)**: Maintain `PerformanceConfig` (`lib/logic/performance_config.dart`) with `targetWidth: 128` texture downscaling, `RepaintBoundary` per tile, zero-idle-CPU tickers, no `saveLayer`/`MaskFilter.blur`/`BackdropFilter` in RPi mode, and `delete window.ImageDecoder` in `web/index.html` for WebKit2GTK (`sguisa-game-runner`).
 - Tiles must be easy to tap on a Pixel 10 screen without accidental mis-taps
 - **Colorful, fun, swift** — prioritize playability and joy over features
 - Smooth rotation animations (≤200ms), satisfying color flood, clear victory celebration
